@@ -1,0 +1,395 @@
+<!DOCTYPE html><html lang="vi" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>TechToShop - Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "secondary-container": "#db3514",
+                "surface-container-lowest": "#ffffff",
+                "on-tertiary-container": "#fffbff",
+                "on-secondary-fixed": "#3e0500",
+                "on-primary-fixed-variant": "#8d1600",
+                "tertiary": "#bb0017",
+                "on-primary-fixed": "#3e0500",
+                "on-secondary-container": "#fffbff",
+                "outline-variant": "#e3beb6",
+                "surface-bright": "#fbf9f9",
+                "outline": "#8f7069",
+                "on-tertiary-fixed-variant": "#93000f",
+                "surface-container": "#efeded",
+                "on-error": "#ffffff",
+                "on-surface-variant": "#5b403b",
+                "on-secondary": "#ffffff",
+                "on-surface": "#1b1c1c",
+                "secondary-fixed-dim": "#ffb4a4",
+                "surface": "#fbf9f9",
+                "on-background": "#1b1c1c",
+                "background": "#fbf9f9",
+                "inverse-primary": "#ffb4a4",
+                "surface-variant": "#e3e2e2",
+                "surface-container-high": "#e9e8e7",
+                "inverse-surface": "#303031",
+                "on-error-container": "#93000a",
+                "secondary-fixed": "#ffdad3",
+                "primary-fixed": "#ffdad3",
+                "on-secondary-fixed-variant": "#8d1600",
+                "on-tertiary-fixed": "#410003",
+                "surface-dim": "#dbdad9",
+                "on-primary": "#ffffff",
+                "primary-container": "#d63c1e",
+                "error-container": "#ffdad6",
+                "primary": "#b22204",
+                "on-tertiary": "#ffffff",
+                "error": "#ba1a1a",
+                "primary-fixed-dim": "#ffb4a4",
+                "tertiary-fixed": "#ffdad6",
+                "tertiary-fixed-dim": "#ffb3ac",
+                "surface-container-low": "#f5f3f3",
+                "secondary": "#b41f00",
+                "on-primary-container": "#fffbff",
+                "inverse-on-surface": "#f2f0f0",
+                "surface-container-highest": "#e3e2e2",
+                "tertiary-container": "#e51d27",
+                "surface-tint": "#b62506",
+                "status-success": "#16A34A",
+                "status-warning": "#F59E0B"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.5rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "margin-desktop": "auto",
+                "base": "4px",
+                "xl": "48px",
+                "sm": "8px",
+                "max-width": "1200px",
+                "margin-mobile": "12px",
+                "gutter": "12px",
+                "xs": "4px",
+                "lg": "24px",
+                "md": "16px",
+                "unit-1": "4px",
+                "unit-8": "32px",
+                "container-max": "1440px",
+                "unit-4": "16px",
+                "unit-3": "12px",
+                "unit-12": "48px",
+                "unit-6": "24px",
+                "unit-2": "8px"
+        },
+        "fontFamily": {
+                "price-lg": [
+                        "Inter"
+                ],
+                "label-md": [
+                        "Inter"
+                ],
+                "display-lg": [
+                        "Inter"
+                ],
+                "price-sm": [
+                        "Inter"
+                ],
+                "headline-md": [
+                        "Inter"
+                ],
+                "body-md": [
+                        "Inter"
+                ],
+                "headline-lg-mobile": [
+                        "Inter"
+                ],
+                "headline-lg": [
+                        "Inter"
+                ],
+                "body-lg": [
+                        "Inter"
+                ],
+                "label-sm": ["Inter"],
+                "title-lg": ["Inter"]
+        },
+        "fontSize": {
+                "price-lg": [
+                        "24px",
+                        {
+                                "lineHeight": "1",
+                                "fontWeight": "600"
+                        }
+                ],
+                "label-md": [
+                        "12px",
+                        {
+                                "lineHeight": "1.2",
+                                "fontWeight": "500"
+                        }
+                ],
+                "display-lg": [
+                        "48px",
+                        {
+                                "lineHeight": "1.2",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "price-sm": [
+                        "14px",
+                        {
+                                "lineHeight": "1",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-md": [
+                        "20px",
+                        {
+                                "lineHeight": "1.4",
+                                "fontWeight": "600"
+                        }
+                ],
+                "body-md": [
+                        "14px",
+                        {
+                                "lineHeight": "1.5",
+                                "fontWeight": "400"
+                        }
+                ],
+                "headline-lg-mobile": [
+                        "24px",
+                        {
+                                "lineHeight": "1.3",
+                                "fontWeight": "700"
+                        }
+                ],
+                "headline-lg": [
+                        "32px",
+                        {
+                                "lineHeight": "1.25",
+                                "fontWeight": "700"
+                        }
+                ],
+                "body-lg": [
+                        "16px",
+                        {
+                                "lineHeight": "1.5",
+                                "fontWeight": "400"
+                        }
+                ],
+                "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                "title-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }]
+        }
+},
+    },
+  }
+</script>
+</head>
+<body class="bg-background font-body-md text-on-surface antialiased h-screen flex overflow-hidden">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-[280px] py-unit-6 flex flex-col bg-surface-container-low dark:bg-inverse-surface shadow-md z-10">
+<div class="px-unit-6 mb-unit-8">
+<h1 class="text-headline-md font-headline-md text-primary dark:text-inverse-primary">TechToShop</h1>
+<p class="text-label-sm font-label-sm text-on-surface-variant mt-unit-1 font-medium">Admin/Seller Panel</p>
+</div>
+<nav class="flex-1 px-unit-3 flex flex-col gap-unit-2">
+<!-- Active Tab: Dashboard (Mapping to "Overview" intent) -->
+<a class="flex items-center gap-unit-3 bg-[#EE4D2D]/10 text-[#EE4D2D] border-l-4 border-[#EE4D2D] rounded-r-full p-unit-3 opacity-100 transition-all duration-200 text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                Dashboard
+            </a>
+<!-- Inactive Tabs -->
+<a class="flex items-center gap-unit-3 text-on-surface-variant dark:text-surface-variant p-unit-3 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-r-full text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined">shopping_bag</span>
+                Đơn hàng
+            </a>
+<a class="flex items-center gap-unit-3 text-on-surface-variant dark:text-surface-variant p-unit-3 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-r-full text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+                Sản phẩm
+            </a>
+<a class="flex items-center gap-unit-3 text-on-surface-variant dark:text-surface-variant p-unit-3 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-r-full text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined">warehouse</span>
+                Kho hàng
+            </a>
+<a class="flex items-center gap-unit-3 text-on-surface-variant dark:text-surface-variant p-unit-3 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-r-full text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined">analytics</span>
+                Báo cáo
+            </a>
+<a class="flex items-center gap-unit-3 text-on-surface-variant dark:text-surface-variant p-unit-3 hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-r-full text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined">settings</span>
+                Cài đặt
+            </a>
+</nav>
+<div class="px-unit-6 mt-auto">
+<button class="w-full bg-[#EE4D2D] text-white py-unit-3 rounded-DEFAULT text-label-md font-label-md hover:opacity-90 transition-opacity">
+                Thêm sản phẩm mới
+            </button>
+<div class="mt-unit-6 pt-unit-4 border-t border-outline-variant">
+<a class="flex items-center gap-unit-3 text-on-surface-variant p-unit-3 hover:bg-surface-container-high transition-all rounded-r-full text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined">logout</span>
+                    Đăng xuất
+                </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-[280px] flex-1 flex flex-col h-full bg-background overflow-hidden relative">
+<!-- Header area for the content -->
+<header class="w-full px-gutter py-unit-6 flex justify-between items-center bg-surface-container-lowest border-b border-outline-variant z-0">
+<div>
+<h2 class="text-headline-md font-headline-md text-on-surface">Quản lý hệ thống cửa hàng</h2>
+<div class="flex items-center gap-2 mt-unit-1 text-label-sm font-label-sm text-on-surface-variant">
+<span class="">Dashboard</span>
+<span class="material-symbols-outlined" style="font-size: 16px;">chevron_right</span>
+<span class="text-primary font-medium">Danh sách cửa hàng</span>
+</div>
+</div>
+<div class="flex gap-unit-3">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="h-10 pl-10 pr-4 rounded-DEFAULT border border-outline-variant bg-surface-container-lowest text-body-md font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent w-64 shadow-sm" placeholder="Tìm kiếm cửa hàng..." type="text">
+</div>
+<button class="flex items-center gap-2 bg-surface-container-lowest text-on-surface border border-outline-variant px-4 py-2 rounded-DEFAULT text-label-md font-label-md hover:bg-surface-container-low transition-colors shadow-sm">
+<span class="material-symbols-outlined">filter_list</span>
+                    Lọc
+                </button>
+</div>
+</header>
+<!-- Canvas -->
+<div class="flex-1 overflow-y-auto p-gutter relative">
+<!-- Table Card -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant shadow-sm overflow-hidden flex flex-col bg-white relative z-0">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low border-b border-outline-variant">
+<tr>
+<th class="py-unit-4 px-unit-6 text-label-md font-label-md text-on-surface-variant font-semibold w-16 antialiased">Logo</th>
+<th class="py-unit-4 px-unit-6 text-label-md font-label-md text-on-surface-variant font-semibold antialiased">Tên cửa hàng</th>
+<th class="py-unit-4 px-unit-6 text-label-md font-label-md text-on-surface-variant font-semibold antialiased">Chủ cửa hàng</th>
+<th class="py-unit-4 px-unit-6 text-label-md font-label-md text-on-surface-variant font-semibold text-right antialiased">Số sản phẩm</th>
+<th class="py-unit-4 px-unit-6 text-label-md font-label-md text-on-surface-variant font-semibold text-right antialiased">Doanh thu hệ thống</th>
+<th class="py-unit-4 px-unit-6 text-label-md font-label-md text-on-surface-variant font-semibold text-center antialiased">Trạng thái</th>
+<th class="py-unit-4 px-unit-6 text-label-md font-label-md text-on-surface-variant font-semibold text-right antialiased">Thao tác</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="py-unit-4 px-unit-6">
+<div class="w-10 h-10 rounded-DEFAULT bg-primary-fixed flex items-center justify-center text-primary font-bold text-title-lg">T</div>
+</td>
+<td class="py-unit-4 px-unit-6">
+<div class="text-body-md font-body-md font-semibold text-on-surface">TechZone</div>
+<div class="text-label-sm font-label-sm text-on-surface-variant mt-0.5 opacity-70">ID: ST-10024</div>
+</td>
+<td class="py-unit-4 px-unit-6 text-body-md font-body-md text-on-surface">Nguyễn Văn A</td>
+<td class="py-unit-4 px-unit-6 text-body-md font-body-md text-on-surface text-right">1,250</td>
+<td class="py-unit-4 px-unit-6 text-body-md font-body-md text-on-surface text-right font-medium">500.000.000 ₫</td>
+<td class="py-unit-4 px-unit-6 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-status-success/10 text-status-success border border-status-success/20">
+                                        Đang hoạt động
+                                    </span>
+</td>
+<td class="py-unit-4 px-unit-6 text-right">
+<div class="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-primary hover:text-on-primary-fixed-variant text-label-sm font-label-sm flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined" style="font-size: 18px;">visibility</span> Xem chi tiết
+                                        </button>
+<div class="w-px h-4 bg-outline-variant"></div>
+<button class="text-error hover:text-on-error-container text-label-sm font-label-sm flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined" style="font-size: 18px;">block</span> Đình chỉ
+                                        </button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="py-unit-4 px-unit-6">
+<div class="w-10 h-10 rounded-DEFAULT bg-secondary-fixed flex items-center justify-center text-secondary font-bold text-title-lg">F</div>
+</td>
+<td class="py-unit-4 px-unit-6">
+<div class="text-body-md font-body-md font-semibold text-on-surface">Fashion Hub</div>
+<div class="text-label-sm font-label-sm text-on-surface-variant mt-0.5 opacity-70">ID: ST-10045</div>
+</td>
+<td class="py-unit-4 px-unit-6 text-body-md font-body-md text-on-surface">Trần Thị B</td>
+<td class="py-unit-4 px-unit-6 text-body-md font-body-md text-on-surface text-right">850</td>
+<td class="py-unit-4 px-unit-6 text-body-md font-body-md text-on-surface text-right font-medium">350.000.000 ₫</td>
+<td class="py-unit-4 px-unit-6 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-status-success/10 text-status-success border border-status-success/20">
+                                        Đang hoạt động
+                                    </span>
+</td>
+<td class="py-unit-4 px-unit-6 text-right">
+<div class="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-primary hover:text-on-primary-fixed-variant text-label-sm font-label-sm flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined" style="font-size: 18px;">visibility</span> Xem chi tiết
+                                        </button>
+<div class="w-px h-4 bg-outline-variant"></div>
+<button class="text-error hover:text-on-error-container text-label-sm font-label-sm flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined" style="font-size: 18px;">block</span> Đình chỉ
+                                        </button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="py-unit-4 px-unit-6">
+<div class="w-10 h-10 rounded-DEFAULT bg-surface-container-highest flex items-center justify-center text-on-surface-variant font-bold text-title-lg">H</div>
+</td>
+<td class="py-unit-4 px-unit-6">
+<div class="text-body-md font-body-md font-semibold text-on-surface opacity-70">HomeMart</div>
+<div class="text-label-sm font-label-sm text-on-surface-variant mt-0.5 opacity-70">ID: ST-10088</div>
+</td>
+<td class="py-unit-4 px-unit-6 text-body-md font-body-md text-on-surface opacity-70">Lê Văn C</td>
+<td class="py-unit-4 px-unit-6 text-body-md font-body-md text-on-surface text-right opacity-70">420</td>
+<td class="py-unit-4 px-unit-6 text-body-md font-body-md text-on-surface text-right font-medium opacity-70">120.000.000 ₫</td>
+<td class="py-unit-4 px-unit-6 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-status-warning/10 text-status-warning border border-status-warning/20">
+                                        Tạm ngưng
+                                    </span>
+</td>
+<td class="py-unit-4 px-unit-6 text-right">
+<div class="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-primary hover:text-on-primary-fixed-variant text-label-sm font-label-sm flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined" style="font-size: 18px;">visibility</span> Xem chi tiết
+                                        </button>
+<div class="w-px h-4 bg-outline-variant"></div>
+<button class="text-on-surface-variant hover:text-on-surface text-label-sm font-label-sm flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined" style="font-size: 18px;">settings_backup_restore</span> Khôi phục
+                                        </button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<div class="bg-surface-container-lowest border-t border-outline-variant px-unit-6 py-unit-4 flex items-center justify-between">
+<div class="text-label-sm font-label-sm text-on-surface-variant">
+                        Hiển thị <span class="font-semibold text-on-surface">1</span> đến <span class="font-semibold text-on-surface">3</span> trong số <span class="font-semibold text-on-surface">3</span> cửa hàng
+                    </div>
+<div class="flex gap-2">
+<button class="px-3 py-1.5 border border-outline-variant rounded-DEFAULT text-label-sm font-label-sm text-on-surface-variant hover:bg-surface-container-low transition-colors disabled:opacity-50" disabled="">Trước</button>
+<button class="px-3 py-1.5 border border-[#EE4D2D] bg-[#EE4D2D] text-white rounded-DEFAULT text-label-sm font-label-sm transition-colors">1</button>
+<button class="px-3 py-1.5 border border-outline-variant rounded-DEFAULT text-label-sm font-label-sm text-on-surface-variant hover:bg-surface-container-low transition-colors disabled:opacity-50" disabled="">Sau</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+
+
+
+
+</body></html>
