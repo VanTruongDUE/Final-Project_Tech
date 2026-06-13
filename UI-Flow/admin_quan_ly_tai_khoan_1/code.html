@@ -1,0 +1,435 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Admin - Quan ly tai khoan</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-low": "#f5f3f3",
+                      "surface-variant": "#e3e2e2",
+                      "surface-bright": "#fbf9f9",
+                      "on-primary-fixed-variant": "#8d1600",
+                      "surface-container-high": "#e9e8e7",
+                      "surface-dim": "#dbdad9",
+                      "on-secondary-container": "#fffbff",
+                      "secondary-container": "#db3514",
+                      "on-secondary-fixed": "#3e0500",
+                      "on-tertiary-container": "#fffbff",
+                      "secondary": "#b41f00",
+                      "tertiary-fixed": "#ffdad6",
+                      "on-tertiary-fixed": "#410003",
+                      "on-error": "#ffffff",
+                      "surface-container-lowest": "#ffffff",
+                      "error": "#ba1a1a",
+                      "surface": "#fbf9f9",
+                      "tertiary": "#bb0017",
+                      "secondary-fixed-dim": "#ffb4a4",
+                      "primary": "#b22204",
+                      "on-tertiary": "#ffffff",
+                      "on-primary-fixed": "#3e0500",
+                      "surface-tint": "#b62506",
+                      "on-primary": "#ffffff",
+                      "error-container": "#ffdad6",
+                      "tertiary-container": "#e51d27",
+                      "on-secondary-fixed-variant": "#8d1600",
+                      "surface-container": "#efeded",
+                      "on-error-container": "#93000a",
+                      "primary-fixed-dim": "#ffb4a4",
+                      "on-tertiary-fixed-variant": "#93000f",
+                      "on-surface-variant": "#5b403b",
+                      "secondary-fixed": "#ffdad3",
+                      "outline-variant": "#e3beb6",
+                      "primary-container": "#d63c1e",
+                      "outline": "#8f7069",
+                      "inverse-surface": "#303031",
+                      "surface-container-highest": "#e3e2e2",
+                      "tertiary-fixed-dim": "#ffb3ac",
+                      "inverse-on-surface": "#f2f0f0",
+                      "on-secondary": "#ffffff",
+                      "on-surface": "#1b1c1c",
+                      "background": "#fbf9f9",
+                      "primary-fixed": "#ffdad3",
+                      "inverse-primary": "#ffb4a4",
+                      "on-primary-container": "#fffbff",
+                      "on-background": "#1b1c1c"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "md": "16px",
+                      "sm": "8px",
+                      "base": "4px",
+                      "margin-mobile": "12px",
+                      "xs": "4px",
+                      "xl": "48px",
+                      "margin-desktop": "auto",
+                      "max-width": "1200px",
+                      "lg": "24px",
+                      "gutter": "12px"
+              },
+              "fontFamily": {
+                      "headline-lg-mobile": ["Inter"],
+                      "price-sm": ["Inter"],
+                      "headline-lg": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "label-md": ["Inter"],
+                      "price-lg": ["Inter"],
+                      "body-md": ["Inter"],
+                      "display-lg": ["Inter"],
+                      "body-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "headline-lg-mobile": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                      "price-sm": ["14px", {"lineHeight": "1", "fontWeight": "600"}],
+                      "headline-lg": ["32px", {"lineHeight": "1.25", "fontWeight": "700"}],
+                      "headline-md": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                      "label-md": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                      "price-lg": ["24px", {"lineHeight": "1", "fontWeight": "600"}],
+                      "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                      "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-lg": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface-container-low text-on-surface min-h-screen flex antialiased">
+<!-- SideNavBar (from JSON) -->
+<aside class="hidden md:flex flex-col bg-surface-container-low shadow-md fixed left-0 top-0 h-full w-[280px] py-6 z-20">
+<div class="px-6 mb-8 flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container overflow-hidden">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="A professional headshot of a corporate system administrator in a brightly lit modern office setting. The individual is wearing smart casual attire, smiling subtly with a confident demeanor. The lighting is soft and neutral, enhancing a clean, trustworthy aesthetic typical of enterprise software profiles." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAiOmt_RPv1xhzlrU40jggXEft-Ku8WpqaDF9VDppDwBCy067Dt9MXoWSIuaF_OQ53DT-pxNizgGTtwisLuoLlwDW98mtXRO6TPs8S4tP99lRLoAdrPHDHvNQXTpyv8SEaMMkseuGJLFHZ4Fgy1plxqBTexhEsA0P8-QeXq7m3DHcF1RjvItPnPBBA9dxh_GeskMG29I3B_00xiZeR13_uHrHmLz9SURfHYdU_E8Nt2l8G_CeqDyVM81CrNFNoBEHlbYb3ZPVeGZLc">
+</div>
+<div>
+<h2 class="text-headline-md font-headline-md text-primary">Quản trị hệ thống</h2>
+<p class="text-label-md font-label-md text-surface-variant">Admin/Seller Panel</p>
+</div>
+</div>
+<div class="px-4 mb-6">
+<button class="w-full bg-primary text-on-primary rounded-lg py-3 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-sm">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span class="text-label-md font-label-md font-bold">Thêm sản phẩm mới</span>
+</button>
+</div>
+<nav class="flex-1 flex flex-col gap-2 px-3">
+<a class="flex items-center gap-3 text-on-surface-variant p-3 hover:bg-surface-container-high transition-all rounded-r-full" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-label-md font-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant p-3 hover:bg-surface-container-high transition-all rounded-r-full" href="#">
+<span class="material-symbols-outlined">shopping_bag</span>
+<span class="text-label-md font-label-md">Đơn hàng</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant p-3 hover:bg-surface-container-high transition-all rounded-r-full" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="text-label-md font-label-md">Sản phẩm</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant p-3 hover:bg-surface-container-high transition-all rounded-r-full" href="#">
+<span class="material-symbols-outlined">warehouse</span>
+<span class="text-label-md font-label-md">Kho hàng</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant p-3 hover:bg-surface-container-high transition-all rounded-r-full" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-label-md font-label-md">Báo cáo</span>
+</a>
+<a class="flex items-center gap-3 bg-primary-fixed text-on-primary-fixed-variant border-l-4 border-primary rounded-r-full p-3 scale-95 duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">settings</span>
+<span class="text-label-md font-label-md font-bold">Cài đặt</span>
+</a>
+</nav>
+<div class="px-3 mt-auto">
+<a class="flex items-center gap-3 text-on-surface-variant p-3 hover:bg-surface-container-high transition-all rounded-r-full" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="text-label-md font-label-md">Đăng xuất</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<div class="flex-1 md:ml-[280px] flex flex-col min-h-screen">
+<!-- TopNavBar (from JSON) -->
+<header class="bg-surface-container-lowest border-b border-surface-variant shadow-sm sticky top-0 z-10">
+<div class="flex justify-between items-center w-full px-6 max-w-[1200px] mx-auto h-16">
+<div class="flex items-center gap-4">
+<!-- Mobile Menu Trigger (hidden on md) -->
+<button class="md:hidden text-on-surface-variant">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="text-title-lg font-headline-lg text-primary md:hidden">TechToShop</div>
+<nav class="hidden md:flex gap-6">
+<a class="text-primary border-b-2 border-primary font-bold text-label-md font-label-md pb-5 pt-5" href="#">Danh mục</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+<div class="hidden md:flex gap-3 items-center border-l border-surface-variant pl-4 ml-2">
+<a class="text-label-md font-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Đăng nhập</a>
+<a class="text-label-md font-label-md bg-primary text-on-primary px-4 py-2 rounded hover:opacity-80 transition-all duration-200" href="#">Đăng ký</a>
+</div>
+</div>
+</div>
+</header>
+<!-- Page Canvas -->
+<main class="flex-1 p-6 md:p-8 max-w-[1200px] w-full mx-auto">
+<!-- Header Section -->
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+<div>
+<h1 class="text-headline-lg font-headline-lg text-on-surface mb-1">User Management</h1>
+<p class="text-body-md font-body-md text-on-surface-variant">Manage system accounts, roles, and access permissions.</p>
+</div>
+<button class="bg-primary text-on-primary px-5 py-2.5 rounded-lg text-label-md font-label-md font-bold shadow-sm hover:opacity-90 transition-opacity flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">person_add</span>
+                    Create Account
+                </button>
+</div>
+<!-- Toolbar / Filters -->
+<div class="bg-surface-container-lowest p-4 rounded-xl shadow-sm border border-surface-variant mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+<div class="relative w-full md:w-80">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+<input class="w-full pl-10 pr-4 py-2.5 border border-surface-variant rounded-lg bg-surface-bright text-body-md font-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="Search name, email, phone..." type="text">
+</div>
+<div class="flex flex-wrap gap-3 w-full md:w-auto">
+<select class="flex-1 md:flex-none border border-surface-variant rounded-lg py-2.5 px-4 bg-surface-bright text-body-md font-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+<option value="">All Roles</option>
+<option value="admin">Admin</option>
+<option value="seller">Seller</option>
+<option value="customer">Customer</option>
+<option value="shipper">Shipper</option>
+</select>
+<select class="flex-1 md:flex-none border border-surface-variant rounded-lg py-2.5 px-4 bg-surface-bright text-body-md font-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+<option value="">All Statuses</option>
+<option value="active">Active</option>
+<option value="suspended">Suspended</option>
+</select>
+<button class="border border-surface-variant rounded-lg p-2.5 bg-surface-bright text-on-surface-variant hover:text-primary hover:border-primary transition-colors" title="Filter options">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+</button>
+</div>
+</div>
+<!-- Data Table Card -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm border border-surface-variant overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container border-b border-surface-variant">
+<th class="py-4 px-6 text-label-md font-label-md text-on-surface-variant font-bold uppercase tracking-wider whitespace-nowrap">User</th>
+<th class="py-4 px-6 text-label-md font-label-md text-on-surface-variant font-bold uppercase tracking-wider whitespace-nowrap">Contact Info</th>
+<th class="py-4 px-6 text-label-md font-label-md text-on-surface-variant font-bold uppercase tracking-wider whitespace-nowrap">Role</th>
+<th class="py-4 px-6 text-label-md font-label-md text-on-surface-variant font-bold uppercase tracking-wider whitespace-nowrap">Status</th>
+<th class="py-4 px-6 text-label-md font-label-md text-on-surface-variant font-bold uppercase tracking-wider whitespace-nowrap">Joined Date</th>
+<th class="py-4 px-6 text-label-md font-label-md text-on-surface-variant font-bold uppercase tracking-wider text-right whitespace-nowrap">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-variant">
+<!-- Row 1 -->
+<tr class="hover:bg-surface transition-colors group">
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-variant overflow-hidden shrink-0">
+<img alt="Avatar" class="w-full h-full object-cover" data-alt="A professional studio portrait of a young Asian woman in a crisp white blouse. The lighting is bright and flattering, set against a pristine white background. She has a subtle, friendly smile, conveying a sense of approachability and competence suitable for a high-end corporate user directory." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSi1ov1FuYnnB3rBBYS9kTqG8dmTf8VrhFb9xiL1sYjsgryIjBur5rucEeU34Tt_Uds0Ah5jGcmZftaqHoNqVEmgNoxmlu8OTzVueFuHTym-GJuA5khAkHSeArrjV7srh3cFcCpbcEq86rKPu2UTHq-FYzLvi5q64sOwBlP5KNWC9IjddQ7gAlFIWgofZapuAJVfLR4NILmIzlxXVknT-snmjCZ9lRg4FfVLpbtgSA-7-3HORy0yXr-FTN7DZy2Koq_P_qVxbmG8k">
+</div>
+<div>
+<div class="text-body-md font-body-md font-bold text-on-surface">Nguyễn Văn A</div>
+<div class="text-label-md font-label-md text-on-surface-variant">ID: USR-001</div>
+</div>
+</div>
+</td>
+<td class="py-4 px-6">
+<div class="text-body-md font-body-md text-on-surface">nva@example.com</div>
+<div class="text-label-md font-label-md text-on-surface-variant">+84 901 234 567</div>
+</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-label-md font-label-md bg-primary-container text-on-primary-container">
+                                        Admin
+                                    </span>
+</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-label-md font-label-md bg-[#e6f4ea] text-[#1e8e3e]">
+<span class="w-1.5 h-1.5 rounded-full bg-[#1e8e3e]"></span> Active
+                                    </span>
+</td>
+<td class="py-4 px-6 text-body-md font-body-md text-on-surface-variant">
+                                    12 Oct 2023
+                                </td>
+<td class="py-4 px-6 text-right">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg hover:bg-surface-variant" title="View Details">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-error transition-colors rounded-lg hover:bg-error-container" title="Lock Account">
+<span class="material-symbols-outlined text-[20px]">lock</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface transition-colors group">
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-variant overflow-hidden shrink-0">
+<img alt="Avatar" class="w-full h-full object-cover" data-alt="A close-up headshot of a middle-aged man wearing glasses and a dark blue suit jacket. The background is a soft, blurred office interior with natural light streaming through a window. The portrait exudes professionalism, reliability, and corporate authority, fitting perfectly into a modern enterprise dashboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJFa_Xste10ofV_0JZtsFV6OUtiJpmTytzn14LztSQYufA76GRCB4Mc4tMx92llJ1tfEc7HBfTLpmj0Jpaf19JrZgyRmLXf9tI-sPwodjykz1NUc55kxkjA2DFIEzkTJWk9KcKQaiZfMtI-3mntgaag9M4JbQv8UnC67wjt5l6sJttVztsz_CDDrJ95rczWVZ7uwB6eL7PsmQ58nK0EmFHVLpA85cRp2rqU7Q-nOlMn2fTG0UKkyA2ipRP0yUcR2aIOldUTa7D7k4">
+</div>
+<div>
+<div class="text-body-md font-body-md font-bold text-on-surface">Trần Thị B</div>
+<div class="text-label-md font-label-md text-on-surface-variant">ID: USR-042</div>
+</div>
+</div>
+</td>
+<td class="py-4 px-6">
+<div class="text-body-md font-body-md text-on-surface">ttb.seller@shop.vn</div>
+<div class="text-label-md font-label-md text-on-surface-variant">+84 987 654 321</div>
+</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-label-md font-label-md bg-secondary-fixed text-on-secondary-fixed-variant">
+                                        Seller
+                                    </span>
+</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-label-md font-label-md bg-[#e6f4ea] text-[#1e8e3e]">
+<span class="w-1.5 h-1.5 rounded-full bg-[#1e8e3e]"></span> Active
+                                    </span>
+</td>
+<td class="py-4 px-6 text-body-md font-body-md text-on-surface-variant">
+                                    05 Nov 2023
+                                </td>
+<td class="py-4 px-6 text-right">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg hover:bg-surface-variant" title="View Details">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-error transition-colors rounded-lg hover:bg-error-container" title="Lock Account">
+<span class="material-symbols-outlined text-[20px]">lock</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface transition-colors group">
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center shrink-0">
+<span class="text-on-surface-variant font-bold text-label-md">LM</span>
+</div>
+<div>
+<div class="text-body-md font-body-md font-bold text-on-surface">Lê Văn Minh</div>
+<div class="text-label-md font-label-md text-on-surface-variant">ID: USR-108</div>
+</div>
+</div>
+</td>
+<td class="py-4 px-6">
+<div class="text-body-md font-body-md text-on-surface">minh.le@gmail.com</div>
+<div class="text-label-md font-label-md text-on-surface-variant">+84 912 345 678</div>
+</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-label-md font-label-md border border-surface-variant text-on-surface-variant">
+                                        Customer
+                                    </span>
+</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-label-md font-label-md bg-error-container text-on-error-container">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span> Suspended
+                                    </span>
+</td>
+<td class="py-4 px-6 text-body-md font-body-md text-on-surface-variant">
+                                    20 Jan 2024
+                                </td>
+<td class="py-4 px-6 text-right">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg hover:bg-surface-variant" title="View Details">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-[#1e8e3e] transition-colors rounded-lg hover:bg-[#e6f4ea]" title="Unlock Account">
+<span class="material-symbols-outlined text-[20px]">lock_open</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface transition-colors group">
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-variant overflow-hidden shrink-0">
+<img alt="Avatar" class="w-full h-full object-cover" data-alt="A candid style portrait of a young man in a yellow delivery uniform jacket. He is standing outdoors with a blurred urban street in the background. The lighting suggests late afternoon sunlight, highlighting a practical, hardworking aesthetic representing a delivery logistics role within a vibrant eCommerce platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVJNIaFTUO_ZlSqyH3bSQgmTO4lKCae9C5E8J-GaucwLiDJPJh6JrnHaOjLdQRNAaCuZRYOIMQIAH4fISN-yJuQAFHgngn7WCuDkJotEWRoPG06s5dwHCE5bcOTtAtqF_ltrPCzFElbk8jINViRQhjjFsdgNQhhUbi1U5-hQa0VT0ap0Qv86O674j4LnTwtAavNLC7hY45tw36hEJJUBXzTsiZuaylLFXsdHT-1GBO8uCbhA6CDGGe4dHu_OFT8spYA2tLhZdKE_c">
+</div>
+<div>
+<div class="text-body-md font-body-md font-bold text-on-surface">Phạm Hoàng</div>
+<div class="text-label-md font-label-md text-on-surface-variant">ID: USR-225</div>
+</div>
+</div>
+</td>
+<td class="py-4 px-6">
+<div class="text-body-md font-body-md text-on-surface">hoang.ship@logistics.vn</div>
+<div class="text-label-md font-label-md text-on-surface-variant">+84 933 445 566</div>
+</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-label-md font-label-md bg-surface-container-high text-on-surface">
+                                        Shipper
+                                    </span>
+</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-label-md font-label-md bg-[#e6f4ea] text-[#1e8e3e]">
+<span class="w-1.5 h-1.5 rounded-full bg-[#1e8e3e]"></span> Active
+                                    </span>
+</td>
+<td class="py-4 px-6 text-body-md font-body-md text-on-surface-variant">
+                                    02 Mar 2024
+                                </td>
+<td class="py-4 px-6 text-right">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg hover:bg-surface-variant" title="View Details">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-error transition-colors rounded-lg hover:bg-error-container" title="Lock Account">
+<span class="material-symbols-outlined text-[20px]">lock</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="bg-surface-container-lowest px-6 py-4 border-t border-surface-variant flex items-center justify-between">
+<div class="text-label-md font-label-md text-on-surface-variant">
+                        Showing <span class="font-bold text-on-surface">1</span> to <span class="font-bold text-on-surface">4</span> of <span class="font-bold text-on-surface">420</span> users
+                    </div>
+<div class="flex gap-1">
+<button class="p-2 border border-surface-variant rounded-md text-on-surface-variant hover:border-primary hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled="">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="w-9 h-9 flex items-center justify-center rounded-md bg-primary text-on-primary text-label-md font-label-md font-bold">1</button>
+<button class="w-9 h-9 flex items-center justify-center rounded-md border border-surface-variant text-on-surface-variant hover:border-primary hover:text-primary text-label-md font-label-md transition-colors">2</button>
+<button class="w-9 h-9 flex items-center justify-center rounded-md border border-surface-variant text-on-surface-variant hover:border-primary hover:text-primary text-label-md font-label-md transition-colors">3</button>
+<span class="w-9 h-9 flex items-center justify-center text-on-surface-variant">...</span>
+<button class="w-9 h-9 flex items-center justify-center rounded-md border border-surface-variant text-on-surface-variant hover:border-primary hover:text-primary text-label-md font-label-md transition-colors">42</button>
+<button class="p-2 border border-surface-variant rounded-md text-on-surface-variant hover:border-primary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+
+
+
+
+
+
+</body></html>

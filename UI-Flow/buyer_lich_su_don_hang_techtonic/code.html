@@ -1,0 +1,322 @@
+<!DOCTYPE html><html lang="vi"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Buyer - Lich su don hang (TechTonic)</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#ffb3ac",
+                        "tertiary-fixed": "#ffdad6",
+                        "secondary": "#b41f00",
+                        "on-secondary-fixed-variant": "#8d1600",
+                        "surface": "#fbf9f9",
+                        "surface-container": "#efeded",
+                        "on-tertiary-fixed-variant": "#93000f",
+                        "on-background": "#1b1c1c",
+                        "on-tertiary-container": "#fffbff",
+                        "on-error": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#e51d27",
+                        "on-primary-fixed-variant": "#8d1600",
+                        "surface-container-low": "#f5f3f3",
+                        "on-tertiary": "#ffffff",
+                        "inverse-on-surface": "#f2f0f0",
+                        "inverse-primary": "#ffb4a4",
+                        "primary-fixed": "#ffdad3",
+                        "inverse-surface": "#303031",
+                        "secondary-fixed": "#ffdad3",
+                        "surface-container-high": "#e9e8e7",
+                        "surface-container-highest": "#e3e2e2",
+                        "tertiary": "#bb0017",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-tint": "#b62506",
+                        "on-primary-container": "#fffbff",
+                        "on-secondary-container": "#fffbff",
+                        "surface-bright": "#fbf9f9",
+                        "primary-fixed-dim": "#ffb4a4",
+                        "secondary-fixed-dim": "#ffb4a4",
+                        "on-surface": "#1b1c1c",
+                        "surface-dim": "#dbdad9",
+                        "outline-variant": "#e3beb6",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "secondary-container": "#db3514",
+                        "on-tertiary-fixed": "#410003",
+                        "on-secondary-fixed": "#3e0500",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#d63c1e",
+                        "on-secondary": "#ffffff",
+                        "surface-variant": "#e3e2e2",
+                        "primary": "#b22204",
+                        "outline": "#8f7069",
+                        "on-surface-variant": "#5b403b",
+                        "on-primary-fixed": "#3e0500",
+                        "background": "#fbf9f9",
+                        "brand-orange": "#EE4D2D"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "margin-desktop": "auto",
+                        "md": "16px",
+                        "lg": "24px",
+                        "margin-mobile": "12px",
+                        "base": "4px",
+                        "max-width": "1200px",
+                        "sm": "8px",
+                        "gutter": "12px",
+                        "xl": "48px"
+                    },
+                    "fontFamily": {
+                        "price-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "price-lg": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "price-sm": ["14px", { "lineHeight": "1", "fontWeight": "600" }],
+                        "headline-md": ["20px", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "price-lg": ["24px", { "lineHeight": "1", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.3", "fontWeight": "700" }],
+                        "label-md": ["12px", { "lineHeight": "1.2", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.25", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #F5F5F5; }
+        .tab-scrollbar::-webkit-scrollbar { display: none; }
+        .tab-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="font-body-md text-on-background min-h-screen flex flex-col font-['Inter']">
+<!-- TopNavBar -->
+<header class="bg-surface-container-lowest dark:bg-inverse-surface border-b border-border-light dark:border-outline shadow-sm docked full-width top-0 z-50">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto h-[60px] md:h-12 max-w-[1200px]">
+<div class="flex items-center gap-4">
+<a class="text-headline-md font-headline-md text-primary dark:text-inverse-primary tracking-tight" href="#">TechToShop</a>
+</div>
+<nav class="hidden md:flex items-center gap-6 h-full">
+<a class="h-full flex items-center px-2 text-text-muted dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors text-label-md font-label-md" href="#">Danh mục</a>
+<a class="h-full flex items-center px-2 text-primary dark:text-inverse-primary border-b-2 border-primary font-bold text-label-md font-label-md opacity-80 transition-all duration-200" href="#">Đơn hàng</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="text-on-surface hover:text-primary transition-colors flex items-center justify-center p-2 rounded-full hover:bg-surface-container">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+</button>
+<div class="hidden md:flex items-center gap-3">
+<button class="text-label-md font-label-md px-4 py-2 text-primary hover:bg-primary-fixed rounded-full transition-colors">Đăng nhập</button>
+<button class="text-label-md font-label-md px-4 py-2 bg-brand-orange text-white rounded-full hover:opacity-90 transition-opacity shadow-sm">Đăng ký</button>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-grow w-full max-w-[1200px] mx-auto px-margin-mobile md:px-0 py-6 flex flex-col gap-6">
+<!-- Header & Search -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-surface-container-lowest p-md rounded-lg shadow-[0px_1px_20px_0px_rgba(0,0,0,0.05)] border border-[#E5E7EB]">
+<h1 class="text-headline-md font-headline-md text-on-surface font-bold">Lịch sử đơn hàng</h1>
+<div class="relative w-full md:w-96">
+<input class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-[#E5E7EB] focus:border-brand-orange focus:ring-2 focus:ring-primary-fixed-dim transition-all text-body-md font-body-md bg-surface-bright" placeholder="Tìm kiếm theo Mã đơn hàng hoặc Tên Shop..." type="text">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" data-icon="search">search</span>
+</div>
+</div>
+<!-- Status Tabs -->
+<div class="bg-surface-container-lowest rounded-lg shadow-[0px_1px_20px_0px_rgba(0,0,0,0.05)] border border-[#E5E7EB] overflow-hidden">
+<div class="flex overflow-x-auto tab-scrollbar whitespace-nowrap border-b border-surface-variant">
+<button class="px-6 py-4 text-brand-orange font-bold border-b-2 border-brand-orange text-body-md font-body-md">Tất cả</button>
+<button class="px-6 py-4 text-on-surface-variant hover:text-brand-orange transition-colors text-body-md font-body-md">Chờ xác nhận</button>
+<button class="px-6 py-4 text-on-surface-variant hover:text-brand-orange transition-colors text-body-md font-body-md">Đã xác nhận</button>
+<button class="px-6 py-4 text-on-surface-variant hover:text-brand-orange transition-colors text-body-md font-body-md">Đang xử lý</button>
+<button class="px-6 py-4 text-on-surface-variant hover:text-brand-orange transition-colors text-body-md font-body-md">Đang giao</button>
+<button class="px-6 py-4 text-on-surface-variant hover:text-brand-orange transition-colors text-body-md font-body-md">Hoàn thành</button>
+<button class="px-6 py-4 text-on-surface-variant hover:text-brand-orange transition-colors text-body-md font-body-md">Đã hủy</button>
+</div>
+</div>
+<!-- Order List -->
+<div class="flex flex-col gap-4">
+<!-- Order Card: Completed -->
+<div class="bg-surface-container-lowest rounded-xl shadow-[0px_1px_20px_0px_rgba(0,0,0,0.05)] border border-[#E5E7EB] overflow-hidden flex flex-col">
+<div class="flex justify-between items-center p-md border-b border-surface-variant bg-surface-bright">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-brand-orange" data-icon="storefront">storefront</span>
+<span class="font-bold text-body-md text-on-surface">TechGear Official Store</span>
+<button class="ml-2 px-3 py-1 bg-surface-container text-on-surface rounded-full text-label-md font-label-md flex items-center gap-1 hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[16px]" data-icon="chat">chat</span> Chat
+                        </button>
+</div>
+<div class="flex items-center gap-2 text-primary text-label-md font-label-md uppercase tracking-wider font-bold">
+<span class="material-symbols-outlined text-[18px]" data-icon="check_circle">check_circle</span>
+                        Hoàn thành
+                    </div>
+</div>
+<div class="p-md flex flex-col md:flex-row gap-4 border-b border-surface-variant hover:bg-surface-bright transition-colors cursor-pointer">
+<img alt="Tai nghe" class="w-24 h-24 object-cover rounded-lg border border-surface-variant" data-alt="A high-quality, sleek black over-ear headphone resting on a clean, light surface. The lighting is bright and studio-like, emphasizing the modern, premium design of the product within an energetic e-commerce context." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrS8LgT1orBXd5QntQUnkUb_KUYFOEGMPn3x3LSOgJpcSguVN1IgWJXbGBR-fF3yJ8nfZrXCfT2K6U1nS0almdhlWKcO-77CxC0PwqMdZlaosAClj2hxLb5vCP50_J6P-ELrLsVNXxbfP_XTfIMeD8dGseyo9_ctPefeTPLILTQd7SdjFggh2EgWxa_LjmzU0SZeTFPQQGTJYGct9ArTcd977MUf7-POc1Hzx8NooLtX2RfaWKvgmltvGEAXtb--mCBVVHbNHHst0">
+<div class="flex-grow flex flex-col justify-between">
+<div>
+<h3 class="text-body-lg font-body-lg text-on-surface line-clamp-2">Tai nghe Bluetooth Chống ồn Chủ động Sony WH-1000XM4</h3>
+<p class="text-on-surface-variant text-body-md font-body-md mt-1">Phân loại: Đen</p>
+<p class="text-on-surface-variant text-body-md font-body-md">x1</p>
+</div>
+</div>
+<div class="flex flex-col justify-center items-end min-w-[120px]">
+<span class="text-price-lg font-price-lg text-brand-orange">₫6.490.000</span>
+</div>
+</div>
+<div class="p-md bg-surface-bright flex flex-col md:flex-row justify-between items-center gap-4">
+<div class="text-on-surface-variant text-body-md font-body-md">
+                        Đơn hàng đã được giao thành công vào 22-10-2023.
+                    </div>
+<div class="flex items-center gap-3 w-full md:w-auto">
+<div class="flex flex-col items-end mr-4">
+<span class="text-label-md font-label-md text-on-surface-variant">Thành tiền:</span>
+<span class="text-headline-md font-headline-md text-brand-orange">₫6.490.000</span>
+</div>
+<button class="flex-1 md:flex-none px-6 py-2 bg-white border border-brand-orange text-brand-orange rounded-lg font-bold hover:bg-primary-fixed transition-colors text-body-md">Xem chi tiết</button>
+<button class="flex-1 md:flex-none px-6 py-2 bg-brand-orange text-white rounded-lg font-bold hover:opacity-90 transition-opacity shadow-sm text-body-md">Đánh giá</button>
+</div>
+</div>
+</div>
+<!-- Order Card: Pending -->
+<div class="bg-surface-container-lowest rounded-xl shadow-[0px_1px_20px_0px_rgba(0,0,0,0.05)] border border-[#E5E7EB] overflow-hidden flex flex-col">
+<div class="flex justify-between items-center p-md border-b border-surface-variant bg-surface-bright">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-brand-orange" data-icon="storefront">storefront</span>
+<span class="font-bold text-body-md text-on-surface">SmartHome VN</span>
+<button class="ml-2 px-3 py-1 bg-surface-container text-on-surface rounded-full text-label-md font-label-md flex items-center gap-1 hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[16px]" data-icon="chat">chat</span> Chat
+                        </button>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant text-label-md font-label-md uppercase tracking-wider font-bold">
+<span class="material-symbols-outlined text-[18px]" data-icon="pending">pending</span>
+                        Chờ xác nhận
+                    </div>
+</div>
+<div class="p-md flex flex-col md:flex-row gap-4 border-b border-surface-variant hover:bg-surface-bright transition-colors cursor-pointer">
+<img alt="Đồng hồ thông minh" class="w-24 h-24 object-cover rounded-lg border border-surface-variant" data-alt="A sleek, modern smartwatch with a bright digital face displayed against a clean, minimal white background. Soft, diffused lighting highlights the metallic bezel and silicone strap, perfect for a high-end electronics e-commerce listing." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOhFECjfI5_mPEkxH9vgwfIsxIgPhMUt9P0WVhYeQf0Kl2PQxldvjXaffkqEPhzjmHixKPR4KcltJEMK4N57ZY1351PLSPypPgyQtYODEyyfLBzVP3_pJjl-OQ5-Ew6sslLprTMqLEr0hUOUIaFcA2eEpnx10UG1VoC9bPzCLiVvfBV1wEKqtH5GA26PK-_5RMUuY5K3vdcyeE7nB336EVyaFFRKX7DzI-6dv0leq3IH_ZpnKBb6A0fH59sp6l96NAOfcVVqOu0sc">
+<div class="flex-grow flex flex-col justify-between">
+<div>
+<h3 class="text-body-lg font-body-lg text-on-surface line-clamp-2">Đồng hồ thông minh Apple Watch Series 8 GPS 41mm</h3>
+<p class="text-on-surface-variant text-body-md font-body-md mt-1">Phân loại: Midnight</p>
+<p class="text-on-surface-variant text-body-md font-body-md">x1</p>
+</div>
+</div>
+<div class="flex flex-col justify-center items-end min-w-[120px]">
+<span class="text-price-lg font-price-lg text-brand-orange">₫9.290.000</span>
+</div>
+</div>
+<div class="p-md bg-surface-bright flex flex-col md:flex-row justify-between items-center gap-4">
+<div class="text-on-surface-variant text-body-md font-body-md">
+                        Đang chờ người bán xác nhận đơn hàng.
+                    </div>
+<div class="flex items-center gap-3 w-full md:w-auto">
+<div class="flex flex-col items-end mr-4">
+<span class="text-label-md font-label-md text-on-surface-variant">Thành tiền:</span>
+<span class="text-headline-md font-headline-md text-brand-orange">₫9.290.000</span>
+</div>
+<button class="flex-1 md:flex-none px-6 py-2 bg-white border border-outline text-on-surface-variant rounded-lg font-bold hover:bg-surface-container transition-colors text-body-md">Hủy đơn</button>
+<button class="flex-1 md:flex-none px-6 py-2 bg-white border border-brand-orange text-brand-orange rounded-lg font-bold hover:bg-primary-fixed transition-colors text-body-md">Xem chi tiết</button>
+</div>
+</div>
+</div>
+<!-- Order Card: Delivering -->
+<div class="bg-surface-container-lowest rounded-xl shadow-[0px_1px_20px_0px_rgba(0,0,0,0.05)] border border-[#E5E7EB] overflow-hidden flex flex-col">
+<div class="flex justify-between items-center p-md border-b border-surface-variant bg-surface-bright">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-brand-orange" data-icon="storefront">storefront</span>
+<span class="font-bold text-body-md text-on-surface">Sneaker Hub</span>
+<button class="ml-2 px-3 py-1 bg-surface-container text-on-surface rounded-full text-label-md font-label-md flex items-center gap-1 hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[16px]" data-icon="chat">chat</span> Chat
+                        </button>
+</div>
+<div class="flex items-center gap-2 text-[#2563EB] text-label-md font-label-md uppercase tracking-wider font-bold">
+<span class="material-symbols-outlined text-[18px]" data-icon="local_shipping">local_shipping</span>
+                        Đang giao
+                    </div>
+</div>
+<div class="p-md flex flex-col md:flex-row gap-4 border-b border-surface-variant hover:bg-surface-bright transition-colors cursor-pointer">
+<img alt="Giày thể thao" class="w-24 h-24 object-cover rounded-lg border border-surface-variant" data-alt="A vibrant pair of red and white athletic sneakers displayed on a bright, minimalist white surface. The energetic lighting emphasizes the texture of the materials and the dynamic curves of the design, typical of high-conversion retail aesthetics." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwwD6X4RHKhghvuPBBR4H1MMvlNaT2O7L3CvwiqRSaN0dlQ6xy56ir2_VbWq153qwqvPpuMoKgLXaKcZHlej_UXyDrq8lR5jHXS9rVDmMn3vodGLuqSOQddvr69x2lCeRg94H8PR0H6Qlyy52-RLxHC0Y2se_cRqkrOjXSHdZpi-_mJaAxDx7aWvwbSABcjOLXcWdgKT7Et0qrsSCx3qniXr_R2qUuXqWBtiKqvwgwWbnVjeMoPUlKtwBojFaJJC7pyfzOwMfvZzA">
+<div class="flex-grow flex flex-col justify-between">
+<div>
+<h3 class="text-body-lg font-body-lg text-on-surface line-clamp-2">Giày Thể Thao Nam Nữ Biti's Hunter Street x Vietmax 2020</h3>
+<p class="text-on-surface-variant text-body-md font-body-md mt-1">Phân loại: Size 42, Đỏ</p>
+<p class="text-on-surface-variant text-body-md font-body-md">x1</p>
+</div>
+</div>
+<div class="flex flex-col justify-center items-end min-w-[120px]">
+<span class="text-price-lg font-price-lg text-brand-orange">₫850.000</span>
+</div>
+</div>
+<div class="p-md bg-surface-bright flex flex-col md:flex-row justify-between items-center gap-4">
+<div class="text-[#2563EB] text-body-md font-body-md font-medium flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]" data-icon="directions_bike">directions_bike</span>
+                        Đơn hàng đang được vận chuyển tới bạn. Dự kiến giao vào ngày mai.
+                    </div>
+<div class="flex items-center gap-3 w-full md:w-auto">
+<div class="flex flex-col items-end mr-4">
+<span class="text-label-md font-label-md text-on-surface-variant">Thành tiền:</span>
+<span class="text-headline-md font-headline-md text-brand-orange">₫850.000</span>
+</div>
+<button class="flex-1 md:flex-none px-6 py-2 bg-white border border-brand-orange text-brand-orange rounded-lg font-bold hover:bg-primary-fixed transition-colors text-body-md">Xem chi tiết</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination -->
+<div class="flex justify-center mt-6">
+<div class="flex items-center gap-2">
+<button class="p-2 border border-[#E5E7EB] rounded bg-white text-on-surface-variant hover:bg-surface-container transition-colors disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center bg-brand-orange text-white font-bold rounded shadow-sm">1</button>
+<button class="w-10 h-10 flex items-center justify-center border border-[#E5E7EB] bg-white text-on-surface hover:bg-surface-container transition-colors rounded">2</button>
+<button class="w-10 h-10 flex items-center justify-center border border-[#E5E7EB] bg-white text-on-surface hover:bg-surface-container transition-colors rounded">3</button>
+<span class="px-2 text-on-surface-variant">...</span>
+<button class="p-2 border border-[#E5E7EB] rounded bg-white text-on-surface hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest dark:bg-inverse-surface border-t border-border-light dark:border-outline mt-12 w-full py-xl px-margin-desktop max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<div class="flex flex-col gap-4">
+<h2 class="text-title-lg font-headline-lg text-primary">TechToShop</h2>
+<p class="text-body-md font-body-md text-text-muted dark:text-surface-variant">© 2024 TechToShop. All rights reserved.</p>
+</div>
+<div class="flex flex-col gap-2">
+<a class="text-body-md font-body-md text-text-muted dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">Về chúng tôi</a>
+<a class="text-body-md font-body-md text-text-muted dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">Liên hệ</a>
+</div>
+<div class="flex flex-col gap-2">
+<a class="text-body-md font-body-md text-text-muted dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">Chính sách bảo mật</a>
+<a class="text-body-md font-body-md text-text-muted dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">Điều khoản sử dụng</a>
+</div>
+</footer>
+
+
+
+
+</body></html>

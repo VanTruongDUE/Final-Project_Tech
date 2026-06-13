@@ -1,0 +1,380 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Admin - Quan ly san pham toan san</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#f5f3f3",
+                        "surface-variant": "#e3e2e2",
+                        "surface-bright": "#fbf9f9",
+                        "on-primary-fixed-variant": "#8d1600",
+                        "surface-container-high": "#e9e8e7",
+                        "surface-dim": "#dbdad9",
+                        "on-secondary-container": "#fffbff",
+                        "secondary-container": "#db3514",
+                        "on-secondary-fixed": "#3e0500",
+                        "on-tertiary-container": "#fffbff",
+                        "secondary": "#b41f00",
+                        "tertiary-fixed": "#ffdad6",
+                        "on-tertiary-fixed": "#410003",
+                        "on-error": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface": "#fbf9f9",
+                        "tertiary": "#bb0017",
+                        "secondary-fixed-dim": "#ffb4a4",
+                        "primary": "#b22204",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed": "#3e0500",
+                        "surface-tint": "#b62506",
+                        "on-primary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#e51d27",
+                        "on-secondary-fixed-variant": "#8d1600",
+                        "surface-container": "#efeded",
+                        "on-error-container": "#93000a",
+                        "primary-fixed-dim": "#ffb4a4",
+                        "on-tertiary-fixed-variant": "#93000f",
+                        "on-surface-variant": "#5b403b",
+                        "secondary-fixed": "#ffdad3",
+                        "outline-variant": "#e3beb6",
+                        "primary-container": "#d63c1e",
+                        "outline": "#8f7069",
+                        "inverse-surface": "#303031",
+                        "surface-container-highest": "#e3e2e2",
+                        "tertiary-fixed-dim": "#ffb3ac",
+                        "inverse-on-surface": "#f2f0f0",
+                        "on-secondary": "#ffffff",
+                        "on-surface": "#1b1c1c",
+                        "background": "#fbf9f9",
+                        "primary-fixed": "#ffdad3",
+                        "inverse-primary": "#ffb4a4",
+                        "on-primary-container": "#fffbff",
+                        "on-background": "#1b1c1c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "sm": "8px",
+                        "base": "4px",
+                        "margin-mobile": "12px",
+                        "xs": "4px",
+                        "xl": "48px",
+                        "margin-desktop": "auto",
+                        "max-width": "1200px",
+                        "lg": "24px",
+                        "gutter": "12px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Inter"],
+                        "price-sm": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "price-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.3", "fontWeight": "700" }],
+                        "price-sm": ["14px", { "lineHeight": "1", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.25", "fontWeight": "700" }],
+                        "headline-md": ["20px", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "label-md": ["12px", { "lineHeight": "1.2", "fontWeight": "500" }],
+                        "price-lg": ["24px", { "lineHeight": "1", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col md:flex-row">
+<!-- SideNavBar -->
+<nav class="hidden md:flex flex-col fixed left-0 top-0 h-full w-[280px] py-xl bg-surface-container-low shadow-md z-50">
+<div class="px-md mb-xl">
+<h1 class="text-headline-md font-headline-md text-primary">TechToShop</h1>
+<p class="text-label-md font-label-md text-on-surface-variant">Admin/Seller Panel</p>
+</div>
+<div class="px-md mb-lg">
+<button class="w-full bg-primary text-on-primary py-sm px-md rounded-lg font-label-md text-label-md hover:bg-surface-tint transition-colors flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined">add</span>
+                Thêm sản phẩm mới
+            </button>
+</div>
+<ul class="flex-1 overflow-y-auto px-0 space-y-xs">
+<li class="">
+<a class="flex items-center gap-sm text-text-muted p-md hover:bg-surface-container-high transition-all text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                    Dashboard
+                </a>
+</li>
+<li class="">
+<a class="flex items-center gap-sm text-text-muted p-md hover:bg-surface-container-high transition-all text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined">shopping_bag</span>
+                    Đơn hàng
+                </a>
+</li>
+<li class="">
+<a class="flex items-center gap-sm bg-primary-fixed text-on-primary-fixed-variant border-l-4 border-primary rounded-r-full p-md text-label-md font-label-md hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+                    Sản phẩm
+                </a>
+</li>
+<li class="">
+<a class="flex items-center gap-sm text-text-muted p-md hover:bg-surface-container-high transition-all text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined">warehouse</span>
+                    Kho hàng
+                </a>
+</li>
+<li class="">
+<a class="flex items-center gap-sm text-text-muted p-md hover:bg-surface-container-high transition-all text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined">analytics</span>
+                    Báo cáo
+                </a>
+</li>
+<li class="">
+<a class="flex items-center gap-sm text-text-muted p-md hover:bg-surface-container-high transition-all text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined">settings</span>
+                    Cài đặt
+                </a>
+</li>
+</ul>
+<div class="px-md mt-auto">
+<a class="flex items-center gap-sm text-text-muted p-md hover:bg-surface-container-high transition-all text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined">logout</span>
+                Đăng xuất
+            </a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-[280px] p-margin-mobile md:p-xl flex flex-col gap-lg w-full max-w-max-width mx-margin-desktop">
+<!-- Header -->
+<header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-md">
+<div>
+<h2 class="text-headline-lg font-headline-lg text-on-background tracking-tight">Product Management</h2>
+<p class="text-body-md font-body-md text-on-surface-variant">Global view of all products across the platform.</p>
+</div>
+<div class="flex items-center gap-sm w-full md:w-auto">
+<div class="relative flex-1 md:w-64">
+<input class="w-full pl-lg pr-md py-sm border border-surface-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-body-md font-body-md" placeholder="Search by SKU or Name..." type="text">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+</div>
+</div>
+</header>
+<!-- Filters (Bento Style) -->
+<section class="grid grid-cols-1 md:grid-cols-4 gap-gutter bg-surface-container-lowest p-md rounded-xl shadow-sm border border-surface-variant">
+<div class="flex flex-col gap-xs">
+<label class="text-label-md font-label-md text-on-surface-variant">Category</label>
+<select class="w-full border border-surface-variant rounded-lg p-sm text-body-md font-body-md focus:border-primary focus:ring-1 focus:ring-primary bg-transparent">
+<option value="">All Categories</option>
+<option value="electronics">Electronics</option>
+<option value="fashion">Fashion</option>
+<option value="home">Home &amp; Garden</option>
+</select>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="text-label-md font-label-md text-on-surface-variant">Store</label>
+<select class="w-full border border-surface-variant rounded-lg p-sm text-body-md font-body-md focus:border-primary focus:ring-1 focus:ring-primary bg-transparent">
+<option value="">All Stores</option>
+<option value="storeA">MegaMart</option>
+<option value="storeB">TechZone</option>
+</select>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="text-label-md font-label-md text-on-surface-variant">Status</label>
+<select class="w-full border border-surface-variant rounded-lg p-sm text-body-md font-body-md focus:border-primary focus:ring-1 focus:ring-primary bg-transparent">
+<option value="">All Statuses</option>
+<option value="active">Active</option>
+<option value="suspended">Suspended</option>
+</select>
+</div>
+<div class="flex items-end">
+<button class="w-full bg-surface-variant text-on-surface py-sm px-md rounded-lg font-label-md text-label-md hover:bg-surface-dim transition-colors flex items-center justify-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+                    Apply Filters
+                </button>
+</div>
+</section>
+<!-- Product Table -->
+<section class="bg-surface-container-lowest rounded-xl shadow-sm border border-surface-variant overflow-hidden flex-1">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low border-b border-surface-variant">
+<tr>
+<th class="p-md text-label-md font-label-md text-on-surface-variant font-semibold uppercase">Product</th>
+<th class="p-md text-label-md font-label-md text-on-surface-variant font-semibold uppercase">SKU</th>
+<th class="p-md text-label-md font-label-md text-on-surface-variant font-semibold uppercase">Store</th>
+<th class="p-md text-label-md font-label-md text-on-surface-variant font-semibold uppercase">Price</th>
+<th class="p-md text-label-md font-label-md text-on-surface-variant font-semibold uppercase">Stock/Sold</th>
+<th class="p-md text-label-md font-label-md text-on-surface-variant font-semibold uppercase">Status</th>
+<th class="p-md text-label-md font-label-md text-on-surface-variant font-semibold text-right uppercase">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-variant">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-bright transition-colors group">
+<td class="p-md">
+<div class="flex items-center gap-md">
+<img alt="Wireless Headphones" class="w-[48px] h-[48px] object-cover rounded-md border border-surface-variant" data-alt="A close-up studio shot of sleek, modern wireless headphones resting on a minimalist white surface. The lighting is high-key and bright, highlighting the metallic and matte textures of the headphones. A subtle warm orange accent light hints at the energetic, conversion-focused e-commerce aesthetic. The overall mood is premium and highly functional, perfect for a modern retail catalog." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqcX2RuRb2zsXg5xVJ5Qk808uJ7keNSBXIdhQeVBpO_5CJk3g9_Fod520R4vg3BEWwDlrQlRu4rY1UX6QKWifuK2ARNucpQGAsE9iOqxu_9-nreskHg5E7A4F4xCHxJBZEvvSV_gBSucuvzVjRLqkKPuwPQKDnHW4NtbYR-ucCKk74o6cVMUAjpFoNTIxkiW0hjJwhGglmZjPnOQ2hk8NCK5eJIqNHtjHvUrhKpSq1_coIyu8uFbKbM92MrBDdw7i64PVqNempxLo">
+<div>
+<p class="text-body-md font-body-md font-medium text-on-background line-clamp-1">Pro Wireless Headphones V2</p>
+<p class="text-label-md font-label-md text-on-surface-variant">Electronics</p>
+</div>
+</div>
+</td>
+<td class="p-md text-body-md font-body-md text-on-surface-variant">WH-PRO-002</td>
+<td class="p-md">
+<span class="text-body-md font-body-md font-medium text-on-background">TechZone</span>
+</td>
+<td class="p-md text-price-sm font-price-sm text-primary">₫1,250,000</td>
+<td class="p-md">
+<div class="flex flex-col">
+<span class="text-body-md font-body-md">145</span>
+<span class="text-label-md font-label-md text-on-surface-variant">Sold: 890</span>
+</div>
+</td>
+<td class="p-md">
+<span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-[#E8F5E9] text-[#2E7D32] text-[10px] font-bold uppercase tracking-wider">
+<span class="w-1.5 h-1.5 rounded-full bg-[#2E7D32]"></span> Active
+                                </span>
+</td>
+<td class="p-md text-right">
+<div class="flex items-center justify-end gap-sm opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-xs" title="View Details">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+<button class="text-on-surface-variant hover:text-error transition-colors p-xs" title="Suspend Product">
+<span class="material-symbols-outlined text-[20px]">block</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-bright transition-colors group">
+<td class="p-md">
+<div class="flex items-center gap-md">
+<img alt="Smart Watch" class="w-[48px] h-[48px] object-cover rounded-md border border-surface-variant" data-alt="A clean, flat-lay studio product shot of a minimalist smartwatch with a black band against a stark white background. The image is brightly lit to emphasize the clear lines and digital display of the watch. Subtle shadows provide depth, while a faint vibrant orange glow in the background ties into the high-contrast e-commerce brand identity. The composition is structured and dense, ideal for a fast-paced retail environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuiOwO8g0zHYVm7kBDVMJ1OPUgjn09X7U98I15eX-M3_2yss5R3Iqgp-AHLS7H64UyhrLlO_CSOxnHhP-ZTYdLc9Xd0DkHinYSVL6rdQf0ZFJBwtDkN3VumO2f1T5T_24A1KR7n2qv0RFFkcJK_i4uoJgfXAFwhI99cp5wgdlA6ljk5r6K-B2YIxLHPq2TuYJRRqnbWu6MrDlAUuTElQVnik-oMy_2U4xM0bvhi_yyo6XmGiu4QGM4IjCjkkKkdBWglTsZKs2IcQI">
+<div>
+<p class="text-body-md font-body-md font-medium text-on-background line-clamp-1">Minimalist Smart Watch Sport</p>
+<p class="text-label-md font-label-md text-on-surface-variant">Electronics</p>
+</div>
+</div>
+</td>
+<td class="p-md text-body-md font-body-md text-on-surface-variant">SW-MIN-001</td>
+<td class="p-md">
+<span class="text-body-md font-body-md font-medium text-on-background">TechZone</span>
+</td>
+<td class="p-md text-price-sm font-price-sm text-primary">₫850,000</td>
+<td class="p-md">
+<div class="flex flex-col">
+<span class="text-body-md font-body-md text-error font-medium">12</span>
+<span class="text-label-md font-label-md text-on-surface-variant">Sold: 450</span>
+</div>
+</td>
+<td class="p-md">
+<span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-error-container text-on-error-container text-[10px] font-bold uppercase tracking-wider">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span> Suspended
+                                </span>
+</td>
+<td class="p-md text-right">
+<div class="flex items-center justify-end gap-sm opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-xs" title="View Details">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+<button class="text-on-surface-variant hover:text-[#2E7D32] transition-colors p-xs" title="Reactivate Product">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-bright transition-colors group">
+<td class="p-md">
+<div class="flex items-center gap-md">
+<div class="w-[48px] h-[48px] rounded-md border border-surface-variant bg-surface-container-high flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[24px]">image</span>
+</div>
+<div>
+<p class="text-body-md font-body-md font-medium text-on-background line-clamp-1">Cotton Basic T-Shirt</p>
+<p class="text-label-md font-label-md text-on-surface-variant">Fashion</p>
+</div>
+</div>
+</td>
+<td class="p-md text-body-md font-body-md text-on-surface-variant">TS-BAS-BLK</td>
+<td class="p-md">
+<span class="text-body-md font-body-md font-medium text-on-background">Apparel Hub</span>
+</td>
+<td class="p-md text-price-sm font-price-sm text-primary">₫150,000</td>
+<td class="p-md">
+<div class="flex flex-col">
+<span class="text-body-md font-body-md">500+</span>
+<span class="text-label-md font-label-md text-on-surface-variant">Sold: 2k+</span>
+</div>
+</td>
+<td class="p-md">
+<span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-[#E8F5E9] text-[#2E7D32] text-[10px] font-bold uppercase tracking-wider">
+<span class="w-1.5 h-1.5 rounded-full bg-[#2E7D32]"></span> Active
+                                </span>
+</td>
+<td class="p-md text-right">
+<div class="flex items-center justify-end gap-sm opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-xs" title="View Details">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+<button class="text-on-surface-variant hover:text-error transition-colors p-xs" title="Suspend Product">
+<span class="material-symbols-outlined text-[20px]">block</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="border-t border-surface-variant p-md flex flex-col md:flex-row items-center justify-between gap-md bg-surface-container-lowest">
+<p class="text-label-md font-label-md text-on-surface-variant">Showing 1 to 10 of 2,450 entries</p>
+<div class="flex items-center gap-xs">
+<button class="p-xs text-on-surface-variant hover:text-primary hover:bg-primary-fixed rounded transition-colors disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-[20px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded bg-primary text-on-primary text-label-md font-label-md font-bold">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-high text-on-surface-variant text-label-md font-label-md transition-colors">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-high text-on-surface-variant text-label-md font-label-md transition-colors">3</button>
+<span class="text-on-surface-variant text-label-md">...</span>
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-high text-on-surface-variant text-label-md font-label-md transition-colors">245</button>
+<button class="p-xs text-on-surface-variant hover:text-primary hover:bg-primary-fixed rounded transition-colors">
+<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+
+
+
+
+
+
+</body></html>

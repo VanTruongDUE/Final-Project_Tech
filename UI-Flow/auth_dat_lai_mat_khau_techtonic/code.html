@@ -1,0 +1,204 @@
+<!DOCTYPE html><html lang="vi"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Auth - Dat lai mat khau (TechTonic)</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#ffb3ac",
+                        "tertiary-fixed": "#ffdad6",
+                        "secondary": "#b41f00",
+                        "on-secondary-fixed-variant": "#8d1600",
+                        "surface": "#fbf9f9",
+                        "surface-container": "#efeded",
+                        "on-tertiary-fixed-variant": "#93000f",
+                        "on-background": "#1b1c1c",
+                        "on-tertiary-container": "#fffbff",
+                        "on-error": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#e51d27",
+                        "on-primary-fixed-variant": "#8d1600",
+                        "surface-container-low": "#f5f3f3",
+                        "on-tertiary": "#ffffff",
+                        "inverse-on-surface": "#f2f0f0",
+                        "inverse-primary": "#ffb4a4",
+                        "primary-fixed": "#ffdad3",
+                        "inverse-surface": "#303031",
+                        "secondary-fixed": "#ffdad3",
+                        "surface-container-high": "#e9e8e7",
+                        "surface-container-highest": "#e3e2e2",
+                        "tertiary": "#bb0017",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-tint": "#b62506",
+                        "on-primary-container": "#fffbff",
+                        "on-secondary-container": "#fffbff",
+                        "surface-bright": "#fbf9f9",
+                        "primary-fixed-dim": "#ffb4a4",
+                        "secondary-fixed-dim": "#ffb4a4",
+                        "on-surface": "#1b1c1c",
+                        "surface-dim": "#dbdad9",
+                        "outline-variant": "#e3beb6",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "secondary-container": "#db3514",
+                        "on-tertiary-fixed": "#410003",
+                        "on-secondary-fixed": "#3e0500",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#d63c1e",
+                        "on-secondary": "#ffffff",
+                        "surface-variant": "#e3e2e2",
+                        "primary": "#b22204",
+                        "outline": "#8f7069",
+                        "on-surface-variant": "#5b403b",
+                        "on-primary-fixed": "#3e0500",
+                        "background": "#fbf9f9"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "margin-desktop": "auto",
+                        "md": "16px",
+                        "lg": "24px",
+                        "margin-mobile": "12px",
+                        "base": "4px",
+                        "max-width": "1200px",
+                        "sm": "8px",
+                        "gutter": "12px",
+                        "xl": "48px"
+                    },
+                    "fontFamily": {
+                        "price-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "price-lg": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "price-sm": ["14px", { "lineHeight": "1", "fontWeight": "600" }],
+                        "headline-md": ["20px", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "price-lg": ["24px", { "lineHeight": "1", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.3", "fontWeight": "700" }],
+                        "label-md": ["12px", { "lineHeight": "1.2", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.25", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .input-focus-ring:focus-within {
+            border-color: #EE4D2D;
+            box-shadow: 0 0 0 2px rgba(238, 77, 45, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen flex flex-col justify-center items-center p-md md:p-lg">
+<!-- TopNavBar Suppressed as per instructions for linear/transactional pages -->
+<main class="w-full max-w-[480px] bg-surface-container-lowest rounded-xl shadow-[0px_1px_20px_0px_rgba(0,0,0,0.05)] overflow-hidden">
+<div class="p-lg md:p-xl flex flex-col gap-lg">
+<!-- Header -->
+<div class="text-center flex flex-col gap-sm">
+<div class="flex justify-center mb-sm">
+<span class="material-symbols-outlined text-[48px] text-primary">lock_reset</span>
+</div>
+<h1 class="text-headline-lg font-headline-lg hidden md:block">Đặt lại mật khẩu</h1>
+<h1 class="text-headline-lg-mobile font-headline-lg-mobile md:hidden">Đặt lại mật khẩu</h1>
+<p class="text-body-md font-body-md text-on-surface-variant">Vui lòng nhập mật khẩu mới cho tài khoản của bạn.</p>
+</div>
+<!-- Success Message (Hidden by default, shown for demonstration) -->
+<div class="hidden bg-tertiary-fixed text-on-tertiary-fixed-variant p-md rounded-lg flex gap-sm items-start border border-tertiary-fixed-dim" id="success-message">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+<p class="text-body-md font-body-md">Mật khẩu đã được cập nhật thành công. Đang chuyển hướng...</p>
+</div>
+<!-- Form -->
+<form class="flex flex-col gap-lg" id="reset-form" onsubmit="event.preventDefault(); document.getElementById('success-message').classList.remove('hidden'); this.style.display = 'none';">
+<div class="flex flex-col gap-xs relative">
+<label class="text-label-md font-label-md text-on-surface" for="new_password">Mật khẩu mới</label>
+<div class="relative flex items-center border border-outline-variant rounded-lg bg-surface-container-lowest input-focus-ring transition-all duration-200">
+<span class="material-symbols-outlined absolute left-md text-on-surface-variant text-[20px] pointer-events-none">lock</span>
+<input class="w-full pl-[44px] pr-md py-[12px] bg-transparent border-none text-body-md font-body-md text-on-surface focus:ring-0 rounded-lg placeholder-on-surface-variant/50" id="new_password" minlength="8" pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$" placeholder="Nhập mật khẩu mới" required="" title="Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ cái và số" type="password">
+<button class="absolute right-md text-on-surface-variant hover:text-primary transition-colors flex items-center" onclick="togglePassword('new_password', this)" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</div>
+</div>
+<div class="flex flex-col gap-xs relative">
+<label class="text-label-md font-label-md text-on-surface" for="confirm_password">Xác nhận mật khẩu</label>
+<div class="relative flex items-center border border-outline-variant rounded-lg bg-surface-container-lowest input-focus-ring transition-all duration-200">
+<span class="material-symbols-outlined absolute left-md text-on-surface-variant text-[20px] pointer-events-none">lock_clock</span>
+<input class="w-full pl-[44px] pr-md py-[12px] bg-transparent border-none text-body-md font-body-md text-on-surface focus:ring-0 rounded-lg placeholder-on-surface-variant/50" id="confirm_password" placeholder="Nhập lại mật khẩu mới" required="" type="password">
+<button class="absolute right-md text-on-surface-variant hover:text-primary transition-colors flex items-center" onclick="togglePassword('confirm_password', this)" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</div>
+</div>
+<!-- Password Requirements Note -->
+<div class="flex gap-sm items-start bg-surface-container-low p-md rounded-lg">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant mt-[2px]">info</span>
+<p class="text-label-md font-label-md text-on-surface-variant">Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ cái và số.</p>
+</div>
+<!-- Submit Button -->
+<button class="w-full py-[14px] bg-[#EE4D2D] hover:bg-[#d44124] text-white text-body-md font-body-md font-semibold rounded-lg transition-colors flex justify-center items-center gap-xs mt-sm shadow-sm" type="submit">
+                    Cập nhật mật khẩu
+                    <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+<div class="text-center mt-sm">
+<a class="text-body-md font-body-md text-on-surface-variant hover:text-primary transition-colors inline-flex items-center gap-xs" href="#">
+<span class="material-symbols-outlined text-[16px]">arrow_back</span>
+                        Quay lại Đăng nhập
+                    </a>
+</div>
+</form>
+</div>
+</main>
+<!-- Footer Suppressed for focus -->
+<script>
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('.material-symbols-outlined');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = 'visibility_off';
+            } else {
+                input.type = 'password';
+                icon.textContent = 'visibility';
+            }
+        }
+
+        // Form validation to ensure passwords match
+        document.getElementById('reset-form').addEventListener('submit', function(e) {
+            const newPass = document.getElementById('new_password').value;
+            const confirmPass = document.getElementById('confirm_password').value;
+            
+            if (newPass !== confirmPass) {
+                e.preventDefault();
+                alert('Mật khẩu xác nhận không khớp.');
+            }
+        });
+    </script>
+
+
+
+
+
+
+</body></html>

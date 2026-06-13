@@ -1,0 +1,460 @@
+<!DOCTYPE html><html lang="vi" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Buyer - Chi tiet san pham</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "secondary-container": "#db3514",
+                "surface-container-lowest": "#ffffff",
+                "on-tertiary-container": "#fffbff",
+                "on-secondary-fixed": "#3e0500",
+                "on-primary-fixed-variant": "#8d1600",
+                "tertiary": "#bb0017",
+                "on-primary-fixed": "#3e0500",
+                "on-secondary-container": "#fffbff",
+                "outline-variant": "#e3beb6",
+                "surface-bright": "#fbf9f9",
+                "outline": "#8f7069",
+                "on-tertiary-fixed-variant": "#93000f",
+                "surface-container": "#efeded",
+                "on-error": "#ffffff",
+                "on-surface-variant": "#5b403b",
+                "on-secondary": "#ffffff",
+                "on-surface": "#1b1c1c",
+                "secondary-fixed-dim": "#ffb4a4",
+                "surface": "#fbf9f9",
+                "on-background": "#1b1c1c",
+                "background": "#fbf9f9",
+                "inverse-primary": "#ffb4a4",
+                "surface-variant": "#e3e2e2",
+                "surface-container-high": "#e9e8e7",
+                "inverse-surface": "#303031",
+                "on-error-container": "#93000a",
+                "secondary-fixed": "#ffdad3",
+                "primary-fixed": "#ffdad3",
+                "on-secondary-fixed-variant": "#8d1600",
+                "on-tertiary-fixed": "#410003",
+                "surface-dim": "#dbdad9",
+                "on-primary": "#ffffff",
+                "primary-container": "#d63c1e",
+                "error-container": "#ffdad6",
+                "primary": "#b22204",
+                "on-tertiary": "#ffffff",
+                "error": "#ba1a1a",
+                "primary-fixed-dim": "#ffb4a4",
+                "tertiary-fixed": "#ffdad6",
+                "tertiary-fixed-dim": "#ffb3ac",
+                "surface-container-low": "#f5f3f3",
+                "secondary": "#b41f00",
+                "on-primary-container": "#fffbff",
+                "inverse-on-surface": "#f2f0f0",
+                "surface-container-highest": "#e3e2e2",
+                "tertiary-container": "#e51d27",
+                "surface-tint": "#b62506",
+                "shopee-red": "#ee4d2d",
+                "shopee-price": "#d0011b"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "margin-desktop": "auto",
+                "base": "4px",
+                "xl": "48px",
+                "sm": "8px",
+                "max-width": "1200px",
+                "margin-mobile": "12px",
+                "gutter": "12px",
+                "xs": "4px",
+                "lg": "24px",
+                "md": "16px"
+        },
+        "fontFamily": {
+                "price-lg": [
+                        "Inter"
+                ],
+                "label-md": [
+                        "Inter"
+                ],
+                "display-lg": [
+                        "Inter"
+                ],
+                "price-sm": [
+                        "Inter"
+                ],
+                "headline-md": [
+                        "Inter"
+                ],
+                "body-md": [
+                        "Inter"
+                ],
+                "headline-lg-mobile": [
+                        "Inter"
+                ],
+                "headline-lg": [
+                        "Inter"
+                ],
+                "body-lg": [
+                        "Inter"
+                ]
+        },
+        "fontSize": {
+                "price-lg": [
+                        "24px",
+                        {
+                                "lineHeight": "1",
+                                "fontWeight": "600"
+                        }
+                ],
+                "label-md": [
+                        "12px",
+                        {
+                                "lineHeight": "1.2",
+                                "fontWeight": "500"
+                        }
+                ],
+                "display-lg": [
+                        "48px",
+                        {
+                                "lineHeight": "1.2",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "price-sm": [
+                        "14px",
+                        {
+                                "lineHeight": "1",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-md": [
+                        "20px",
+                        {
+                                "lineHeight": "1.4",
+                                "fontWeight": "600"
+                        }
+                ],
+                "body-md": [
+                        "14px",
+                        {
+                                "lineHeight": "1.5",
+                                "fontWeight": "400"
+                        }
+                ],
+                "headline-lg-mobile": [
+                        "24px",
+                        {
+                                "lineHeight": "1.3",
+                                "fontWeight": "700"
+                        }
+                ],
+                "headline-lg": [
+                        "32px",
+                        {
+                                "lineHeight": "1.25",
+                                "fontWeight": "700"
+                        }
+                ],
+                "body-lg": [
+                        "16px",
+                        {
+                                "lineHeight": "1.5",
+                                "fontWeight": "400"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="bg-surface-container-lowest dark:bg-inverse-surface border-b border-surface-variant dark:border-outline shadow-sm docked full-width top-0 sticky z-50">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto h-[64px]">
+<!-- Brand -->
+<div class="flex items-center gap-md">
+<a class="text-headline-md font-headline-md text-shopee-red tracking-tight" href="#">TechToShop</a>
+<!-- Nav Links (Desktop) -->
+<nav class="hidden md:flex items-center gap-lg ml-lg">
+<a class="text-on-surface-variant text-label-md font-label-md hover:text-shopee-red transition-colors py-sm" href="#">Danh mục</a>
+</nav>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-md">
+<button class="text-on-surface-variant hover:text-shopee-red transition-colors p-sm flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+</button>
+<div class="hidden md:flex items-center gap-gutter border-l border-surface-variant pl-md ml-sm">
+<button class="text-label-md font-label-md text-shopee-red hover:text-primary transition-colors px-md py-sm rounded">Đăng nhập</button>
+<button class="text-label-md font-label-md bg-shopee-red text-white hover:bg-secondary-container transition-colors px-md py-sm rounded-DEFAULT shadow-sm">Đăng ký</button>
+</div>
+<!-- Mobile Menu Toggle -->
+<button class="md:hidden text-on-surface p-sm flex items-center justify-center">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-grow w-full max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-lg md:py-xl flex flex-col gap-lg">
+<!-- Breadcrumbs -->
+<nav class="flex items-center gap-sm text-label-md font-label-md text-on-surface-variant">
+<a class="hover:text-shopee-red transition-colors" href="#">Trang chủ</a>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<a class="hover:text-shopee-red transition-colors" href="#">Điện thoại</a>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-on-surface">iPhone 15 Pro Max</span>
+</nav>
+<!-- Product Hero Section -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-lg bg-surface-container-lowest rounded-lg border border-surface-variant p-md md:p-lg shadow-sm">
+<!-- Gallery (Left) -->
+<div class="lg:col-span-5 flex flex-col gap-md">
+<div class="w-full aspect-square bg-surface-container-low rounded-lg overflow-hidden border border-surface-variant relative group">
+<img alt="iPhone 15 Pro Max Natural Titanium" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="A high-quality studio product shot of a flagship smartphone, specifically the iPhone 15 Pro Max in Natural Titanium finish. The phone is positioned diagonally on a clean, light gray minimalist surface. The lighting is soft and diffused, creating elegant highlights on the titanium edges. The background is a crisp white studio drop, aligning with a modern, high-end e-commerce aesthetic. Clean, sharp, and highly detailed." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBsMv0vKlaT1nagP7eFKN7Qk1IXNC9HTOuVTXs40jUqMcgJ5rpwpsnAoPUduXDlLZ6fBYZSo_u5KnrdMoL7CjAJKpSU7yjxzSh47r2cG-JwTkgSl28RPc9foa81MIRG0ozBtKR_Jo-3kpvQciG15PjWQO_BYfrn0i9U1cg6C61--Y1N0ztsaPWa9e33TA8nB-I38vvTPcfMaAmWPdNVUpUF76b1mIRPsAM90GNmpzEEFKATfQUzgPUZx8PjoM1IUlIO4udmtgo1wo">
+</div>
+<!-- Thumbnails -->
+<div class="grid grid-cols-5 gap-sm">
+<button class="aspect-square rounded border-2 border-shopee-red overflow-hidden">
+<img alt="Thumbnail 1" class="w-full h-full object-cover" data-alt="Close up thumbnail shot of the smartphone camera module showing three distinct lenses in a metallic housing. Bright studio lighting, clean background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFszu4kqwep3kfZM7FwHnX-ariSyIMTgUYzQL2cNe1Ilq32FbRoYof-vh8w6cdeQIjDp-Qty05O0e1WQZ5idy9JncjDjLYI2xzJbNltJ4_itcu75y-QbbJXxYFkQ8Ab_2xg66h-JsVa1Hb3RvSy-KiKM5VUNwFZx2bkjOgvRJ5RjLmrS6v6CnnaJsRJ8ZHdlnU2zaX9_hKC93AnNm5DoABxPd8MPbXCkDSnG2u2qZwTNmnu3LzaHvzk6iKOEVwv0FaIyMtf2CBk6o">
+</button>
+<button class="aspect-square rounded border border-surface-variant overflow-hidden opacity-70 hover:opacity-100 transition-opacity">
+<img alt="Thumbnail 2" class="w-full h-full object-cover" data-alt="Front view thumbnail of the smartphone showing a bright, colorful screen display. Clean minimalist setting, bright lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPtUkozom2mWgB-7Z1e6E6XyE-DvIih08C6eF7ch-FqVYKp9xHT9b_nJUpRXZKOe46BJ-gRb2P-6RxezT8Fze-1RfuVEOeVQR-4P9tZjO5YtHvGyIknSWUJ2V7iZvv2zOSlUojjLZuuEbBWCG8rc5XSi2UP1i4UQCaBCMbmAHtXAfWuZDmisOVMZR01aYpSjS-WmKYQ6ArPZJM1kVGI_wz9gHSlsSjkHdCDSGOsJeUcUFS1WJUSZ7g6vKCl-P8uRph2KSSg5XC49E">
+</button>
+<button class="aspect-square rounded border border-surface-variant overflow-hidden opacity-70 hover:opacity-100 transition-opacity">
+<img alt="Thumbnail 3" class="w-full h-full object-cover" data-alt="Side profile thumbnail of the smartphone showing the sleek metallic edge and volume buttons. Minimalist white background, high-key lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsvUvkoRuIPOIyWoGqxqU2a0D6eH5gBN2xFiQWCGl8CTW6O8dAyweTgdSEtgwjtJKgueDSvrWtna2kTAUjtdmna_NUNqELO_VCfE6iUMYdOpydmMu-T_GgMRAO_DPr7zyjhorxH6S-C7JjNz4zjJN0myEC_IhEweT4lc7HW_AZ3w8u2ujJ_XYLkK51zWCfm9w4yAHuHlrybZgw7sgZSphKga2O1R_Ao-zUSrtUIAIAiEZrJPbzndRYeb3g5YGCG8UmTN2dqa77-h8">
+</button>
+<button class="aspect-square rounded border border-surface-variant overflow-hidden opacity-70 hover:opacity-100 transition-opacity bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">add_photo_alternate</span>
+</button>
+</div>
+</div>
+<!-- Product Info (Right) -->
+<div class="lg:col-span-7 flex flex-col gap-lg">
+<!-- Title & Meta -->
+<div class="flex flex-col gap-sm">
+<h1 class="text-headline-lg font-headline-lg text-on-surface md:text-headline-lg-mobile lg:text-headline-lg">iPhone 15 Pro Max 256GB</h1>
+<div class="flex flex-wrap items-center gap-x-md gap-y-sm text-body-md font-body-md">
+<div class="flex items-center gap-xs text-[#EAB308]">
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1; font-size: 18px;">star</span>
+<span class="text-on-surface font-semibold">4.8</span>
+<span class="text-on-surface-variant text-label-md ml-xs">(342 đánh giá)</span>
+</div>
+<span class="w-px h-md bg-surface-variant"></span>
+<div class="flex items-center gap-xs text-on-surface-variant">
+<span class="">Đã bán:</span>
+<span class="text-on-surface font-semibold">1.2k</span>
+</div>
+</div>
+</div>
+<!-- Price -->
+<div class="bg-surface-bright p-md rounded-lg border border-surface-variant">
+<div class="text-display-lg font-display-lg text-shopee-price leading-none">28.000.000 <span class="text-headline-md align-top ml-xs">VNĐ</span></div>
+<div class="text-body-md text-on-surface-variant line-through mt-xs">32.990.000 VNĐ</div>
+</div>
+<!-- Variations (Storage/Color placeholder) -->
+<div class="flex flex-col gap-md py-md border-y border-surface-variant">
+<div class="flex flex-col gap-sm">
+<span class="text-label-md font-label-md text-on-surface">Màu sắc: Titan Tự nhiên</span>
+<div class="flex gap-md">
+<button class="w-8 h-8 rounded-full border-2 border-shopee-red bg-[#B0ABA5] shadow-sm"></button>
+<button class="w-8 h-8 rounded-full border border-surface-variant bg-[#41454F] hover:border-on-surface-variant transition-colors"></button>
+<button class="w-8 h-8 rounded-full border border-surface-variant bg-[#F3F2EE] hover:border-on-surface-variant transition-colors"></button>
+<button class="w-8 h-8 rounded-full border border-surface-variant bg-[#2F3642] hover:border-on-surface-variant transition-colors"></button>
+</div>
+</div>
+<div class="flex flex-col gap-sm mt-sm">
+<span class="text-label-md font-label-md text-on-surface">Dung lượng:</span>
+<div class="flex gap-md">
+<button class="px-md py-sm rounded border-2 border-shopee-red text-shopee-red font-label-md text-label-md bg-shopee-red bg-opacity-10">256GB</button>
+<button class="px-md py-sm rounded border border-surface-variant text-on-surface font-label-md text-label-md hover:border-shopee-red hover:text-shopee-red transition-colors">512GB</button>
+<button class="px-md py-sm rounded border border-surface-variant text-on-surface font-label-md text-label-md hover:border-shopee-red hover:text-shopee-red transition-colors">1TB</button>
+</div>
+</div>
+</div>
+<!-- Quantity & Actions -->
+<div class="flex flex-col gap-lg mt-sm">
+<div class="flex items-center gap-md">
+<span class="text-label-md font-label-md text-on-surface w-20">Số lượng:</span>
+<div class="flex items-center border border-surface-variant rounded bg-surface-container-lowest h-10 w-32">
+<button class="w-10 h-full flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors rounded-l">
+<span class="material-symbols-outlined text-[18px]">remove</span>
+</button>
+<input class="w-12 h-full text-center border-none focus:ring-0 text-body-md font-body-md text-on-surface p-0 bg-transparent" readonly="" type="text" value="1">
+<button class="w-10 h-full flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors rounded-r">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+</div>
+<span class="text-label-md text-on-surface-variant">123 sản phẩm có sẵn</span>
+</div>
+<div class="flex gap-md">
+<button class="flex-1 flex items-center justify-center gap-sm h-12 rounded border border-shopee-red text-shopee-red bg-shopee-red bg-opacity-10 hover:bg-opacity-20 transition-colors text-label-md font-label-md font-semibold">
+<span class="material-symbols-outlined">add_shopping_cart</span>
+                            Thêm vào giỏ hàng
+                        </button>
+<button class="flex-1 flex items-center justify-center h-12 rounded bg-shopee-red text-white hover:opacity-90 transition-opacity text-label-md font-label-md font-semibold shadow-sm">
+                            Mua ngay
+                        </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Lower Section Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-lg mt-md">
+<!-- Left Column: Description & Reviews (Span 2) -->
+<div class="lg:col-span-2 flex flex-col gap-lg">
+<!-- Product Description -->
+<section class="bg-surface-container-lowest rounded-lg border border-surface-variant p-lg shadow-sm">
+<h2 class="text-headline-md font-headline-md text-on-surface mb-md pb-sm border-b border-surface-variant relative">Mô tả chi tiết sản phẩm<span class="absolute bottom-[-1px] left-0 w-16 h-1 bg-shopee-red"></span></h2>
+<div class="text-body-md font-body-md text-on-surface-variant space-y-4">
+<p class="">iPhone 15 Pro Max mang đến thiết kế từ titanium đẳng cấp hàng không vũ trụ, bền bỉ và nhẹ nhàng, kết hợp cùng mặt kính lưng nhám kết cấu tinh tế. Hệ thống camera được nâng cấp toàn diện mang lại trải nghiệm nhiếp ảnh chuyên nghiệp ngay trong túi của bạn.</p>
+<ul class="list-disc pl-5 space-y-2">
+<li class="">Chip A17 Pro mạnh mẽ, hiệu năng đồ họa đột phá.</li>
+<li class="">Hệ thống camera Pro với camera chính 48MP, ống kính telephoto 5x.</li>
+<li class="">Nút Tác Vụ (Action Button) tùy chỉnh linh hoạt.</li>
+<li class="">Cổng kết nối USB-C hỗ trợ tốc độ truyền dữ liệu nhanh hơn.</li>
+<li class="">Màn hình Super Retina XDR 6.7 inch với ProMotion 120Hz.</li>
+</ul>
+</div>
+</section>
+<!-- Customer Reviews -->
+<section class="bg-surface-container-lowest rounded-lg border border-surface-variant p-lg shadow-sm">
+<h2 class="text-headline-md font-headline-md text-on-surface mb-md pb-sm border-b border-surface-variant relative">Đánh giá khách hàng<span class="absolute bottom-[-1px] left-0 w-16 h-1 bg-shopee-red"></span></h2>
+<div class="flex items-center gap-lg mb-lg">
+<div class="flex flex-col items-center justify-center p-md bg-surface-bright rounded border border-surface-variant min-w-[120px]">
+<span class="text-display-lg font-display-lg text-shopee-red">4.8</span>
+<div class="flex text-shopee-red text-[16px] my-xs">
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star_half</span>
+</div>
+<span class="text-label-md text-on-surface-variant">342 đánh giá</span>
+</div>
+<div class="flex-grow flex flex-col gap-1 text-label-md text-on-surface-variant">
+<div class="flex items-center gap-2"><span class="">5 sao</span><div class="h-2 flex-grow bg-surface-container-high rounded-full overflow-hidden"><div class="h-full bg-[#EAB308] w-[85%]"></div></div><span class="">85%</span></div>
+<div class="flex items-center gap-2"><span class="">4 sao</span><div class="h-2 flex-grow bg-surface-container-high rounded-full overflow-hidden"><div class="h-full bg-[#EAB308] w-[10%]"></div></div><span class="">10%</span></div>
+<div class="flex items-center gap-2"><span class="">3 sao</span><div class="h-2 flex-grow bg-surface-container-high rounded-full overflow-hidden"><div class="h-full bg-[#EAB308] w-[3%]"></div></div><span class="">3%</span></div>
+<div class="flex items-center gap-2"><span class="">2 sao</span><div class="h-2 flex-grow bg-surface-container-high rounded-full overflow-hidden"><div class="h-full bg-[#EAB308] w-[1%]"></div></div><span class="">1%</span></div>
+<div class="flex items-center gap-2"><span class="">1 sao</span><div class="h-2 flex-grow bg-surface-container-high rounded-full overflow-hidden"><div class="h-full bg-[#EAB308] w-[1%]"></div></div><span class="">1%</span></div>
+</div>
+</div>
+<!-- Review Item -->
+<div class="border-t border-surface-variant py-md flex gap-md">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-headline-md font-headline-md text-on-surface-variant font-bold shrink-0">H</div>
+<div class="flex flex-col gap-xs w-full">
+<div class="flex justify-between items-start">
+<div>
+<span class="text-label-md font-label-md text-on-surface">Hoàng Nguyễn</span>
+<div class="flex text-[#EAB308] text-[14px] mt-1">
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+<span class="text-label-md text-on-surface-variant">12/10/2023</span>
+</div>
+<p class="text-body-md font-body-md text-on-surface-variant mt-sm">Máy đẹp, màu titan tự nhiên cầm rất sang. Giao hàng nhanh, đóng gói cẩn thận. Shop tư vấn nhiệt tình.</p>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Shop Info & Related -->
+<div class="flex flex-col gap-lg">
+<!-- Shop Info -->
+<section class="bg-surface-container-lowest rounded-lg border border-surface-variant p-lg shadow-sm flex flex-col gap-md">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-shopee-red flex items-center justify-center text-white font-bold shrink-0">
+<span class="material-symbols-outlined">storefront</span>
+</div>
+<div class="flex flex-col">
+<h3 class="text-headline-md font-headline-md text-on-surface">TechZone</h3>
+<div class="flex items-center gap-xs text-label-md text-[#22C55E] mt-1">
+<span class="w-2 h-2 rounded-full bg-[#22C55E]"></span>
+                                Đang hoạt động
+                            </div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-md text-center mt-sm py-md border-y border-surface-variant">
+<div class="flex flex-col">
+<span class="text-headline-md font-headline-md text-on-surface">4.9</span>
+<span class="text-label-md text-on-surface-variant">Đánh giá Shop</span>
+</div>
+<div class="flex flex-col border-l border-surface-variant">
+<span class="text-headline-md font-headline-md text-on-surface">15k+</span>
+<span class="text-label-md text-on-surface-variant">Sản phẩm bán</span>
+</div>
+</div>
+<div class="flex gap-sm mt-sm">
+<button class="flex-1 py-sm border border-shopee-red text-shopee-red rounded text-label-md font-label-md hover:bg-shopee-red hover:bg-opacity-10 transition-colors">Xem Shop</button>
+</div>
+</section>
+<!-- Related Products -->
+<section class="bg-surface-container-lowest rounded-lg border border-surface-variant p-lg shadow-sm">
+<h2 class="text-headline-md font-headline-md text-on-surface mb-md">Sản phẩm liên quan</h2>
+<div class="flex flex-col gap-md">
+<!-- Related Item 1 -->
+<div class="flex gap-sm group cursor-pointer">
+<div class="w-20 h-20 rounded bg-surface-container-low border border-surface-variant overflow-hidden shrink-0">
+<img alt="iPhone 15 Pro" class="w-full h-full object-cover group-hover:scale-105 transition-transform" data-alt="Small thumbnail of a flagship smartphone in a dark titanium finish. Minimalist white background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5IAlFewmIALoUQqVaY5KHoGZuJhDDM8vIEo_TrdW39SVUM9uoU7TlDv-z0ofJmh5nvlOskoYZyNaih1GluKP3w3RAGrjjDxLKQpAHU2FyZ6hbMhjzoMYpRbrMOri7JGpa2z82_k_K9OJrklANXPwzqU_XH21XXuP6UqB-hVQknrZWWvAycMRgvPET6_X8U0K-GXx94chRW449YVc2j7tALpwoWRBBIcVgUazNS56wIcg35X2XTZ8G7fjIPkJYVni7X24VDK0Ebpw">
+</div>
+<div class="flex flex-col justify-center">
+<h4 class="text-label-md font-label-md text-on-surface group-hover:text-shopee-red transition-colors line-clamp-2">iPhone 15 Pro 128GB</h4>
+<span class="text-shopee-price font-semibold mt-1">25.500.000đ</span>
+</div>
+</div>
+<!-- Related Item 2 -->
+<div class="flex gap-sm group cursor-pointer">
+<div class="w-20 h-20 rounded bg-surface-container-low border border-surface-variant overflow-hidden shrink-0">
+<img alt="AirPods Pro 2" class="w-full h-full object-cover group-hover:scale-105 transition-transform" data-alt="Small thumbnail of white wireless earbuds in their charging case. Clean, bright studio lighting, minimalist setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzSLPO0VTwup7h6iy2_cieeYYmEtN9n52BRWfoZSLd12nNMf69-nsfB3kXVPBEm1YfrWhoa30gBYqdtkRVHEz5MxUakAfMCclFkHB-HySfVgWaAKBhxZVI28hpzjaB2dsuGzfDPSr27Ti_mqwHu7ee9LLFCj50stt6j6eYaNltmOMJdTEMr5KkBbUkm7kX6iJSeN5U7e8VtGDktvJbPcYOdTW0SwdtrWt-zOwpWQDCwP9YuevTE01KRn22tlnaQmJeeiItfKXJJKA">
+</div>
+<div class="flex flex-col justify-center">
+<h4 class="text-label-md font-label-md text-on-surface group-hover:text-shopee-red transition-colors line-clamp-2">Tai nghe AirPods Pro 2</h4>
+<span class="text-shopee-price font-semibold mt-1">5.890.000đ</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest dark:bg-inverse-surface border-t border-surface-variant dark:border-outline full-width bottom mt-xl">
+<div class="w-full py-xl px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto grid grid-cols-1 md:grid-cols-3 gap-lg">
+<div class="flex flex-col gap-md">
+<span class="text-headline-md font-headline-md text-shopee-red">TechToShop</span>
+<span class="text-body-md font-body-md text-on-surface-variant">© 2024 TechToShop. All rights reserved.</span>
+</div>
+<div class="flex flex-col gap-sm">
+<a class="text-label-md font-label-md text-on-surface-variant dark:text-surface-variant hover:text-shopee-red dark:hover:text-primary-fixed transition-colors" href="#">Về chúng tôi</a>
+<a class="text-label-md font-label-md text-on-surface-variant dark:text-surface-variant hover:text-shopee-red dark:hover:text-primary-fixed transition-colors" href="#">Liên hệ</a>
+</div>
+<div class="flex flex-col gap-sm">
+<a class="text-label-md font-label-md text-on-surface-variant dark:text-surface-variant hover:text-shopee-red dark:hover:text-primary-fixed transition-colors" href="#">Chính sách bảo mật</a>
+<a class="text-label-md font-label-md text-on-surface-variant dark:text-surface-variant hover:text-shopee-red dark:hover:text-primary-fixed transition-colors" href="#">Điều khoản sử dụng</a>
+</div>
+</div>
+</footer>
+
+
+
+
+
+
+
+
+</body></html>

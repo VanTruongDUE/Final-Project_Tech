@@ -1,0 +1,517 @@
+<!DOCTYPE html><html lang="vi" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Buyer - Danh sach san pham</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "secondary-container": "#db3514",
+                "surface-container-lowest": "#ffffff",
+                "on-tertiary-container": "#fffbff",
+                "on-secondary-fixed": "#3e0500",
+                "on-primary-fixed-variant": "#8d1600",
+                "tertiary": "#bb0017",
+                "on-primary-fixed": "#3e0500",
+                "on-secondary-container": "#fffbff",
+                "outline-variant": "#e3beb6",
+                "surface-bright": "#fbf9f9",
+                "outline": "#8f7069",
+                "on-tertiary-fixed-variant": "#93000f",
+                "surface-container": "#efeded",
+                "on-error": "#ffffff",
+                "on-surface-variant": "#5b403b",
+                "on-secondary": "#ffffff",
+                "on-surface": "#1b1c1c",
+                "secondary-fixed-dim": "#ffb4a4",
+                "surface": "#fbf9f9",
+                "on-background": "#1b1c1c",
+                "background": "#fbf9f9",
+                "inverse-primary": "#ffb4a4",
+                "surface-variant": "#e3e2e2",
+                "surface-container-high": "#e9e8e7",
+                "inverse-surface": "#303031",
+                "on-error-container": "#93000a",
+                "secondary-fixed": "#ffdad3",
+                "primary-fixed": "#ffdad3",
+                "on-secondary-fixed-variant": "#8d1600",
+                "on-tertiary-fixed": "#410003",
+                "surface-dim": "#dbdad9",
+                "on-primary": "#ffffff",
+                "primary-container": "#d63c1e",
+                "error-container": "#ffdad6",
+                "primary": "#b22204",
+                "on-tertiary": "#ffffff",
+                "error": "#ba1a1a",
+                "primary-fixed-dim": "#ffb4a4",
+                "tertiary-fixed": "#ffdad6",
+                "tertiary-fixed-dim": "#ffb3ac",
+                "surface-container-low": "#f5f3f3",
+                "secondary": "#b41f00",
+                "on-primary-container": "#fffbff",
+                "inverse-on-surface": "#f2f0f0",
+                "surface-container-highest": "#e3e2e2",
+                "tertiary-container": "#e51d27",
+                "surface-tint": "#b62506"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "margin-desktop": "auto",
+                "base": "4px",
+                "xl": "48px",
+                "sm": "8px",
+                "max-width": "1200px",
+                "margin-mobile": "12px",
+                "gutter": "12px",
+                "xs": "4px",
+                "lg": "24px",
+                "md": "16px",
+                "container-max": "1440px",
+                "unit-12": "48px",
+                "unit-6": "24px",
+                "unit-1": "4px",
+                "unit-2": "8px",
+                "unit-3": "12px",
+                "unit-4": "16px",
+                "unit-8": "32px",
+        },
+        "fontFamily": {
+                "price-lg": [
+                        "Inter"
+                ],
+                "label-md": [
+                        "Inter"
+                ],
+                "display-lg": [
+                        "Inter"
+                ],
+                "price-sm": [
+                        "Inter"
+                ],
+                "headline-md": [
+                        "Inter"
+                ],
+                "body-md": [
+                        "Inter"
+                ],
+                "headline-lg-mobile": [
+                        "Inter"
+                ],
+                "headline-lg": [
+                        "Inter"
+                ],
+                "body-lg": [
+                        "Inter"
+                ]
+        },
+        "fontSize": {
+                "price-lg": [
+                        "24px",
+                        {
+                                "lineHeight": "1",
+                                "fontWeight": "600"
+                        }
+                ],
+                "label-md": [
+                        "12px",
+                        {
+                                "lineHeight": "1.2",
+                                "fontWeight": "500"
+                        }
+                ],
+                "display-lg": [
+                        "48px",
+                        {
+                                "lineHeight": "1.2",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "price-sm": [
+                        "14px",
+                        {
+                                "lineHeight": "1",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-md": [
+                        "20px",
+                        {
+                                "lineHeight": "1.4",
+                                "fontWeight": "600"
+                        }
+                ],
+                "body-md": [
+                        "14px",
+                        {
+                                "lineHeight": "1.5",
+                                "fontWeight": "400"
+                        }
+                ],
+                "headline-lg-mobile": [
+                        "24px",
+                        {
+                                "lineHeight": "1.3",
+                                "fontWeight": "700"
+                        }
+                ],
+                "headline-lg": [
+                        "32px",
+                        {
+                                "lineHeight": "1.25",
+                                "fontWeight": "700"
+                        }
+                ],
+                "body-lg": [
+                        "16px",
+                        {
+                                "lineHeight": "1.5",
+                                "fontWeight": "400"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="sticky top-0 z-50 bg-gradient-to-r from-[#EE4D2D] to-[#FF6A3D] border-b border-outline-variant shadow-sm w-full">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop lg:px-margin-desktop max-w-container-max mx-auto h-unit-12">
+<!-- Brand & Search -->
+<div class="flex items-center gap-unit-6">
+<a class="text-[20px] font-headline-lg text-on-primary tracking-tight" href="#">TechToShop</a>
+<div class="hidden md:flex items-center bg-surface-container-lowest rounded-full px-unit-4 py-unit-2 w-[320px] focus-within:ring-2 ring-primary-container ring-offset-2 ring-offset-[#EE4D2D] transition-all">
+<span class="material-symbols-outlined text-on-surface-variant mr-unit-2" data-icon="search">search</span>
+<input class="bg-transparent border-none outline-none text-body-md font-body-md w-full p-0 text-on-surface placeholder-on-surface-variant focus:ring-0" placeholder="Tìm kiếm sản phẩm..." type="text">
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="hidden md:flex items-center h-full gap-unit-8">
+<a class="h-full flex items-center text-on-primary border-b-2 border-on-primary font-bold text-label-md transition-all duration-200" href="#">Danh mục</a>
+</nav>
+<!-- Actions -->
+<div class="flex items-center gap-unit-4">
+<button class="text-on-primary hover:text-primary-fixed transition-colors p-unit-2 rounded-full hover:bg-[rgba(255,255,255,0.1)] flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+</button>
+<div class="hidden sm:flex items-center gap-unit-3">
+<button class="text-label-md font-label-md text-on-primary hover:text-primary-fixed transition-colors px-unit-3 py-unit-2">Đăng ký</button>
+<button class="text-label-md font-label-md bg-surface-container-lowest text-primary px-unit-4 py-unit-2 rounded-lg hover:opacity-90 transition-opacity">Đăng nhập</button>
+</div>
+<!-- Mobile menu button -->
+<button class="md:hidden text-on-primary p-unit-2">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop lg:px-margin-desktop py-unit-6 flex flex-col">
+<!-- Breadcrumbs -->
+<nav class="mb-unit-6 flex items-center gap-unit-2 text-[12px] font-label-md text-on-surface-variant">
+<a class="hover:text-primary transition-colors" href="#">Trang chủ</a>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-on-surface">Điện tử</span>
+</nav>
+<!-- Layout Grid -->
+<div class="flex flex-col md:flex-row gap-gutter items-start">
+<!-- Sidebar Filters (Desktop) -->
+<aside class="hidden md:block w-[240px] flex-shrink-0 bg-surface-container-lowest rounded-xl p-unit-4 border border-outline-variant shadow-sm sticky top-[calc(48px+24px)]">
+<!-- Category Filter -->
+<div class="mb-unit-6">
+<h3 class="text-label-md font-label-md text-on-surface mb-unit-3">Danh mục</h3>
+<ul class="space-y-unit-2">
+<li class="">
+<label class="flex items-center gap-unit-2 cursor-pointer group">
+<input checked="" class="rounded text-[#EE4D2D] focus:ring-[#EE4D2D] border-outline outline-none" type="checkbox">
+<span class="text-body-md font-body-md text-[#EE4D2D] group-hover:text-primary transition-colors">Điện thoại &amp; Phụ kiện</span>
+</label>
+</li>
+<li class="">
+<label class="flex items-center gap-unit-2 cursor-pointer group">
+<input class="rounded text-[#EE4D2D] focus:ring-[#EE4D2D] border-outline outline-none" type="checkbox">
+<span class="text-body-md font-body-md text-on-surface-variant group-hover:text-primary transition-colors">Laptop &amp; Máy tính</span>
+</label>
+</li>
+<li class="">
+<label class="flex items-center gap-unit-2 cursor-pointer group">
+<input class="rounded text-[#EE4D2D] focus:ring-[#EE4D2D] border-outline outline-none" type="checkbox">
+<span class="text-body-md font-body-md text-on-surface-variant group-hover:text-primary transition-colors">Thiết bị âm thanh</span>
+</label>
+</li>
+<li class="">
+<label class="flex items-center gap-unit-2 cursor-pointer group">
+<input class="rounded text-[#EE4D2D] focus:ring-[#EE4D2D] border-outline outline-none" type="checkbox">
+<span class="text-body-md font-body-md text-on-surface-variant group-hover:text-primary transition-colors">Máy ảnh &amp; Quay phim</span>
+</label>
+</li>
+</ul>
+</div>
+<hr class="border-outline-variant my-unit-4">
+<!-- Price Range Filter -->
+<div class="mb-unit-6">
+<h3 class="text-label-md font-label-md text-on-surface mb-unit-3">Khoảng giá (VNĐ)</h3>
+<div class="flex items-center gap-unit-2">
+<input class="w-full bg-surface border border-outline-variant rounded px-unit-2 py-unit-1 text-body-md text-on-surface focus:ring-1 ring-primary outline-none" placeholder="Từ" type="text">
+<span class="text-on-surface-variant">-</span>
+<input class="w-full bg-surface border border-outline-variant rounded px-unit-2 py-unit-1 text-body-md text-on-surface focus:ring-1 ring-primary outline-none" placeholder="Đến" type="text">
+</div>
+<button class="w-full mt-unit-3 bg-surface-container-high hover:bg-surface-variant text-on-surface text-[12px] font-label-md py-unit-2 rounded transition-colors">Áp dụng</button>
+</div>
+<hr class="border-outline-variant my-unit-4">
+<!-- Rating Filter -->
+<div class="mb-unit-6">
+<h3 class="text-label-md font-label-md text-on-surface mb-unit-3">Đánh giá</h3>
+<ul class="space-y-unit-2">
+<li class="">
+<label class="flex items-center gap-unit-2 cursor-pointer">
+<input class="text-[#EE4D2D] focus:ring-[#EE4D2D] border-outline" name="rating" type="radio">
+<div class="flex items-center text-[#ffb4a4] text-[16px]">
+<span class="material-symbols-outlined fill" data-icon="star">star</span>
+<span class="material-symbols-outlined fill" data-icon="star">star</span>
+<span class="material-symbols-outlined fill" data-icon="star">star</span>
+<span class="material-symbols-outlined fill" data-icon="star">star</span>
+<span class="material-symbols-outlined fill" data-icon="star">star</span>
+<span class="text-body-md font-body-md text-on-surface ml-unit-1 text-sm">từ 5 sao</span>
+</div>
+</label>
+</li>
+<li class="">
+<label class="flex items-center gap-unit-2 cursor-pointer">
+<input class="text-[#EE4D2D] focus:ring-[#EE4D2D] border-outline" name="rating" type="radio">
+<div class="flex items-center text-[#ffb4a4] text-[16px]">
+<span class="material-symbols-outlined fill" data-icon="star">star</span>
+<span class="material-symbols-outlined fill" data-icon="star">star</span>
+<span class="material-symbols-outlined fill" data-icon="star">star</span>
+<span class="material-symbols-outlined fill" data-icon="star">star</span>
+<span class="material-symbols-outlined text-outline-variant" data-icon="star">star</span>
+<span class="text-body-md font-body-md text-on-surface ml-unit-1 text-sm">từ 4 sao</span>
+</div>
+</label>
+</li>
+</ul>
+</div>
+</aside>
+<!-- Main Product Area -->
+<div class="flex-1 w-full">
+<!-- Sorting & View Options -->
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-surface-container-lowest p-unit-3 rounded-lg border border-outline-variant mb-unit-6 shadow-sm gap-unit-4">
+<div class="flex items-center gap-unit-4">
+<span class="text-label-md font-label-md text-on-surface-variant hidden sm:inline">Sắp xếp theo:</span>
+<div class="flex gap-unit-2">
+<button class="px-unit-3 py-unit-1 rounded text-[12px] font-label-md bg-[#EE4D2D] text-on-primary transition-colors">Mới nhất</button>
+<button class="px-unit-3 py-unit-1 rounded text-[12px] font-label-md bg-surface hover:bg-surface-variant border border-outline-variant text-on-surface transition-colors">Giá thấp → cao</button>
+<button class="px-unit-3 py-unit-1 rounded text-[12px] font-label-md bg-surface hover:bg-surface-variant border border-outline-variant text-on-surface transition-colors">Bán chạy</button>
+</div>
+</div>
+<div class="text-[12px] font-label-md text-on-surface-variant">
+                        Hiển thị 1 - 12 của 120 sản phẩm
+                    </div>
+</div>
+<!-- Product Grid -->
+<div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-unit-4 md:gap-gutter">
+<!-- Product Card 1 -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden hover:shadow-[0px_4px_12px_rgba(0,0,0,0.05)] transition-shadow duration-200 group flex flex-col">
+<div class="relative w-full pt-[100%] bg-surface-container-low overflow-hidden">
+<img alt="Product Image" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="A flagship modern smartphone shown in a three-quarter view, displaying a vibrant but subtle abstract wallpaper on its edge-to-edge screen. It sits on a perfectly smooth, bright surface with a very soft, diffused ambient shadow underneath. The image is styled for a professional e-commerce platform, focusing on minimal design, sharp details, and an airy, high-tech light mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDf-21W9loqtAUPUL8dV_L1LvhiYSDPTI70uVkm13iI6kRpuZIghpf3_qfAmj0KRNeX3QgNsyurcwZPPtIExBqaGKwMKTS2IcJfUvJjPe4Q8slXwRTnfB14P9mnx7j-EvMgYtna9yGZU3AJivRzNCILD4zGIPMSbkaXeLK5fTlKbnbJ9WlmnijneXDcRHrZBgOiruYQgcpzcOJcsyWgsDcov5wNQ5bZUcoD7uvURxDsrq80_wdxwjnmw6EA6nrFC7M9s2OmqzKsXI">
+<div class="absolute top-unit-2 left-unit-2 bg-[#D0011B] text-on-error text-[12px] font-label-md px-unit-2 py-0.5 rounded-full">-15%</div>
+</div>
+<div class="p-unit-3 flex-1 flex flex-col">
+<h4 class="text-body-md font-body-md text-on-surface line-clamp-2 mb-unit-1">Điện thoại thông minh TechToShop Pro Max 256GB - Bản quốc tế</h4>
+<div class="flex items-center gap-unit-1 mb-unit-2">
+<span class="material-symbols-outlined fill text-[#ffb4a4] text-[14px]" data-icon="star">star</span>
+<span class="text-[12px] font-label-md text-on-surface-variant">4.9 (120)</span>
+</div>
+<div class="mt-auto">
+<div class="text-[20px] font-headline-md text-[#D0011B] mb-unit-1">24.500.000 ₫</div>
+<div class="flex justify-between items-center mt-unit-3">
+<span class="text-[12px] font-label-md text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[14px]" data-icon="store">store</span> TechToShop Official</span>
+<button class="p-unit-2 rounded bg-surface hover:bg-primary-fixed text-[#EE4D2D] border border-outline-variant hover:border-[#EE4D2D] transition-colors flex items-center justify-center group-hover:bg-[#EE4D2D] group-hover:text-on-primary" title="Thêm vào giỏ">
+<span class="material-symbols-outlined text-[18px]" data-icon="add_shopping_cart">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Product Card 2 -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden hover:shadow-[0px_4px_12px_rgba(0,0,0,0.05)] transition-shadow duration-200 group flex flex-col">
+<div class="relative w-full pt-[100%] bg-surface-container-low overflow-hidden">
+<img alt="Product Image" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="A pair of premium over-ear wireless headphones in a sophisticated matte black finish, resting elegantly on a minimalist light gray pedestal. The studio lighting creates soft, deliberate highlights on the earcups and headband, emphasizing texture and build quality. The overall composition is clean and modern, fitting perfectly into a high-end retail digital interface. The aesthetic is crisp, professional, and entirely free of clutter." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdJgwN0xnd3-OKOu6BTm-2URF5Fj6Q2WnsfL7DGnUf6hkPhs8LwlpQhY1hRYnlSEQ8Z7pfGaRfrjQoKmCqgv4bg0sqFb4En-hHgPPpKpdt48qfsX_XhC6kG2gxUnovs9giYH4wrS5a8mDV0vkEe1cAwJNxV117TWlVTra6ysi8wgZRbfHHNCV1U4VFxnIyWilU_7qc5TXVTlk1aMWgJr8miOk3r0O7HqcwkaDwdTlsWIyQ_gTPprkwGHNAOAOyQ6oQyVnNH5YY26I">
+</div>
+<div class="p-unit-3 flex-1 flex flex-col">
+<h4 class="text-body-md font-body-md text-on-surface line-clamp-2 mb-unit-1">Tai nghe chống ồn chủ động không dây TechToShop Audio Pro</h4>
+<div class="flex items-center gap-unit-1 mb-unit-2">
+<span class="material-symbols-outlined fill text-[#ffb4a4] text-[14px]" data-icon="star">star</span>
+<span class="text-[12px] font-label-md text-on-surface-variant">4.7 (85)</span>
+</div>
+<div class="mt-auto">
+<div class="text-[20px] font-headline-md text-[#D0011B] mb-unit-1">4.200.000 ₫</div>
+<div class="flex justify-between items-center mt-unit-3">
+<span class="text-[12px] font-label-md text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[14px]" data-icon="store">store</span> SoundTech VN</span>
+<button class="p-unit-2 rounded bg-surface hover:bg-primary-fixed text-[#EE4D2D] border border-outline-variant hover:border-[#EE4D2D] transition-colors flex items-center justify-center group-hover:bg-[#EE4D2D] group-hover:text-on-primary" title="Thêm vào giỏ">
+<span class="material-symbols-outlined text-[18px]" data-icon="add_shopping_cart">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Product Card 3 -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden hover:shadow-[0px_4px_12px_rgba(0,0,0,0.05)] transition-shadow duration-200 group flex flex-col">
+<div class="relative w-full pt-[100%] bg-surface-container-low overflow-hidden">
+<img alt="Product Image" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="A sleek, modern high-end laptop positioned slightly open on a pristine white surface, casting a soft, minimalist shadow. The lighting is bright and even, highlighting the premium metallic finish and thin bezels of the screen. The scene embodies a clean, professional corporate e-commerce aesthetic with a light mode vibe, prioritizing clarity and product focus. No distracting background elements, pure minimalist presentation." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDoYTVYctv31DFipmEVIRQrioMWHzJFyt-FauXg3a6crBgpofbGKEGwAO7hp10bq1CqZm0uyLdfBhWbGXmAPphEYLUpoX3XStcPG1IegUOkIlbCkgAu2J1EboAmxe3gFzyYCRCe-GyHYP8c0jnpaXqWbs-ovzmolpAxlCBvsYRAqplytYRRveGOTrb2ruNR7_JebuP2km8s8M89SGh2VIEw2sKSr3dYU3cw5PNAb2CiRhZWGSH1apNQlwu7pJvtFfsyNABBP2GN6-4">
+</div>
+<div class="p-unit-3 flex-1 flex flex-col">
+<h4 class="text-body-md font-body-md text-on-surface line-clamp-2 mb-unit-1">Laptop doanh nhân mỏng nhẹ TechToShop Book 14" M2 16GB/512GB</h4>
+<div class="flex items-center gap-unit-1 mb-unit-2">
+<span class="material-symbols-outlined fill text-[#ffb4a4] text-[14px]" data-icon="star">star</span>
+<span class="text-[12px] font-label-md text-on-surface-variant">5.0 (34)</span>
+</div>
+<div class="mt-auto">
+<div class="text-[20px] font-headline-md text-[#D0011B] mb-unit-1">32.990.000 ₫</div>
+<div class="flex justify-between items-center mt-unit-3">
+<span class="text-[12px] font-label-md text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[14px]" data-icon="store">store</span> TechToShop Official</span>
+<button class="p-unit-2 rounded bg-surface hover:bg-primary-fixed text-[#EE4D2D] border border-outline-variant hover:border-[#EE4D2D] transition-colors flex items-center justify-center group-hover:bg-[#EE4D2D] group-hover:text-on-primary" title="Thêm vào giỏ">
+<span class="material-symbols-outlined text-[18px]" data-icon="add_shopping_cart">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Product Card 4 -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden hover:shadow-[0px_4px_12px_rgba(0,0,0,0.05)] transition-shadow duration-200 group flex flex-col">
+<div class="relative w-full pt-[100%] bg-surface-container-low overflow-hidden">
+<img alt="Product Image" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="A professional mirrorless digital camera body with a prime lens attached, isolated against a seamless, bright white background. The lighting is meticulously controlled to show the textured grip and metallic dials without harsh glares. The presentation is purely product-focused, embodying a modern, minimalist retail style designed to convey premium quality and reliability in a corporate e-commerce setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOWhH8DWSAENO5-mT5NazS1-HcuhJ6XLYmUqmE1qi-lOBzggqLc5_ReiGCHHYg9LdnkY5CznF8_NXDPtNrQSqsUBpf7UpourHNSbQp_DgiCDbMW7qr0LuVtFvcwccTGiQteSip6EeuzfX5IBk6Y8neEzHUrr_ab117FE7UUswaaD4ZnCoYd9hUOSb-bXA8_l11ECO_YR1hobexp0WhQA6vb5hGewZsqX98v00B8i0Kqi1voqgAdT3ZTdhcDcr7Hg_eNAPtcwO-OfA">
+</div>
+<div class="p-unit-3 flex-1 flex flex-col">
+<h4 class="text-body-md font-body-md text-on-surface line-clamp-2 mb-unit-1">Máy ảnh Mirrorless TechToShop Alpha 7 IV kèm Kit 28-70mm</h4>
+<div class="flex items-center gap-unit-1 mb-unit-2">
+<span class="material-symbols-outlined fill text-[#ffb4a4] text-[14px]" data-icon="star">star</span>
+<span class="text-[12px] font-label-md text-on-surface-variant">4.8 (12)</span>
+</div>
+<div class="mt-auto">
+<div class="text-[20px] font-headline-md text-[#D0011B] mb-unit-1">58.490.000 ₫</div>
+<div class="flex justify-between items-center mt-unit-3">
+<span class="text-[12px] font-label-md text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[14px]" data-icon="store">store</span> Camera Store</span>
+<button class="p-unit-2 rounded bg-surface hover:bg-primary-fixed text-[#EE4D2D] border border-outline-variant hover:border-[#EE4D2D] transition-colors flex items-center justify-center group-hover:bg-[#EE4D2D] group-hover:text-on-primary" title="Thêm vào giỏ">
+<span class="material-symbols-outlined text-[18px]" data-icon="add_shopping_cart">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Duplicate cards for grid fill to show layout -->
+<!-- Card 5 -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden hover:shadow-[0px_4px_12px_rgba(0,0,0,0.05)] transition-shadow duration-200 group flex flex-col">
+<div class="relative w-full pt-[100%] bg-surface-container-low overflow-hidden">
+<img alt="Product Image" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="A sleek, modern smartwatch with a premium metallic bezel and a minimalist digital watch face, resting on a clean white surface. Soft ambient lighting highlights its polished details, fitting a minimalist corporate e-commerce aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_FiblJYxaUhkcjy7uehYccxjxsJwlYleXtIJ7A52D12nzlIpZogMyFC-aX-54JgjlxXe4GFgU7NOrRwATnwW1okAVHRnsInKlh5SGFvdeNFyqYqQHK8j_ruW4pSr22YB0gkXQHp4uWsjPI62E7wUYzmNGK7MtWmmXehKwsieFX0clcjEg_2yKlaSIHxTjhm8NZqEQBzUBz6ZJXA0C_xVRaxuIRk9vOr98T5vLMRNKVGVhrUbgp6lj7tZr_X1oSoJm9YgoQWhzcXw">
+</div>
+<div class="p-unit-3 flex-1 flex flex-col">
+<h4 class="text-body-md font-body-md text-on-surface line-clamp-2 mb-unit-1">Đồng hồ thông minh TechToShop Watch Series 8 Viền Thép</h4>
+<div class="flex items-center gap-unit-1 mb-unit-2">
+<span class="material-symbols-outlined fill text-[#ffb4a4] text-[14px]" data-icon="star">star</span>
+<span class="text-[12px] font-label-md text-on-surface-variant">4.6 (210)</span>
+</div>
+<div class="mt-auto">
+<div class="text-[20px] font-headline-md text-[#D0011B] mb-unit-1">11.990.000 ₫</div>
+<div class="flex justify-between items-center mt-unit-3">
+<span class="text-[12px] font-label-md text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[14px]" data-icon="store">store</span> TechToShop Official</span>
+<button class="p-unit-2 rounded bg-surface hover:bg-primary-fixed text-[#EE4D2D] border border-outline-variant hover:border-[#EE4D2D] transition-colors flex items-center justify-center group-hover:bg-[#EE4D2D] group-hover:text-on-primary" title="Thêm vào giỏ">
+<span class="material-symbols-outlined text-[18px]" data-icon="add_shopping_cart">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 6 -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden hover:shadow-[0px_4px_12px_rgba(0,0,0,0.05)] transition-shadow duration-200 group flex flex-col">
+<div class="relative w-full pt-[100%] bg-surface-container-low overflow-hidden">
+<img alt="Product Image" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="A pair of true wireless earbuds in a pristine white charging case, open slightly on a light gray background. Meticulous lighting emphasizes the smooth curves and premium build, presenting a high-end minimalist e-commerce style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZKG74KZA1iz1Xc1V5QH2itypRrlBnuy37si0MhuAaaMNohXKX2qtPQa8TbiIiJL84JBB8vtKlVubStGtn4xtgHJuG2QI-324n1-MDSNO_ecCicH4Y_mXoj-siFSZZorq6FfCF6lJlWiP0m6HId_N6-7SluE5wIgJwAnv9znpqumVbyarWbkFihyvrc8oAmkbV8128Q-oK5ozrtDviluMV6e_EobZnwciIEd-h-vQtSuRw6lBWOWqKdnIENqeB2YGhrqOSHRJkX7Y">
+</div>
+<div class="p-unit-3 flex-1 flex flex-col">
+<h4 class="text-body-md font-body-md text-on-surface line-clamp-2 mb-unit-1">Tai nghe True Wireless TechToShop Buds Pro TWS</h4>
+<div class="flex items-center gap-unit-1 mb-unit-2">
+<span class="material-symbols-outlined fill text-[#ffb4a4] text-[14px]" data-icon="star">star</span>
+<span class="text-[12px] font-label-md text-on-surface-variant">4.9 (450)</span>
+</div>
+<div class="mt-auto">
+<div class="text-[20px] font-headline-md text-[#D0011B] mb-unit-1">3.500.000 ₫</div>
+<div class="flex justify-between items-center mt-unit-3">
+<span class="text-[12px] font-label-md text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[14px]" data-icon="store">store</span> SoundTech VN</span>
+<button class="p-unit-2 rounded bg-surface hover:bg-primary-fixed text-[#EE4D2D] border border-outline-variant hover:border-[#EE4D2D] transition-colors flex items-center justify-center group-hover:bg-[#EE4D2D] group-hover:text-on-primary" title="Thêm vào giỏ">
+<span class="material-symbols-outlined text-[18px]" data-icon="add_shopping_cart">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination -->
+<div class="flex justify-center items-center mt-unit-8 gap-unit-2">
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary transition-colors bg-surface-container-lowest" disabled="">
+<span class="material-symbols-outlined text-[18px]" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded bg-[#EE4D2D] text-on-primary font-label-md text-[12px] shadow-sm">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface hover:border-primary hover:text-primary transition-colors bg-surface-container-lowest font-label-md text-[12px]">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface hover:border-primary hover:text-primary transition-colors bg-surface-container-lowest font-label-md text-[12px]">3</button>
+<span class="text-on-surface-variant px-unit-1">...</span>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface hover:border-primary hover:text-primary transition-colors bg-surface-container-lowest font-label-md text-[12px]">10</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface hover:border-primary hover:text-primary transition-colors bg-surface-container-lowest">
+<span class="material-symbols-outlined text-[18px]" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-unit-12 px-margin-mobile md:px-margin-desktop lg:px-margin-desktop bg-surface-container-lowest border-t border-outline-variant mt-auto">
+<div class="max-w-container-max mx-auto grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<div>
+<a class="text-[32px] font-headline-lg text-primary tracking-tight block mb-unit-4" href="#">TechToShop</a>
+<p class="text-body-md font-body-md text-on-surface-variant">© 2024 TechToShop. All rights reserved.</p>
+</div>
+<div class="md:col-span-2 flex justify-end gap-unit-6 md:gap-unit-12 flex-wrap">
+<a class="text-[12px] font-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Về chúng tôi</a>
+<a class="text-[12px] font-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Liên hệ</a>
+<a class="text-[12px] font-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Chính sách bảo mật</a>
+<a class="text-[12px] font-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Điều khoản sử dụng</a>
+</div>
+</div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+</body></html>

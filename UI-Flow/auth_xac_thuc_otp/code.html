@@ -1,0 +1,393 @@
+<!DOCTYPE html><html lang="vi" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Auth - Xac thuc OTP</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "secondary-container": "#db3514",
+                "surface-container-lowest": "#ffffff",
+                "on-tertiary-container": "#fffbff",
+                "on-secondary-fixed": "#3e0500",
+                "on-primary-fixed-variant": "#8d1600",
+                "tertiary": "#bb0017",
+                "on-primary-fixed": "#3e0500",
+                "on-secondary-container": "#fffbff",
+                "outline-variant": "#e3beb6",
+                "surface-bright": "#fbf9f9",
+                "outline": "#8f7069",
+                "on-tertiary-fixed-variant": "#93000f",
+                "surface-container": "#efeded",
+                "on-error": "#ffffff",
+                "on-surface-variant": "#5b403b",
+                "on-secondary": "#ffffff",
+                "on-surface": "#1b1c1c",
+                "secondary-fixed-dim": "#ffb4a4",
+                "surface": "#fbf9f9",
+                "on-background": "#1b1c1c",
+                "background": "#fbf9f9",
+                "inverse-primary": "#ffb4a4",
+                "surface-variant": "#e3e2e2",
+                "surface-container-high": "#e9e8e7",
+                "inverse-surface": "#303031",
+                "on-error-container": "#93000a",
+                "secondary-fixed": "#ffdad3",
+                "primary-fixed": "#ffdad3",
+                "on-secondary-fixed-variant": "#8d1600",
+                "on-tertiary-fixed": "#410003",
+                "surface-dim": "#dbdad9",
+                "on-primary": "#ffffff",
+                "primary-container": "#d63c1e",
+                "error-container": "#ffdad6",
+                "primary": "#b22204",
+                "on-tertiary": "#ffffff",
+                "error": "#ba1a1a",
+                "primary-fixed-dim": "#ffb4a4",
+                "tertiary-fixed": "#ffdad6",
+                "tertiary-fixed-dim": "#ffb3ac",
+                "surface-container-low": "#f5f3f3",
+                "secondary": "#b41f00",
+                "on-primary-container": "#fffbff",
+                "inverse-on-surface": "#f2f0f0",
+                "surface-container-highest": "#e3e2e2",
+                "tertiary-container": "#e51d27",
+                "surface-tint": "#b62506"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "margin-desktop": "auto",
+                "base": "4px",
+                "xl": "48px",
+                "sm": "8px",
+                "max-width": "1200px",
+                "margin-mobile": "12px",
+                "gutter": "12px",
+                "xs": "4px",
+                "lg": "24px",
+                "md": "16px"
+        },
+        "fontFamily": {
+                "price-lg": [
+                        "Inter"
+                ],
+                "label-md": [
+                        "Inter"
+                ],
+                "display-lg": [
+                        "Inter"
+                ],
+                "price-sm": [
+                        "Inter"
+                ],
+                "headline-md": [
+                        "Inter"
+                ],
+                "body-md": [
+                        "Inter"
+                ],
+                "headline-lg-mobile": [
+                        "Inter"
+                ],
+                "headline-lg": [
+                        "Inter"
+                ],
+                "body-lg": [
+                        "Inter"
+                ]
+        },
+        "fontSize": {
+                "price-lg": [
+                        "24px",
+                        {
+                                "lineHeight": "1",
+                                "fontWeight": "600"
+                        }
+                ],
+                "label-md": [
+                        "12px",
+                        {
+                                "lineHeight": "1.2",
+                                "fontWeight": "500"
+                        }
+                ],
+                "display-lg": [
+                        "48px",
+                        {
+                                "lineHeight": "1.2",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "price-sm": [
+                        "14px",
+                        {
+                                "lineHeight": "1",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-md": [
+                        "20px",
+                        {
+                                "lineHeight": "1.4",
+                                "fontWeight": "600"
+                        }
+                ],
+                "body-md": [
+                        "14px",
+                        {
+                                "lineHeight": "1.5",
+                                "fontWeight": "400"
+                        }
+                ],
+                "headline-lg-mobile": [
+                        "24px",
+                        {
+                                "lineHeight": "1.3",
+                                "fontWeight": "700"
+                        }
+                ],
+                "headline-lg": [
+                        "32px",
+                        {
+                                "lineHeight": "1.25",
+                                "fontWeight": "700"
+                        }
+                ],
+                "body-lg": [
+                        "16px",
+                        {
+                                "lineHeight": "1.5",
+                                "fontWeight": "400"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+        /* Hide arrows on number input */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="bg-surface min-h-screen flex items-center justify-center p-margin-mobile md:p-margin-tablet font-sans text-text-main">
+<!-- Transational Canvas: Centered Card -->
+<div class="w-full max-w-[480px] bg-surface-container-lowest rounded-xl shadow-[0_12px_32px_rgba(0,0,0,0.05)] border border-border-light p-lg md:p-10 flex flex-col items-center">
+<!-- Brand / Icon -->
+<div class="mb-lg bg-primary-fixed w-16 h-16 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[#EE4D2D] text-[32px]" style="font-variation-settings: 'FILL' 1;">
+                lock_clock
+            </span>
+</div>
+<!-- Headings -->
+<h1 class="font-headline-md text-headline-md text-on-surface mb-sm text-center">
+            Xác thực OTP
+        </h1>
+<p class="font-body-md text-body-md text-on-surface-variant text-center mb-xl max-w-[320px]">Vui lòng nhập mã gồm 6 chữ số đã được gửi đến email <span class="font-label-md">te***@gmail.com</span> và số điện thoại của bạn để hoàn tất xác thực.</p>
+<!-- Form Area -->
+<form class="w-full flex flex-col gap-lg" id="otp-form">
+<!-- 6 Input Boxes -->
+<div class="flex justify-between gap-sm sm:gap-md" id="otp-inputs">
+<input autofocus="" class="w-10 h-12 sm:w-12 sm:h-14 text-center font-headline-md text-headline-md text-on-surface bg-surface-container-lowest border border-outline rounded-lg focus:outline-none focus:ring-2 focus:ring-[#EE4D2D] focus:border-[#EE4D2D] transition-all shadow-sm" maxlength="1" pattern="\d*" required="" type="number">
+<input class="w-10 h-12 sm:w-12 sm:h-14 text-center font-headline-md text-headline-md text-on-surface bg-surface-container-lowest border border-outline rounded-lg focus:outline-none focus:ring-2 focus:ring-[#EE4D2D] focus:border-[#EE4D2D] transition-all shadow-sm" disabled="" maxlength="1" pattern="\d*" required="" type="number">
+<input class="w-10 h-12 sm:w-12 sm:h-14 text-center font-headline-md text-headline-md text-on-surface bg-surface-container-lowest border border-outline rounded-lg focus:outline-none focus:ring-2 focus:ring-[#EE4D2D] focus:border-[#EE4D2D] transition-all shadow-sm" disabled="" maxlength="1" pattern="\d*" required="" type="number">
+<input class="w-10 h-12 sm:w-12 sm:h-14 text-center font-headline-md text-headline-md text-on-surface bg-surface-container-lowest border border-outline rounded-lg focus:outline-none focus:ring-2 focus:ring-[#EE4D2D] focus:border-[#EE4D2D] transition-all shadow-sm" disabled="" maxlength="1" pattern="\d*" required="" type="number">
+<input class="w-10 h-12 sm:w-12 sm:h-14 text-center font-headline-md text-headline-md text-on-surface bg-surface-container-lowest border border-outline rounded-lg focus:outline-none focus:ring-2 focus:ring-[#EE4D2D] focus:border-[#EE4D2D] transition-all shadow-sm" disabled="" maxlength="1" pattern="\d*" required="" type="number">
+<input class="w-10 h-12 sm:w-12 sm:h-14 text-center font-headline-md text-headline-md text-on-surface bg-surface-container-lowest border border-outline rounded-lg focus:outline-none focus:ring-2 focus:ring-[#EE4D2D] focus:border-[#EE4D2D] transition-all shadow-sm" disabled="" maxlength="1" pattern="\d*" required="" type="number">
+</div>
+<!-- Validation Message Area (Hidden by default) -->
+<p class="text-[#DC2626] font-label-sm text-label-md text-center mt-[-16px]" id="error-message">Mã OTP không hợp lệ hoặc đã hết hạn</p>
+<!-- Submit Button -->
+<button class="w-full bg-[#EE4D2D] text-on-primary font-label-md text-label-md py-3 px-6 rounded-lg hover:bg-surface-tint active:bg-primary-container transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled="" id="submit-btn" type="submit">
+                Xác nhận
+            </button>
+</form>
+<!-- Resend Section -->
+<div class="mt-lg text-center">
+<p class="font-body-md text-body-md text-on-surface-variant flex items-center justify-center gap-1">
+                Chưa nhận được mã? 
+                <span class="text-[#EE4D2D] font-label-md text-label-md hidden" id="timer-text">Gửi lại mã sau <span id="time" class="">00:00</span></span>
+<button class="text-[#EE4D2D] font-label-md text-label-md hover:underline bg-transparent border-none cursor-pointer p-0" id="resend-btn">Gửi lại mã</button>
+</p>
+</div>
+<!-- Back Navigation -->
+<div class="mt-xl w-full border-t border-outline pt-lg text-center">
+<a class="inline-flex items-center gap-1 font-label-sm text-label-md text-on-surface-variant hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-[16px]">arrow_back</span>
+                Quay lại màn hình đăng nhập
+            </a>
+</div>
+</div>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputs = document.querySelectorAll('#otp-inputs input');
+            const submitBtn = document.getElementById('submit-btn');
+            const form = document.getElementById('otp-form');
+            const errorMessage = document.getElementById('error-message');
+            
+            const timerText = document.getElementById('timer-text');
+            const timeSpan = document.getElementById('time');
+            const resendBtn = document.getElementById('resend-btn');
+
+            // --- OTP Input Logic ---
+            inputs.forEach((input, index) => {
+                input.addEventListener('input', (e) => {
+                    const val = e.target.value;
+                    
+                    // Clear error state on input
+                    inputs.forEach(i => i.classList.remove('border-error', 'ring-error'));
+                    errorMessage.classList.add('hidden');
+
+                    if (val.length === 1) {
+                        if (index < inputs.length - 1) {
+                            inputs[index + 1].disabled = false;
+                            inputs[index + 1].focus();
+                        }
+                    }
+                    
+                    // Prevent entering more than 1 char
+                    if (val.length > 1) {
+                        e.target.value = val.slice(0, 1);
+                    }
+
+                    checkAllFilled();
+                });
+
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace') {
+                        if (e.target.value === '' && index > 0) {
+                            inputs[index - 1].focus();
+                            inputs[index].disabled = true;
+                        }
+                        // Allow deletion
+                    }
+                });
+
+                // Handle pasting
+                input.addEventListener('paste', (e) => {
+                    e.preventDefault();
+                    const pastedData = e.clipboardData.getData('text').slice(0, 6).replace(/\D/g, ''); // Get max 6 digits
+                    
+                    if (pastedData) {
+                        let i = 0;
+                        while (i < pastedData.length && i < inputs.length) {
+                            inputs[i].disabled = false;
+                            inputs[i].value = pastedData[i];
+                            i++;
+                        }
+                        if (i < inputs.length) {
+                            inputs[i].disabled = false;
+                            inputs[i].focus();
+                        } else {
+                            inputs[inputs.length - 1].focus();
+                        }
+                        checkAllFilled();
+                    }
+                });
+            });
+
+            function checkAllFilled() {
+                let allFilled = true;
+                inputs.forEach(input => {
+                    if (input.value === '') {
+                        allFilled = false;
+                    }
+                });
+                submitBtn.disabled = !allFilled;
+            }
+
+            // --- Form Submission Simulation ---
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                submitBtn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span> Đang xử lý...';
+                submitBtn.disabled = true;
+
+                // Simulate API call
+                setTimeout(() => {
+                    const otpValue = Array.from(inputs).map(i => i.value).join('');
+                    
+                    // Mock error scenario for demonstration (e.g., if OTP is 123456 it fails)
+                    if(otpValue === '123456') {
+                         submitBtn.innerHTML = 'Xác nhận';
+                         submitBtn.disabled = false;
+                         errorMessage.classList.remove('hidden');
+                         inputs.forEach(i => {
+                             i.classList.add('border-error', 'ring-error');
+                             i.value = ''; // clear inputs
+                         });
+                         inputs[1].disabled = true; inputs[2].disabled = true; inputs[3].disabled = true; inputs[4].disabled = true; inputs[5].disabled = true;
+                         inputs[0].focus();
+                    } else {
+                         // Success scenario
+                         submitBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check_circle</span> Thành công';
+                         submitBtn.classList.replace('bg-[#EE4D2D]', 'bg-tertiary-container');
+                         submitBtn.classList.remove('hover:bg-surface-tint', 'active:bg-primary-container');
+                    }
+                }, 1500);
+            });
+
+            // --- Countdown Timer Logic ---
+            let timeLeft = 59;
+            let timerId;
+
+            function startTimer() {
+                clearInterval(timerId);
+                timeLeft = 59;
+                timerText.classList.remove('hidden');
+                resendBtn.classList.add('hidden');
+                
+                timerId = setInterval(() => {
+                    timeLeft--;
+                    const seconds = timeLeft < 10 ? `0${timeLeft}` : timeLeft;
+                    timeSpan.textContent = `00:${seconds}`;
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(timerId);
+                        timerText.classList.add('hidden');
+                        resendBtn.classList.remove('hidden');
+                    }
+                }, 1000);
+            }
+
+            resendBtn.addEventListener('click', () => {
+                // Simulate resend action
+                startTimer();
+                // Reset inputs conceptually
+                inputs.forEach(i => { i.value = ''; i.classList.remove('border-error', 'ring-error'); });
+                inputs[1].disabled = true; inputs[2].disabled = true; inputs[3].disabled = true; inputs[4].disabled = true; inputs[5].disabled = true;
+                inputs[0].focus();
+                submitBtn.disabled = true;
+                errorMessage.classList.add('hidden');
+            });
+
+            // Initialize timer
+            startTimer();
+        });
+    </script>
+
+
+
+
+
+
+
+
+</body></html>

@@ -1,0 +1,423 @@
+<!DOCTYPE html><html lang="vi" style="width: 1280px; height: 638px; overflow: hidden; position: relative;"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Buyer - Tin nhan ho tro</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "secondary-container": "#db3514",
+                "surface-container-lowest": "#ffffff",
+                "on-tertiary-container": "#fffbff",
+                "on-secondary-fixed": "#3e0500",
+                "on-primary-fixed-variant": "#8d1600",
+                "tertiary": "#bb0017",
+                "on-primary-fixed": "#3e0500",
+                "on-secondary-container": "#fffbff",
+                "outline-variant": "#e3beb6",
+                "surface-bright": "#fbf9f9",
+                "outline": "#8f7069",
+                "on-tertiary-fixed-variant": "#93000f",
+                "surface-container": "#efeded",
+                "on-error": "#ffffff",
+                "on-surface-variant": "#5b403b",
+                "on-secondary": "#ffffff",
+                "on-surface": "#1b1c1c",
+                "secondary-fixed-dim": "#ffb4a4",
+                "surface": "#fbf9f9",
+                "on-background": "#1b1c1c",
+                "background": "#fbf9f9",
+                "inverse-primary": "#ffb4a4",
+                "surface-variant": "#e3e2e2",
+                "surface-container-high": "#e9e8e7",
+                "inverse-surface": "#303031",
+                "on-error-container": "#93000a",
+                "secondary-fixed": "#ffdad3",
+                "primary-fixed": "#ffdad3",
+                "on-secondary-fixed-variant": "#8d1600",
+                "on-tertiary-fixed": "#410003",
+                "surface-dim": "#dbdad9",
+                "on-primary": "#ffffff",
+                "primary-container": "#d63c1e",
+                "error-container": "#ffdad6",
+                "primary": "#b22204",
+                "on-tertiary": "#ffffff",
+                "error": "#ba1a1a",
+                "primary-fixed-dim": "#ffb4a4",
+                "tertiary-fixed": "#ffdad6",
+                "tertiary-fixed-dim": "#ffb3ac",
+                "surface-container-low": "#f5f3f3",
+                "secondary": "#b41f00",
+                "on-primary-container": "#fffbff",
+                "inverse-on-surface": "#f2f0f0",
+                "surface-container-highest": "#e3e2e2",
+                "tertiary-container": "#e51d27",
+                "surface-tint": "#b62506"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "margin-desktop": "auto",
+                "base": "4px",
+                "xl": "48px",
+                "sm": "8px",
+                "max-width": "1200px",
+                "margin-mobile": "12px",
+                "gutter": "12px",
+                "xs": "4px",
+                "lg": "24px",
+                "md": "16px"
+        },
+        "fontFamily": {
+                "price-lg": [
+                        "Inter"
+                ],
+                "label-md": [
+                        "Inter"
+                ],
+                "display-lg": [
+                        "Inter"
+                ],
+                "price-sm": [
+                        "Inter"
+                ],
+                "headline-md": [
+                        "Inter"
+                ],
+                "body-md": [
+                        "Inter"
+                ],
+                "headline-lg-mobile": [
+                        "Inter"
+                ],
+                "headline-lg": [
+                        "Inter"
+                ],
+                "body-lg": [
+                        "Inter"
+                ]
+        },
+        "fontSize": {
+                "price-lg": [
+                        "24px",
+                        {
+                                "lineHeight": "1",
+                                "fontWeight": "600"
+                        }
+                ],
+                "label-md": [
+                        "12px",
+                        {
+                                "lineHeight": "1.2",
+                                "fontWeight": "500"
+                        }
+                ],
+                "display-lg": [
+                        "48px",
+                        {
+                                "lineHeight": "1.2",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "price-sm": [
+                        "14px",
+                        {
+                                "lineHeight": "1",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-md": [
+                        "20px",
+                        {
+                                "lineHeight": "1.4",
+                                "fontWeight": "600"
+                        }
+                ],
+                "body-md": [
+                        "14px",
+                        {
+                                "lineHeight": "1.5",
+                                "fontWeight": "400"
+                        }
+                ],
+                "headline-lg-mobile": [
+                        "24px",
+                        {
+                                "lineHeight": "1.3",
+                                "fontWeight": "700"
+                        }
+                ],
+                "headline-lg": [
+                        "32px",
+                        {
+                                "lineHeight": "1.25",
+                                "fontWeight": "700"
+                        }
+                ],
+                "body-lg": [
+                        "16px",
+                        {
+                                "lineHeight": "1.5",
+                                "fontWeight": "400"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+    body { font-family: 'Inter', sans-serif; }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .material-symbols-outlined.fill {
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    /* Hide scrollbar for IE, Edge and Firefox */
+    .no-scrollbar {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+    }
+</style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<nav class="bg-gradient-to-r from-[#EE4D2D] to-[#FF7337] text-white border-b border-outline-variant shadow-sm docked full-width top-0 z-50">
+<div class="flex justify-between items-center w-full px-6 max-w-[1440px] mx-auto h-12">
+<div class="flex items-center gap-6">
+<span class="text-headline-md font-headline-md text-white">TechToShop&nbsp;</span>
+<div class="hidden md:flex gap-4">
+<a class="text-white/90 text-label-md font-label-md hover:text-white transition-colors py-2" href="#">Danh mục</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-white hover:text-white transition-colors">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+<div class="hidden md:flex items-center gap-2">
+<button class="text-label-md font-label-md text-white hover:bg-white/10 px-3 py-1 rounded-DEFAULT transition-colors">Đăng nhập</button>
+<button class="text-label-md font-label-md bg-white text-[#EE4D2D] hover:bg-surface-container-low px-3 py-1 rounded-DEFAULT transition-colors">Đăng ký</button>
+</div>
+</div>
+</div>
+</nav>
+<!-- Main Layout -->
+<main class="flex-1 max-w-[1440px] mx-auto w-full flex overflow-hidden h-[calc(100vh-48px)]">
+<!-- Left Sidebar: Chat List -->
+<aside class="w-full md:w-[320px] bg-surface-container-lowest border-r border-outline-variant flex flex-col h-full flex-shrink-0 relative z-10 transition-transform duration-300 transform md:translate-x-0 absolute md:static" id="chatSidebar">
+<!-- Sidebar Header -->
+<div class="p-4 border-b border-outline-variant flex items-center justify-between">
+<h2 class="text-headline-md font-headline-md text-on-surface">Tin nhắn</h2>
+<button class="text-on-surface-variant hover:text-[#EE4D2D] transition-colors">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+</div>
+<!-- Search -->
+<div class="p-3 border-b border-outline-variant">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+<input class="w-full bg-surface text-body-md font-body-md pl-[36px] pr-3 py-2 rounded-lg border border-outline-variant focus:outline-none focus:ring-2 focus:ring-[#EE4D2D] focus:border-transparent transition-all" placeholder="Tìm kiếm cửa hàng..." type="text">
+</div>
+</div>
+<!-- Chat List -->
+<div class="flex-1 overflow-y-auto no-scrollbar">
+<!-- Active Chat Item -->
+<button class="w-full text-left p-3 border-b border-outline-variant flex items-start gap-3 bg-[#FFF1EC] border-l-[4px] border-l-[#EE4D2D] hover:bg-surface-container-low transition-colors relative" onclick="openChat()">
+<div class="relative">
+<img alt="Store 1" class="w-[48px] h-[48px] rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-uxZoLVCE5ZBGmJWTARw3TPULB-IMefC-1VtHtFfwwqbnZRmBW9NCfLr5eoSqjwKfj7bjhhVSo_CjsHdXqlijABBzdGSDNYCQLlQUaHA4iRtHzF-5UwsQVX9i91gGcyG6M8fOiGxYNZNKA3yXiNIhtY8m7MgZ9ZZogkvO5nwyjwydkkntD5NDBcSZOHb5Z7JtLWSslQ3P97QTxzoMb67Qjl5t2hB9KeIIsU4S3pKyyYaMj1Zh27itKReT1bIeIHznTyLZDS2bXZQ">
+<span class="absolute bottom-0 right-0 w-3 h-3 bg-[#22C55E] border-2 border-white rounded-full"></span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline mb-1">
+<span class="text-label-md font-label-md text-on-surface truncate">Tech Store VN</span>
+<span class="text-label-md font-label-md text-on-surface-variant flex-shrink-0">10:42</span>
+</div>
+<p class="text-body-md font-body-md text-on-surface-variant truncate">Vâng, sản phẩm này còn hàng ạ. Bạn muốn đặt...</p>
+</div>
+</button>
+<!-- Unread Chat Item -->
+<button class="w-full text-left p-3 border-b border-outline-variant flex items-start gap-3 hover:bg-surface-container-low transition-colors relative" onclick="openChat()">
+<div class="relative">
+<img alt="Store 2" class="w-[48px] h-[48px] rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHpP5yo_koG21O0z0Ha6pUzv4uwxnCS6VsX458XHzSs_L9cL-cHrpxa1yJHsRVWiyV5nt5jvT-urc1wQiih_kY49vS2FMOYWklU66TSbU5YYyS6MoReKaaRSXTXzefKCSkzyQcCDVehjWCEjwa3mFRLKQaffUsJyTEtyYw6WGscGz3oqsS9NRcV_7JFAVtoGsdBQt3oo50IaRXIzNH_KVhH6wtXQB3CClk4AFsgx4IpkffqZHPHloxFlMZbffI2MbY4QcpLlMuveA">
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline mb-1">
+<span class="text-label-md font-label-md text-on-surface font-bold truncate">Fashion Boutique</span>
+<span class="text-label-md font-label-md text-[#EE4D2D] font-bold flex-shrink-0">Hôm qua</span>
+</div>
+<p class="text-body-md font-body-md text-on-surface font-semibold truncate">Cảm ơn bạn đã quan tâm đến sản phẩm của shop!</p>
+</div>
+<div class="w-2 h-2 bg-[#EE4D2D] rounded-full absolute top-1/2 transform -translate-y-1/2 right-3"></div>
+</button>
+<!-- Normal Chat Item -->
+<button class="w-full text-left p-3 border-b border-outline-variant flex items-start gap-3 hover:bg-surface-container-low transition-colors" onclick="openChat()">
+<div class="relative">
+<img alt="Store 3" class="w-[48px] h-[48px] rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuALDWi4lG0ADNPs5zRPBlbp-5JmP1Mnm9fKn1HjP9-auVkskcxKJBWSUzfk6yeZpbu-Fnk4SLQu4TQj1LBuiEKUmF3LMrKGWRx1hhU8csX4oTj5teItRWm3zsrhIYMzoVsqhMZQNy5FXVqr1UB4l1ri-pGjcI34V83v4kZvNoEzVWG50_Q7vAsJGkojfk7hcWWWg4SEvwykf_Sv-R5DWaTYVF8xkYnYjg2ml4DL6tMFBU3JmSfnpxD6Jax3NHGZyGNZb7ZJklMca4w">
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline mb-1">
+<span class="text-label-md font-label-md text-on-surface truncate">Home &amp; Living Shop</span>
+<span class="text-label-md font-label-md text-on-surface-variant flex-shrink-0">21/10</span>
+</div>
+<p class="text-body-md font-body-md text-on-surface-variant truncate">Bạn đã nhận được hàng chưa ạ?</p>
+</div>
+</button>
+<button class="w-full text-left p-3 border-b border-outline-variant flex items-start gap-3 hover:bg-surface-container-low transition-colors" onclick="openChat()">
+<div class="relative">
+<img alt="Store 4" class="w-[48px] h-[48px] rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuASOkpxPFdVJ9HvsTn6tLucFoPLjRoCLwTPZWPPnxKFOsVubhmIzSDneN21o6pUTV4I4WMoxmW2jvIjhjWNchZC6z3ypC99WFST64dWIJJqrasZnmvvc5s2O-qRg-KAxIe6ojtcSuogGU8Z1SrMVMwshAo5bTWd-dxUVH5cOw1DC2aW10lfWycrYRghGtmdKhoEDij-88Kbij145HxGVYU6advnm0ZHLDt2FV5TdOfg4I-V7zBGocDj7NLIuUhKCz-qxsoEzgKLU7M">
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline mb-1">
+<span class="text-label-md font-label-md text-on-surface truncate">Gia Dụng Thông Minh</span>
+<span class="text-label-md font-label-md text-on-surface-variant flex-shrink-0">15/10</span>
+</div>
+<p class="text-body-md font-body-md text-on-surface-variant truncate">Chào bạn, shop xin gửi bạn voucher giảm 10%...</p>
+</div>
+</button>
+</div>
+</aside>
+<!-- Main Chat Window -->
+<section class="flex-1 bg-surface flex flex-col relative w-full h-full transform md:translate-x-0 absolute md:static transition-transform duration-300 z-20" id="chatWindow">
+<!-- Chat Header -->
+<div class="h-[72px] bg-surface-container-lowest border-b border-outline-variant px-4 flex items-center justify-between flex-shrink-0">
+<div class="flex items-center gap-3">
+<button class="md:hidden text-on-surface-variant hover:text-[#EE4D2D] transition-colors p-1" onclick="closeChat()">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div class="relative">
+<img alt="Tech Store VN Avatar" class="w-[40px] h-[40px] rounded-full object-cover border border-outline-variant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-2snNmxxWpMRbWU1r4Gx0IH4aJrcmCG0vzZPNKqBFQl69TZGD4LJ6XzsPFv-OWK0CD6wSa5O3yg09PRhAmgocT20nNLJ_GDe-6d2wKeDhprRscjmGBz5wDnjpJd8vtnm2hS-y_h12W3u980uipvxAmRHTQyZJbuBIl_cccFG8oglEru4ji88PEEA_QG81OUgbOPwEY_bMzmJ0Ej7JBVo-zBqwFRPZh6RO4-vqo-sbNu5ATUvfYClaJU8W9iQw1U_2tTmGOS4V2_8">
+<span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#22C55E] border-2 border-white rounded-full"></span>
+</div>
+<div>
+<h3 class="text-label-md font-label-md text-on-surface flex items-center gap-1">Tech Store VN <span class="material-symbols-outlined text-[16px] text-[#EE4D2D] fill">verified</span></h3>
+<p class="text-label-md font-label-md text-on-surface-variant">Đang hoạt động</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 text-[#EE4D2D] hover:bg-surface-container-low rounded-full transition-colors flex items-center justify-center" title="Đến trang cửa hàng">
+<span class="material-symbols-outlined">storefront</span>
+</button>
+<button class="p-2 text-[#EE4D2D] hover:bg-surface-container-low rounded-full transition-colors flex items-center justify-center" title="Tùy chọn">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Chat Messages Area -->
+<div class="flex-1 overflow-y-auto p-4 space-y-4 bg-surface no-scrollbar flex flex-col" id="messageArea">
+<!-- Date Divider -->
+<div class="flex justify-center my-2">
+<span class="text-label-md font-label-md text-on-surface-variant bg-surface-container-low px-3 py-1 rounded-full">Hôm nay</span>
+</div>
+<!-- Product Card Context (Attached) -->
+<div class="flex justify-center mb-4">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-3 flex items-start gap-3 max-w-md shadow-sm w-full md:w-auto">
+<img alt="Product Thumbnail" class="w-[60px] h-[60px] rounded-DEFAULT object-cover border border-outline-variant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRutIu6n5K-glczCBJHzt1yFNQ4XL01jAw1vIlrWC4jle2QjvopIUn5j17mU79cfBgfN77z2FtFm97eLw-QlW6T7suuiVDcEFDz4CdYEsl_VIjeZTzkGo2z-UsGypsnZeK3kis4jaIMdpvvufXQCZD-ClpTTQuIu-3yI-pLgibNtHi_nu8_7o60nJOaQKr7Ghkj-ndTQabvULk9PsIeGi0-TWeKF1md6N3tbUYLeXr0sSrJQYQZ1_k0p80swNQonYQ3mlEYVxai7A">
+<div class="flex-1 min-w-0">
+<p class="text-label-md font-label-md text-on-surface truncate">Tai nghe Bluetooth Sony WH-1000XM4 Chống ồn chủ động</p>
+<p class="text-label-md font-label-md text-[#EE4D2D] font-semibold mt-1">6.490.000 ₫</p>
+</div>
+</div>
+</div>
+<!-- Message from Buyer (Self) -->
+<div class="flex items-end justify-end gap-2">
+<div class="flex flex-col items-end gap-1 max-w-[75%] md:max-w-[60%]">
+<div class="bg-[#FFF1EC] text-on-surface rounded-2xl rounded-br-sm px-4 py-2 text-body-md font-body-md shadow-sm">
+                        Chào shop, sản phẩm này còn màu đen không ạ?
+                    </div>
+<span class="text-label-md font-label-md text-on-surface-variant">10:35</span>
+</div>
+</div>
+<!-- Message from Seller -->
+<div class="flex items-end justify-start gap-2">
+<img alt="Store Avatar" class="w-[32px] h-[32px] rounded-full object-cover flex-shrink-0 mb-[22px]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAf-RD7UPAfbHxj9FpzJleXWDrPXIWggNZj1GzgwUApBkYdRPfCj22VwIA3ftpZca-9S3svKjQZZmmOKTYfBll8v1UiOWgtHM94VbgUQfUuan-HII4htdxxYSXDEy_eacBUmRJLLnbumAe07eJJOsygXWiXFPxqJCCeWbQnAJeOMOVhFCfHk5Tb_pndyp1WIibD0aScw7IWcPIoGNlcmAVSsE4uPUDohfy3KK_5lMF2LyxKDYvT5rv6BJLcT1vlRizWn1r3NatbaDg">
+<div class="flex flex-col items-start gap-1 max-w-[75%] md:max-w-[60%]">
+<div class="bg-surface-container-lowest text-on-surface border border-outline-variant rounded-2xl rounded-bl-sm px-4 py-2 text-body-md font-body-md shadow-sm">
+                        Dạ chào bạn, cảm ơn bạn đã quan tâm đến sản phẩm của Tech Store VN.
+                    </div>
+<div class="bg-surface-container-lowest text-on-surface border border-outline-variant rounded-2xl rounded-bl-sm px-4 py-2 text-body-md font-body-md shadow-sm">
+                        Hiện tại mẫu tai nghe Sony WH-1000XM4 bên mình vẫn còn đủ màu đen và bạc ạ. Bạn muốn đặt màu nào để shop hỗ trợ ạ?
+                    </div>
+<span class="text-label-md font-label-md text-on-surface-variant">10:42</span>
+</div>
+</div>
+<!-- Quick Replies -->
+<div class="flex gap-2 flex-wrap mt-auto pt-4">
+<button class="border border-[#EE4D2D] text-[#EE4D2D] text-label-md font-label-md px-3 py-1.5 rounded-full hover:bg-[#FFF1EC] transition-colors">Mình lấy màu đen</button>
+<button class="border border-[#EE4D2D] text-[#EE4D2D] text-label-md font-label-md px-3 py-1.5 rounded-full hover:bg-[#FFF1EC] transition-colors">Có ship hỏa tốc không?</button>
+<button class="border border-[#EE4D2D] text-[#EE4D2D] text-label-md font-label-md px-3 py-1.5 rounded-full hover:bg-[#FFF1EC] transition-colors">Bảo hành thế nào?</button>
+</div>
+</div>
+<!-- Chat Input Area -->
+<div class="bg-surface-container-lowest border-t border-outline-variant p-3 flex flex-col gap-2 flex-shrink-0">
+<div class="flex items-end gap-2 w-full">
+<div class="flex items-center gap-1 pb-1">
+<button class="p-2 text-[#EE4D2D] hover:bg-surface-container-low rounded-full transition-colors flex items-center justify-center group" title="Gửi ảnh">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">image</span>
+</button>
+<button class="p-2 text-[#EE4D2D] hover:bg-surface-container-low rounded-full transition-colors flex items-center justify-center group" title="Đính kèm sản phẩm">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">inventory_2</span>
+</button>
+</div>
+<div class="flex-1 bg-surface rounded-xl border border-outline-variant flex items-end p-1 focus-within:ring-2 focus-within:ring-[#EE4D2D]/50 focus-within:border-[#EE4D2D] transition-all">
+<textarea class="w-full bg-transparent border-none focus:ring-0 resize-none text-body-md font-body-md py-2 px-3 max-h-[120px] no-scrollbar" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'" placeholder="Nhập tin nhắn..." rows="1"></textarea>
+<button class="p-2 text-[#EE4D2D] hover:bg-surface-container-low rounded-full transition-colors flex items-center justify-center flex-shrink-0" title="Biểu tượng cảm xúc">
+<span class="material-symbols-outlined">mood</span>
+</button>
+</div>
+<button class="w-[40px] h-[40px] bg-[#EE4D2D] text-white rounded-full flex items-center justify-center hover:bg-[#db3514] transition-colors flex-shrink-0 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#EE4D2D] pb-0.5">
+<span class="material-symbols-outlined ml-1">send</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+<script>
+    // Simple script to handle mobile view switching
+    function openChat() {
+        if(window.innerWidth < 768) {
+            document.getElementById('chatWindow').classList.remove('translate-x-full');
+            document.getElementById('chatSidebar').classList.add('-translate-x-full');
+        }
+    }
+
+    function closeChat() {
+        if(window.innerWidth < 768) {
+            document.getElementById('chatWindow').classList.add('translate-x-full');
+            document.getElementById('chatSidebar').classList.remove('-translate-x-full');
+        }
+    }
+
+    // Auto-scroll to bottom of messages
+    const messageArea = document.getElementById('messageArea');
+    messageArea.scrollTop = messageArea.scrollHeight;
+    
+    // Handle resize to reset transforms if switching to desktop view
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 768) {
+             document.getElementById('chatWindow').classList.remove('translate-x-full');
+             document.getElementById('chatSidebar').classList.remove('-translate-x-full');
+        } else {
+             document.getElementById('chatWindow').classList.add('translate-x-full');
+        }
+    });
+</script>
+
+
+
+
+</body></html>
