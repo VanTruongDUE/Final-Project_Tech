@@ -31,10 +31,194 @@ function StoreStatusBadge({ status }) {
   return <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${meta.className}`}>{meta.label}</span>
 }
 
+function StoreDetailModal({ store, onClose, onUpdateStatus }) {
+  if (!store) {
+    return null
+  }
+
+  const isLocked = store.status === 'LOCKED'
+  const isRejected = store.status === 'REJECTED'
+  const isPending = store.status === 'PENDING'
+
+  const stats = [
+    { label: 'Sản phẩm', value: store.productCount.toLocaleString('vi-VN'), icon: 'inventory_2' },
+    { label: 'Đơn hàng', value: store.orderCount.toLocaleString('vi-VN'), icon: 'shopping_bag' },
+    { label: 'Doanh thu', value: store.revenueLabel, icon: 'payments' },
+    { label: 'Đánh giá', value: `${store.rating}/5`, icon: 'star' },
+  ]
+
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/45 p-3">
+      <div className="flex max-h-[92vh] w-full max-w-[1080px] flex-col overflow-hidden rounded-xl bg-[#fbf9f9] shadow-2xl">
+        <header className="flex flex-col gap-4 border-b border-[#e3e2e2] bg-white p-5 md:flex-row md:items-start md:justify-between">
+          <div className="flex min-w-0 gap-4">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-[#e3beb6] bg-[#e3e2e2] text-[#5b403b]">
+              <AdminIcon name="storefront" className="text-[30px]" />
+            </div>
+            <div className="min-w-0">
+              <div className="mb-2 flex items-center gap-1 text-xs font-medium text-[#5b403b]">
+                <span>Cửa hàng</span>
+                <AdminIcon name="chevron_right" className="text-[16px]" />
+                <span className="text-[#1b1c1c]">Chi tiết</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <h2 className="truncate text-2xl font-bold text-[#1b1c1c]">{store.name}</h2>
+                <StoreStatusBadge status={store.status} />
+              </div>
+              <p className="mt-1 text-sm text-[#5b403b]">#{store.id} · {store.category} · {store.address}</p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {isPending ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => onUpdateStatus(store, 'ACTIVE')}
+                  className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#b22204] px-4 text-sm font-semibold text-white transition hover:bg-[#d63c1e]"
+                >
+                  <AdminIcon name="check_circle" className="text-[18px]" />
+                  Duyệt
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onUpdateStatus(store, 'REJECTED')}
+                  className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#ba1a1a] bg-white px-4 text-sm font-semibold text-[#ba1a1a] transition hover:bg-[#ffdad6]"
+                >
+                  <AdminIcon name="cancel" className="text-[18px]" />
+                  Từ chối
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onUpdateStatus(store, isLocked || isRejected ? 'ACTIVE' : 'LOCKED')}
+                className={`inline-flex h-10 items-center gap-2 rounded-lg px-4 text-sm font-semibold transition ${
+                  isLocked || isRejected ? 'bg-green-600 text-white hover:bg-green-700' : 'border border-[#ba1a1a] bg-white text-[#ba1a1a] hover:bg-[#ffdad6]'
+                }`}
+              >
+                <AdminIcon name={isLocked || isRejected ? 'settings_backup_restore' : 'block'} className="text-[18px]" />
+                {isLocked || isRejected ? 'Khôi phục' : 'Đình chỉ'}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[#e3e2e2] bg-white text-[#5b403b] transition hover:bg-[#f5f3f3]"
+              aria-label="Đóng chi tiết cửa hàng"
+            >
+              <AdminIcon name="close" className="text-[20px]" />
+            </button>
+          </div>
+        </header>
+
+        <div className="overflow-y-auto p-5">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <div className="space-y-4 lg:col-span-2">
+              <section className="rounded-xl border border-[#e3e2e2] bg-white p-5 shadow-sm">
+                <h3 className="text-lg font-semibold text-[#1b1c1c]">Tổng quan cửa hàng</h3>
+                <p className="mt-2 text-sm leading-6 text-[#5b403b]">{store.description}</p>
+                <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  {stats.map((item) => (
+                    <div key={item.label} className="rounded-lg border border-[#e3e2e2] bg-[#fbf9f9] p-3">
+                      <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-full bg-[#ffdad3] text-[#b22204]">
+                        <AdminIcon name={item.icon} className="text-[19px]" />
+                      </div>
+                      <p className="text-xs font-medium text-[#5b403b]">{item.label}</p>
+                      <p className="mt-1 text-lg font-bold text-[#1b1c1c]">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="rounded-xl border border-[#e3e2e2] bg-white p-5 shadow-sm">
+                <h3 className="mb-4 text-lg font-semibold text-[#1b1c1c]">Hồ sơ xác minh</h3>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {store.documents.map((document) => (
+                    <div key={document.id} className="rounded-lg border border-[#e3e2e2] bg-[#fbf9f9] p-3">
+                      <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-[#e9e8e7] text-[#5b403b]">
+                        <AdminIcon name="description" className="text-[18px]" />
+                      </div>
+                      <p className="text-sm font-semibold text-[#1b1c1c]">{document.label}</p>
+                      <p className="mt-1 text-xs text-[#5b403b]">{document.status}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="rounded-xl border border-[#e3e2e2] bg-white p-5 shadow-sm">
+                <h3 className="mb-4 text-lg font-semibold text-[#1b1c1c]">Hoạt động gần đây</h3>
+                <div className="space-y-4">
+                  {store.activity.map((item) => (
+                    <div key={item.id} className="flex gap-3">
+                      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#ffdad3] text-[#b22204]">
+                        <AdminIcon name={item.icon} className="text-[16px]" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-[#1b1c1c]">{item.label}</p>
+                        <p className="mt-0.5 text-xs text-[#8f7069]">{item.time}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+
+            <div className="space-y-4">
+              <section className="rounded-xl border border-[#e3e2e2] bg-white p-5 shadow-sm">
+                <h3 className="mb-4 flex items-center gap-2 border-b border-[#e3e2e2] pb-3 text-lg font-semibold text-[#1b1c1c]">
+                  <AdminIcon name="person" className="text-[22px] text-[#b22204]" />
+                  Chủ cửa hàng
+                </h3>
+                <div className="space-y-3 text-sm text-[#1b1c1c]">
+                  <p className="font-semibold">{store.ownerName}</p>
+                  <p className="text-[#5b403b]">{store.email}</p>
+                  <p className="text-[#5b403b]">{store.phone}</p>
+                </div>
+              </section>
+
+              <section className="rounded-xl border border-[#e3e2e2] bg-white p-5 shadow-sm">
+                <h3 className="mb-4 flex items-center gap-2 border-b border-[#e3e2e2] pb-3 text-lg font-semibold text-[#1b1c1c]">
+                  <AdminIcon name="analytics" className="text-[22px] text-[#b22204]" />
+                  Hiệu suất
+                </h3>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-[#5b403b]">Đơn hoàn thành</span>
+                    <span className="font-semibold text-[#1b1c1c]">{store.completedOrders.toLocaleString('vi-VN')}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#5b403b]">Đơn đã hủy</span>
+                    <span className="font-semibold text-[#ba1a1a]">{store.cancelledOrders.toLocaleString('vi-VN')}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#5b403b]">Giá trị đơn TB</span>
+                    <span className="font-semibold text-[#b22204]">{store.averageOrderValueLabel}</span>
+                  </div>
+                </div>
+              </section>
+
+              <section className="rounded-xl border border-[#e3e2e2] bg-white p-5 shadow-sm">
+                <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold text-[#1b1c1c]">
+                  <AdminIcon name="location_on" className="text-[22px] text-[#b22204]" />
+                  Địa chỉ
+                </h3>
+                <p className="text-sm leading-6 text-[#5b403b]">{store.address}</p>
+                <p className="mt-3 text-xs text-[#8f7069]">Ngày tạo: {store.createdAt}</p>
+              </section>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function AdminStoresPage() {
   const [keyword, setKeyword] = useState('')
   const [status, setStatus] = useState('all')
   const [category, setCategory] = useState('all')
+  const [selectedStoreId, setSelectedStoreId] = useState('')
   const [, setRefreshKey] = useState(0)
 
   const storesResponse = adminService.getAdminStores({ keyword, status, category })
@@ -43,6 +227,8 @@ export default function AdminStoresPage() {
   const categories = storesResponse.meta?.categories || []
   const totalCount = storesResponse.meta?.totalCount || 0
   const allCount = storesResponse.meta?.allCount || 0
+  const selectedStoreResponse = selectedStoreId ? adminService.getAdminStoreById(selectedStoreId) : null
+  const selectedStore = selectedStoreResponse?.success ? selectedStoreResponse.data : null
 
   const handleUpdateStatus = (store, nextStatus) => {
     adminService.updateStoreStatus(store.id, nextStatus)
@@ -180,7 +366,7 @@ export default function AdminStoresPage() {
                         <div className="flex justify-center gap-2">
                           <button
                             type="button"
-                            onClick={() => window.alert(`Xem chi tiết ${store.name} hiện đang ở chế độ mock Admin.`)}
+                            onClick={() => setSelectedStoreId(store.id)}
                             className="rounded p-1.5 text-[#5b403b] transition hover:bg-[#f5f3f3] hover:text-[#b22204]"
                             title="Xem chi tiết"
                           >
@@ -250,6 +436,12 @@ export default function AdminStoresPage() {
           </div>
         </div>
       </div>
+
+      <StoreDetailModal
+        store={selectedStore}
+        onClose={() => setSelectedStoreId('')}
+        onUpdateStatus={handleUpdateStatus}
+      />
     </section>
   )
 }

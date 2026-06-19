@@ -8,6 +8,12 @@ const rangeOptions = [
   { value: '30days', label: '30 ngày' },
 ]
 
+const chartTypeOptions = [
+  { value: 'area', label: 'Vùng' },
+  { value: 'line', label: 'Đường' },
+  { value: 'bar', label: 'Cột' },
+]
+
 function KpiCard({ label, value, trend, icon, featured = false }) {
   return (
     <div className="relative overflow-hidden rounded-xl border border-[#e3e2e2]/60 bg-white p-4 shadow-sm">
@@ -30,38 +36,90 @@ function KpiCard({ label, value, trend, icon, featured = false }) {
   )
 }
 
-function RevenueChart({ data }) {
+function buildRevenuePath(data) {
   const maxValue = Math.max(...data.map((item) => item.value), 1)
+  const stepX = data.length > 1 ? 100 / (data.length - 1) : 100
+  const coordinates = data.map((item, index) => ({
+    x: index * stepX,
+    y: 50 - (item.value / maxValue) * 38,
+  }))
+  const path = coordinates.reduce((command, point, index) => {
+    if (index === 0) {
+      return `M${point.x},${point.y}`
+    }
+
+    const previous = coordinates[index - 1]
+    const midpoint = (previous.x + point.x) / 2
+    return `${command} Q${midpoint},${previous.y} ${point.x},${point.y}`
+  }, '')
+
+  return {
+    path,
+    area: `${path} L100,50 L0,50 Z`,
+    coordinates,
+    maxValue,
+  }
+}
+
+function RevenueChart({ data, chartType }) {
+  const chart = buildRevenuePath(data)
 
   return (
     <div className="relative h-[300px] overflow-hidden rounded-b-xl bg-[#fbf9f9] p-4">
       <div className="absolute inset-0 bg-[radial-gradient(#e3beb6_1px,transparent_1px)] [background-size:24px_24px]" />
-      <div className="relative z-10 flex h-full items-end gap-2 px-2 pt-8">
-        {data.map((item) => {
-          const height = Math.max(16, Math.round((item.value / maxValue) * 100))
+      {chartType === 'bar' ? (
+        <div className="relative z-10 flex h-full items-end gap-2 px-2 pt-8">
+          {data.map((item) => {
+            const height = Math.max(16, Math.round((item.value / chart.maxValue) * 100))
 
-          return (
-            <div key={item.label} className="flex h-full flex-1 flex-col justify-end gap-2">
+            return (
+              <div key={item.label} className="flex h-full flex-1 flex-col justify-end gap-2">
+                <div className="group relative w-full rounded-t bg-[#ffb4a4] shadow-sm transition hover:bg-[#d63c1e]" style={{ height: `${height}%` }}>
+                  <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded border border-[#e3e2e2] bg-white px-2 py-1 text-xs font-medium text-[#1b1c1c] shadow-sm group-hover:block">
+                    {item.label}: {item.valueLabel}
+                  </div>
+                </div>
+                <span className="text-center text-[11px] text-[#5b403b]">{item.label}</span>
+              </div>
+            )
+          })}
+        </div>
+      ) : (
+        <>
+          <svg className="relative z-10 h-full w-full" preserveAspectRatio="none" viewBox="0 0 100 50">
+            {chartType === 'area' ? <path d={chart.area} fill="#ffdad3" opacity="0.75" /> : null}
+            <path d={chart.path} fill="none" stroke="#ee4d2d" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" vectorEffect="non-scaling-stroke" />
+          </svg>
+          {chart.coordinates.map((point, index) => {
+            const item = data[index]
+
+            return (
               <div
-                className="group relative w-full rounded-t bg-[#ffb4a4] shadow-sm transition hover:bg-[#d63c1e]"
-                style={{ height: `${height}%` }}
-                title={`${item.label}: ${item.valueLabel}`}
+                key={item.label}
+                className="group absolute z-20 -translate-x-1/2 -translate-y-1/2"
+                style={{ left: `${point.x}%`, top: `${point.y * 2}%` }}
               >
+                <div className="h-3 w-3 rounded-full border-2 border-white bg-[#ee4d2d] shadow transition group-hover:scale-125" />
                 <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded border border-[#e3e2e2] bg-white px-2 py-1 text-xs font-medium text-[#1b1c1c] shadow-sm group-hover:block">
-                  {item.valueLabel}
+                  {item.label}: {item.valueLabel}
                 </div>
               </div>
-              <span className="text-center text-[11px] text-[#5b403b]">{item.label}</span>
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+          <div className="absolute bottom-3 left-6 right-6 z-20 flex justify-between text-[11px] text-[#5b403b]">
+            {data.map((item) => (
+              <span key={item.label}>{item.label}</span>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   )
 }
 
 export default function AdminStatisticsPage() {
   const [range, setRange] = useState('today')
+  const [chartType, setChartType] = useState('area')
   const [storeKeyword, setStoreKeyword] = useState('')
   const reportResponse = adminService.getAdminStatisticsReport({ range })
   const report = reportResponse.data
@@ -121,11 +179,20 @@ export default function AdminStatisticsPage() {
       <div className="overflow-hidden rounded-xl border border-[#e3e2e2] bg-white shadow-sm">
         <div className="flex flex-col justify-between gap-3 border-b border-[#e3e2e2] bg-[#fbf9f9] p-4 md:flex-row md:items-center">
           <h2 className="text-xl font-semibold text-[#1b1c1c]">Doanh thu theo thời gian</h2>
-          <button type="button" className="self-start rounded p-1 text-[#8f7069] transition hover:bg-[#f5f3f3] hover:text-[#b22204] md:self-auto" aria-label="Tùy chọn biểu đồ">
-            <AdminIcon name="more_vert" className="text-[20px]" />
-          </button>
+          <div className="flex self-start rounded-lg border border-[#e3e2e2] bg-white p-1 md:self-auto">
+            {chartTypeOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setChartType(option.value)}
+                className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${chartType === option.value ? 'bg-[#b22204] text-white' : 'text-[#5b403b] hover:bg-[#f5f3f3]'}`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
-        <RevenueChart data={report.revenueTrend} />
+        <RevenueChart data={report.revenueTrend} chartType={chartType} />
       </div>
 
       <div className="overflow-hidden rounded-xl border border-[#e3e2e2] bg-white shadow-sm">

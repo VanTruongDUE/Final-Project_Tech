@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import AdminIcon from '../../components/admin/AdminIcon'
 import { adminService } from '../../services/adminService'
@@ -34,8 +35,15 @@ function buildRevenuePath(points) {
   return {
     path,
     area: `${path} L100,50 L0,50 Z`,
+    coordinates,
   }
 }
+
+const chartTypeOptions = [
+  { value: 'area', label: 'Vùng' },
+  { value: 'line', label: 'Đường' },
+  { value: 'bar', label: 'Cột' },
+]
 
 function MetricCard({ metric }) {
   if (metric.featured) {
@@ -70,24 +78,75 @@ function MetricCard({ metric }) {
 }
 
 function RevenueTrend({ points }) {
+  const [chartType, setChartType] = useState('area')
   const chart = buildRevenuePath(points)
+  const maxValue = Math.max(...points.map((point) => point.value), 1)
 
   return (
     <div className="rounded border border-slate-200 bg-white p-3 shadow-sm">
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-2 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <h2 className="text-sm font-bold text-slate-800">Xu hướng doanh thu</h2>
-        <select className="rounded border border-slate-300 bg-slate-50 px-2 py-1 text-xs text-slate-700 outline-none">
-          <option>30 ngày qua</option>
-          <option>Năm nay</option>
-        </select>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex rounded border border-slate-200 bg-slate-50 p-0.5">
+            {chartTypeOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setChartType(option.value)}
+                className={`rounded px-2 py-1 text-xs font-medium transition ${chartType === option.value ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-white'}`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          <select className="rounded border border-slate-300 bg-slate-50 px-2 py-1 text-xs text-slate-700 outline-none">
+            <option>30 ngày qua</option>
+            <option>Năm nay</option>
+          </select>
+        </div>
       </div>
 
       <div className="relative h-48 overflow-hidden rounded border border-dashed border-slate-300 bg-slate-50">
         <div className="absolute inset-0 bg-gradient-to-t from-blue-100/30 to-transparent" />
-        <svg className="relative h-full w-full" preserveAspectRatio="none" viewBox="0 0 100 50">
-          <path d={chart.area} fill="#dbeafe" opacity="0.75" />
-          <path d={chart.path} fill="none" stroke="#2563eb" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" vectorEffect="non-scaling-stroke" />
-        </svg>
+        {chartType === 'bar' ? (
+          <div className="relative z-10 flex h-full items-end gap-2 px-4 pb-8 pt-6">
+            {points.map((point) => {
+              const height = Math.max(6, (point.value / maxValue) * 82)
+
+              return (
+                <div key={point.label} className="group relative flex h-full flex-1 items-end justify-center">
+                  <div className="w-full max-w-12 rounded-t bg-blue-500 transition group-hover:bg-blue-700" style={{ height: `${height}%` }} />
+                  <div className="pointer-events-none absolute bottom-[calc(100%+8px)] left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-800 shadow group-hover:block">
+                    {point.label}: {formatCompactVnd(point.value)}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <>
+            <svg className="relative h-full w-full" preserveAspectRatio="none" viewBox="0 0 100 50">
+              {chartType === 'area' ? <path d={chart.area} fill="#dbeafe" opacity="0.75" /> : null}
+              <path d={chart.path} fill="none" stroke="#2563eb" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" vectorEffect="non-scaling-stroke" />
+            </svg>
+            {chart.coordinates.map((point, index) => {
+              const source = points[index]
+
+              return (
+                <div
+                  key={source.label}
+                  className="group absolute z-20 -translate-x-1/2 -translate-y-1/2"
+                  style={{ left: `${point.x}%`, top: `${point.y * 2}%` }}
+                >
+                  <div className="h-3 w-3 rounded-full border-2 border-white bg-blue-600 shadow transition group-hover:scale-125" />
+                  <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-800 shadow group-hover:block">
+                    {source.label}: {formatCompactVnd(source.value)}
+                  </div>
+                </div>
+              )
+            })}
+          </>
+        )}
         <div className="absolute bottom-2 left-3 right-3 flex justify-between text-[11px] font-medium text-slate-500">
           {points.map((point) => (
             <span key={point.label}>{point.label}</span>
@@ -195,12 +254,15 @@ function OrderStatus({ orderStatus }) {
 
       <div className="space-y-1">
         {orderStatus.segments.map((segment) => (
-          <div key={segment.id} className="flex items-center justify-between text-xs">
+          <div key={segment.id} className="group relative flex items-center justify-between text-xs">
             <div className="flex items-center gap-1.5">
               <span className={`h-2.5 w-2.5 rounded ${segment.colorClassName}`} />
               <span className="text-slate-600">{segment.label}</span>
             </div>
             <span className="font-medium text-slate-800">{segment.value}%</span>
+            <span className="pointer-events-none absolute right-0 top-full z-10 mt-1 hidden whitespace-nowrap rounded border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-slate-800 shadow group-hover:block">
+              {segment.label}: {segment.value}% tổng đơn
+            </span>
           </div>
         ))}
       </div>

@@ -452,6 +452,87 @@ function normalizeText(value) {
   return value.toString().trim().toLowerCase()
 }
 
+const adminOrderTimeline = [
+  { status: 'PENDING', label: 'Chờ xác nhận', icon: 'receipt_long' },
+  { status: 'CONFIRMED', label: 'Đã xác nhận', icon: 'verified' },
+  { status: 'PROCESSING', label: 'Đang xử lý', icon: 'inventory' },
+  { status: 'PACKING', label: 'Đang đóng gói', icon: 'inventory_2' },
+  { status: 'SHIPPING', label: 'Đang giao', icon: 'local_shipping' },
+  { status: 'COMPLETED', label: 'Hoàn thành', icon: 'task_alt' },
+]
+
+function buildAdminOrderDetail(order) {
+  const itemNames = order.summary.split(',').map((item) => item.trim()).filter(Boolean)
+  const items = itemNames.map((name, index) => {
+    const quantity = index === 0 ? 1 : 2
+    const unitPrice = Math.max(120000, Math.round(order.total / itemNames.length / quantity / 10000) * 10000)
+
+    return {
+      productId: `${order.id}-PRD-${index + 1}`,
+      productName: name,
+      variantLabel: index === 0 ? 'Phân loại: Tiêu chuẩn' : 'Phân loại: Bản mở rộng',
+      quantity,
+      unitPrice,
+      totalPrice: unitPrice * quantity,
+    }
+  })
+  const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0)
+  const discount = Math.max(0, subtotal - order.total)
+  const shippingFee = order.total >= 1000000 ? 0 : 30000
+  const orderStatusIndex = adminOrderTimeline.findIndex((step) => step.status === order.status)
+  const progressIndex = order.status === 'CANCELLED' ? 0 : Math.max(orderStatusIndex, 0)
+
+  return {
+    ...order,
+    orderedAtLabel: new Intl.DateTimeFormat('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(order.orderedAt)),
+    customer: {
+      name: order.customerName,
+      phone: '09' + order.id.replace(/\D/g, '').slice(-8).padStart(8, '0'),
+      email: `${normalizeText(order.customerName).replace(/\s+/g, '.')}@techtonic.vn`,
+      address: 'Số 12 đường Công Nghệ, phường Tân Phú, TP. Hồ Chí Minh',
+    },
+    store: {
+      id: order.storeId,
+      name: order.storeName,
+      supportPhone: '1900 2024',
+    },
+    items,
+    payment: {
+      subtotal,
+      discount,
+      shippingFee,
+      total: order.total,
+      method: order.paymentStatus === 'PAID' ? 'Đã thanh toán qua ví điện tử' : order.paymentStatus === 'REFUNDED' ? 'Đã hoàn tiền' : 'Thanh toán COD',
+    },
+    timeline: adminOrderTimeline.map((step, index) => ({
+      ...step,
+      state: order.status === 'CANCELLED' ? (step.status === 'PENDING' ? 'done' : 'todo') : index < progressIndex ? 'done' : index === progressIndex ? 'current' : 'todo',
+    })),
+    history: [
+      {
+        id: `${order.id}-created`,
+        label: 'Đơn hàng được tạo',
+        time: order.orderedAt,
+        note: `${order.customerName} đã đặt đơn tại ${order.storeName}.`,
+        icon: 'receipt_long',
+      },
+      {
+        id: `${order.id}-status`,
+        label: order.status === 'CANCELLED' ? 'Đơn hàng đã hủy' : 'Trạng thái hiện tại được cập nhật',
+        time: order.orderedAt,
+        note: `Hệ thống ghi nhận trạng thái ${order.status}.`,
+        icon: order.status === 'CANCELLED' ? 'cancel' : 'published_with_changes',
+      },
+    ],
+  }
+}
+
 export const adminService = {
   getDashboardStats() {
     return {
@@ -606,6 +687,56 @@ export const adminService = {
     }
   },
 
+  getAdminUserById(userId) {
+    const storedStatuses = getStoredUserStatuses()
+    const user = adminUsers.find((item) => item.id === userId)
+
+    if (!user) {
+      return {
+        success: false,
+        message: 'Không tìm thấy tài khoản.',
+      }
+    }
+
+    const status = storedStatuses[user.id] || user.status
+    const roleActivity = {
+      ADMIN: ['Đăng nhập bảng điều khiển Admin', 'Cập nhật cấu hình hệ thống', 'Kiểm tra báo cáo toàn sàn'],
+      SELLER: ['Quản lý sản phẩm', 'Xử lý đơn hàng từ cửa hàng', 'Theo dõi doanh thu cửa hàng'],
+      CUSTOMER: ['Mua hàng trên marketplace', 'Theo dõi đơn hàng', 'Nhắn tin với shop'],
+      SHIPPER: ['Nhận đơn giao hàng', 'Cập nhật trạng thái vận chuyển', 'Hoàn tất giao hàng'],
+    }
+    const rolePermissions = {
+      ADMIN: ['Quản trị toàn sàn', 'Quản lý người dùng', 'Duyệt cửa hàng', 'Xem báo cáo'],
+      SELLER: ['Quản lý cửa hàng', 'Quản lý sản phẩm', 'Quản lý đơn hàng', 'Nhắn tin buyer'],
+      CUSTOMER: ['Mua hàng', 'Quản lý hồ sơ', 'Lịch sử đơn hàng', 'Nhắn tin shop'],
+      SHIPPER: ['Xem đơn được giao', 'Cập nhật vận chuyển', 'Xem chi tiết giao hàng'],
+    }
+
+    return {
+      success: true,
+      data: {
+        ...user,
+        status,
+        username: user.email.split('@')[0],
+        lastLogin: user.status === 'PENDING' ? 'Chưa đăng nhập' : '24/10/2024 09:30',
+        verified: status !== 'PENDING',
+        source: user.role === 'ADMIN' ? 'Tài khoản hệ thống' : 'Đăng ký mock/localStorage',
+        permissions: rolePermissions[user.role] || rolePermissions.CUSTOMER,
+        activity: (roleActivity[user.role] || roleActivity.CUSTOMER).map((label, index) => ({
+          id: `${user.id}-activity-${index}`,
+          label,
+          time: index === 0 ? 'Gần đây' : 'Dữ liệu mock',
+          icon: index === 0 ? 'history' : 'task_alt',
+        })),
+        stats: [
+          { label: 'Hoạt động', value: user.activityCount.toLocaleString('vi-VN'), icon: 'monitoring' },
+          { label: 'Phiên đăng nhập', value: Math.max(1, Math.round(user.activityCount / 8)).toLocaleString('vi-VN'), icon: 'login' },
+          { label: 'Mức tin cậy', value: status === 'LOCKED' ? 'Thấp' : status === 'PENDING' ? 'Chờ duyệt' : 'Tốt', icon: 'verified_user' },
+        ],
+      },
+    }
+  },
+
   updateUserStatus(userId, status) {
     const user = adminUsers.find((item) => item.id === userId)
 
@@ -680,6 +811,48 @@ export const adminService = {
         allCount: adminStores.length,
         summary,
         categories,
+      },
+    }
+  },
+
+  getAdminStoreById(storeId) {
+    const storedStatuses = getStoredStoreStatuses()
+    const store = adminStores.find((item) => item.id === storeId)
+
+    if (!store) {
+      return {
+        success: false,
+        message: 'Không tìm thấy cửa hàng.',
+      }
+    }
+
+    const status = storedStatuses[store.id] || store.status
+    const completedOrders = Math.round(store.orderCount * 0.78)
+    const cancelledOrders = Math.max(0, Math.round(store.orderCount * 0.04))
+    const rating = Math.min(5, Math.max(3.8, 4 + (store.productCount % 10) / 10))
+
+    return {
+      success: true,
+      data: {
+        ...store,
+        status,
+        revenueLabel: vnd(store.revenue),
+        completedOrders,
+        cancelledOrders,
+        rating: rating.toFixed(1),
+        averageOrderValueLabel: vnd(Math.round(store.revenue / Math.max(store.orderCount, 1))),
+        address: `${store.location}, Việt Nam`,
+        description: `${store.name} là cửa hàng thuộc ngành ${store.category}, đang được quản lý trong phạm vi toàn sàn TechToShop.`,
+        documents: [
+          { id: 'business-license', label: 'Giấy phép kinh doanh', status: status === 'REJECTED' ? 'Cần kiểm tra' : 'Đã xác minh' },
+          { id: 'owner-identity', label: 'Thông tin chủ cửa hàng', status: 'Đã xác minh' },
+          { id: 'tax-code', label: 'Mã số thuế', status: status === 'PENDING' ? 'Chờ bổ sung' : 'Đã cập nhật' },
+        ],
+        activity: [
+          { id: 'created', label: 'Tạo hồ sơ cửa hàng', time: store.createdAt, icon: 'storefront' },
+          { id: 'products', label: `Đang quản lý ${store.productCount} sản phẩm`, time: 'Dữ liệu mock', icon: 'inventory_2' },
+          { id: 'orders', label: `Đã phát sinh ${store.orderCount.toLocaleString('vi-VN')} đơn hàng`, time: 'Dữ liệu mock', icon: 'shopping_bag' },
+        ],
       },
     }
   },
@@ -916,6 +1089,27 @@ export const adminService = {
         allCount: adminOrders.length,
         stores,
       },
+    }
+  },
+
+  getAdminOrderById(orderId) {
+    const storedStatuses = getStoredOrderStatuses()
+    const order = adminOrders.find((item) => item.id === orderId)
+
+    if (!order) {
+      return {
+        success: false,
+        message: 'Không tìm thấy đơn hàng.',
+      }
+    }
+
+    return {
+      success: true,
+      data: buildAdminOrderDetail({
+        ...order,
+        status: storedStatuses[order.id] || order.status,
+        totalLabel: vnd(order.total),
+      }),
     }
   },
 
