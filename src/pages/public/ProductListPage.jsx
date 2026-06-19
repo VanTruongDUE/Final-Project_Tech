@@ -1,25 +1,57 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import ProductGrid from '../../components/buyer/ProductGrid'
 import { productService } from '../../services/productService'
 
+const PRODUCTS_PER_PAGE = 16
+
 const sortOptions = [
   { value: '', label: 'Mới nhất' },
   { value: 'price-asc', label: 'Giá thấp → cao' },
-  { value: 'price-desc', label: 'Giá cao → thấp' },
   { value: 'best-selling', label: 'Bán chạy' },
   { value: 'top-rated', label: 'Đánh giá cao' },
+  { value: 'price-desc', label: 'Giá cao → thấp' },
 ]
+
+const ratingOptions = [
+  { value: '5', label: 'từ 5 sao', stars: 5 },
+  { value: '4', label: 'từ 4 sao', stars: 4 },
+  { value: '3', label: 'từ 3 sao', stars: 3 },
+  { value: '2', label: 'từ 2 sao', stars: 2 },
+]
+
+function RatingRow({ stars, label }) {
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex items-center text-[#ffb4a4]">
+        {Array.from({ length: 5 }, (_, index) => (
+          <span key={index} className="text-[16px] leading-none">
+            {index < stars ? '★' : '☆'}
+          </span>
+        ))}
+      </div>
+      <span>{label}</span>
+    </div>
+  )
+}
 
 export default function ProductListPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [priceInput, setPriceInput] = useState({ min: '', max: '' })
+  const [priceRange, setPriceRange] = useState({ min: '', max: '' })
+  const [ratingFilter, setRatingFilter] = useState('')
+  const searchParamsKey = searchParams.toString()
+
   const keyword = searchParams.get('keyword') || ''
-  const category = searchParams.get('category') || 'all'
+  const selectedCategories = useMemo(
+    () => new URLSearchParams(searchParamsKey).getAll('category').filter(Boolean),
+    [searchParamsKey],
+  )
   const sort = searchParams.get('sort') || ''
-  const hasFilters = Boolean(keyword || (category && category !== 'all') || sort)
+  const currentPage = Math.max(1, Number(searchParams.get('page')) || 1)
 
   const updateFilters = (updates) => {
     const nextParams = new URLSearchParams(searchParams)
@@ -28,14 +60,51 @@ export default function ProductListPage() {
       if (!value || value === 'all') {
         nextParams.delete(key)
       } else {
-        nextParams.set(key, value)
+        nextParams.set(key, String(value))
       }
     })
+
+    if (!Object.prototype.hasOwnProperty.call(updates, 'page')) {
+      nextParams.delete('page')
+    }
 
     setSearchParams(nextParams, { replace: true })
   }
 
+  const toggleCategory = (nextCategory) => {
+    const nextParams = new URLSearchParams(searchParams)
+    const currentCategories = searchParams.getAll('category').filter(Boolean)
+
+    nextParams.delete('category')
+
+    const nextCategories = currentCategories.includes(nextCategory)
+      ? currentCategories.filter((item) => item !== nextCategory)
+      : [...currentCategories, nextCategory]
+
+    nextCategories.forEach((item) => nextParams.append('category', item))
+    nextParams.delete('page')
+
+    setSearchParams(nextParams, { replace: true })
+  }
+
+  const clearCategoryFilter = () => {
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.delete('category')
+    nextParams.delete('page')
+    setSearchParams(nextParams, { replace: true })
+  }
+
+  const applyPriceRange = () => {
+    setPriceRange({
+      min: priceInput.min.trim(),
+      max: priceInput.max.trim(),
+    })
+  }
+
   const resetFilters = () => {
+    setPriceInput({ min: '', max: '' })
+    setPriceRange({ min: '', max: '' })
+    setRatingFilter('')
     setSearchParams(new URLSearchParams(), { replace: true })
   }
 
@@ -63,17 +132,33 @@ export default function ProductListPage() {
     const loadProducts = async () => {
       setIsLoading(true)
 
-      const response = await productService.getProducts({ keyword, category, sort })
+      try {
+        const response = await productService.getProducts({
+          keyword,
+          category: selectedCategories,
+          sort,
+        })
 
-      if (!isMounted) {
-        return
+        if (!isMounted) {
+          return
+        }
+
+        if (response.success) {
+          setProducts(response.data)
+        } else {
+          setProducts([])
+        }
+      } catch {
+        if (!isMounted) {
+          return
+        }
+
+        setProducts([])
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
       }
-
-      if (response.success) {
-        setProducts(response.data)
-      }
-
-      setIsLoading(false)
     }
 
     loadProducts()
@@ -81,112 +166,173 @@ export default function ProductListPage() {
     return () => {
       isMounted = false
     }
-  }, [keyword, category, sort])
+  }, [keyword, selectedCategories, sort, searchParamsKey])
+
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      const min = priceRange.min ? Number(priceRange.min) : null
+      const max = priceRange.max ? Number(priceRange.max) : null
+      const matchesMin = Number.isFinite(min) ? product.price >= min : true
+      const matchesMax = Number.isFinite(max) ? product.price <= max : true
+      const matchesRating = ratingFilter ? product.rating >= Number(ratingFilter) : true
+
+      return matchesMin && matchesMax && matchesRating
+    })
+  }, [priceRange.max, priceRange.min, products, ratingFilter])
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE))
+  const safePage = Math.min(currentPage, totalPages)
+
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (safePage - 1) * PRODUCTS_PER_PAGE
+    return filteredProducts.slice(startIndex, startIndex + PRODUCTS_PER_PAGE)
+  }, [filteredProducts, safePage])
+
+  useEffect(() => {
+    if (currentPage !== safePage) {
+      const nextParams = new URLSearchParams(searchParams)
+      nextParams.set('page', String(safePage))
+      setSearchParams(nextParams, { replace: true })
+    }
+  }, [currentPage, safePage, searchParams, setSearchParams])
+
+  const paginationItems = useMemo(() => {
+    if (totalPages <= 1) {
+      return [1]
+    }
+
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1)
+    }
+
+    if (safePage <= 3) {
+      return [1, 2, 3, 4, 'ellipsis', totalPages]
+    }
+
+    if (safePage >= totalPages - 2) {
+      return [1, 'ellipsis', totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
+    }
+
+    return [1, 'ellipsis-left', safePage - 1, safePage, safePage + 1, 'ellipsis-right', totalPages]
+  }, [safePage, totalPages])
+
+  const hasFilters = Boolean(
+    keyword || selectedCategories.length || sort || priceRange.min || priceRange.max || ratingFilter,
+  )
 
   return (
-    <div className="mx-auto max-w-[1440px] px-3 py-6 md:px-6">
-      <div className="mb-6 flex items-center gap-2 text-sm text-[#5b403b]">
-        <Link to="/" className="hover:text-[#ee4d2d]">
+    <main className="mx-auto flex w-full max-w-[1200px] flex-col px-3 py-6">
+      <nav className="mb-6 flex items-center gap-2 text-[12px] text-[#8f7069]">
+        <Link to="/" className="transition hover:text-[#ee4d2d]">
           Trang chủ
         </Link>
         <span>›</span>
-        <span>{category === 'all' ? 'Tất cả sản phẩm' : category}</span>
-      </div>
+        <span className="text-[#1b1c1c]">
+          {selectedCategories.length ? selectedCategories.join(', ') : 'Tất cả sản phẩm'}
+        </span>
+      </nav>
 
-      <section className="mb-6 rounded-xl border border-[#e3beb6]/70 bg-white p-4 shadow-sm">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="text-sm font-medium text-[#ee4d2d]">Danh sách sản phẩm</p>
-            <h1 className="mt-1 text-2xl font-semibold text-[#1b1c1c]">
-              {keyword ? `Kết quả cho "${keyword}"` : category === 'all' ? 'Khám phá sản phẩm nổi bật' : category}
-            </h1>
-            <p className="mt-2 text-sm text-[#5b403b]">
-              {products.length} sản phẩm đang hiển thị theo bộ lọc hiện tại.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <label className="block min-w-[220px]">
-              <span className="sr-only">Tìm kiếm sản phẩm</span>
-              <input
-                type="search"
-                value={keyword}
-                onChange={(event) => updateFilters({ keyword: event.target.value })}
-                placeholder="Tìm kiếm sản phẩm..."
-                className="h-11 w-full rounded-full border border-[#e3beb6] bg-[#fbf9f9] px-4 text-sm outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
-              />
-            </label>
-
-            <select
-              value={category}
-              onChange={(event) => updateFilters({ category: event.target.value })}
-              className="h-11 rounded-full border border-[#e3beb6] bg-white px-4 text-sm outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15 md:hidden"
-            >
-              <option value="all">Tất cả danh mục</option>
-              {categories.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </section>
-
-      <div className="grid gap-4 lg:grid-cols-[240px_1fr]">
-        <aside className="hidden h-fit rounded-xl border border-[#e3beb6]/70 bg-white p-4 shadow-sm lg:block lg:sticky lg:top-28">
-          <h2 className="font-semibold">Danh mục</h2>
-          <div className="mt-4 space-y-3">
-            <label className="flex cursor-pointer items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={category === 'all'}
-                onChange={() => updateFilters({ category: 'all' })}
-                className="h-4 w-4 accent-[#ee4d2d]"
-              />
-              Tất cả
-            </label>
-            {categories.map((item) => (
-              <label key={item} className="flex cursor-pointer items-center gap-2 text-sm">
+      <div className="flex flex-col gap-3 md:flex-row md:items-start">
+        <aside className="hidden w-[240px] shrink-0 rounded-xl border border-[#e3beb6] bg-white p-4 shadow-sm md:sticky md:top-24 md:block">
+          <div className="mb-6">
+            <h3 className="mb-3 text-sm font-semibold text-[#1b1c1c]">Danh mục</h3>
+            <div className="space-y-2">
+              <label className="flex cursor-pointer items-center gap-2">
                 <input
                   type="checkbox"
-                  checked={category === item}
-                  onChange={() => updateFilters({ category: item })}
-                  className="h-4 w-4 accent-[#ee4d2d]"
+                  checked={!selectedCategories.length}
+                  onChange={clearCategoryFilter}
+                  className="h-4 w-4 rounded border-[#8f7069] text-[#ee4d2d] focus:ring-[#ee4d2d]"
                 />
-                {item}
+                <span className={`text-sm transition ${!selectedCategories.length ? 'text-[#ee4d2d]' : 'text-[#5b403b]'}`}>
+                  Tất cả
+                </span>
               </label>
-            ))}
+              {categories.map((item) => (
+                <label key={item} className="flex cursor-pointer items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={selectedCategories.includes(item)}
+                    onChange={() => toggleCategory(item)}
+                    className="h-4 w-4 rounded border-[#8f7069] text-[#ee4d2d] focus:ring-[#ee4d2d]"
+                  />
+                  <span className={`text-sm transition ${selectedCategories.includes(item) ? 'text-[#ee4d2d]' : 'text-[#5b403b]'}`}>
+                    {item}
+                  </span>
+                </label>
+              ))}
+            </div>
           </div>
 
-          <div className="my-5 border-t border-[#e3beb6]/70" />
+          <div className="my-4 border-t border-[#e3beb6]" />
 
-          <label className="block">
-            <span className="text-sm font-medium">Tìm trong danh sách</span>
-            <input
-              type="search"
-              value={keyword}
-              onChange={(event) => updateFilters({ keyword: event.target.value })}
-              placeholder="Tên sản phẩm..."
-              className="mt-2 w-full rounded-lg border border-[#e3beb6] px-3 py-2 text-sm outline-none focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
-            />
-          </label>
+          <div className="mb-6">
+            <h3 className="mb-3 text-sm font-semibold text-[#1b1c1c]">Khoảng giá (VNĐ)</h3>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                inputMode="numeric"
+                value={priceInput.min}
+                onChange={(event) => setPriceInput((prev) => ({ ...prev, min: event.target.value }))}
+                placeholder="Từ"
+                className="w-full rounded border border-[#e3beb6] bg-[#fbf9f9] px-2 py-1.5 text-sm outline-none transition focus:border-[#ee4d2d]"
+              />
+              <span className="text-[#8f7069]">-</span>
+              <input
+                type="number"
+                inputMode="numeric"
+                value={priceInput.max}
+                onChange={(event) => setPriceInput((prev) => ({ ...prev, max: event.target.value }))}
+                placeholder="Đến"
+                className="w-full rounded border border-[#e3beb6] bg-[#fbf9f9] px-2 py-1.5 text-sm outline-none transition focus:border-[#ee4d2d]"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={applyPriceRange}
+              className="mt-3 w-full rounded bg-[#f5f3f3] px-4 py-2 text-xs font-medium text-[#1b1c1c] transition hover:bg-[#e9e8e7]"
+            >
+              Áp dụng
+            </button>
+          </div>
 
-          <div className="my-5 border-t border-[#e3beb6]/70" />
+          <div className="my-4 border-t border-[#e3beb6]" />
 
-          <h3 className="text-sm font-semibold">Đánh giá</h3>
-          <div className="mt-3 space-y-2 text-sm text-[#5b403b]">
-            <p>★ ★ ★ ★ ★ từ 5 sao</p>
-            <p>★ ★ ★ ★ ☆ từ 4 sao</p>
+          <div>
+            <h3 className="mb-3 text-sm font-semibold text-[#1b1c1c]">Đánh giá</h3>
+            <div className="space-y-2 text-sm text-[#5b403b]">
+              {ratingOptions.map((option) => (
+                <label key={option.value} className="flex cursor-pointer items-center gap-2">
+                  <input
+                    type="radio"
+                    name="rating"
+                    checked={ratingFilter === option.value}
+                    onChange={() => setRatingFilter(option.value)}
+                    className="border-[#8f7069] text-[#ee4d2d] focus:ring-[#ee4d2d]"
+                  />
+                  <RatingRow stars={option.stars} label={option.label} />
+                </label>
+              ))}
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="radio"
+                  name="rating"
+                  checked={ratingFilter === ''}
+                  onChange={() => setRatingFilter('')}
+                  className="border-[#8f7069] text-[#ee4d2d] focus:ring-[#ee4d2d]"
+                />
+                <span>Tất cả</span>
+              </label>
+            </div>
           </div>
 
           {hasFilters ? (
             <>
-              <div className="my-5 border-t border-[#e3beb6]/70" />
+              <div className="my-4 border-t border-[#e3beb6]" />
               <button
                 type="button"
                 onClick={resetFilters}
-                className="w-full rounded-lg bg-[#f5f3f3] px-4 py-2 text-sm font-medium text-[#1b1c1c] transition hover:bg-[#e9e8e7]"
+                className="w-full rounded-lg bg-[#fff1ec] px-4 py-2 text-sm font-medium text-[#ee4d2d] transition hover:bg-[#ffe4db]"
               >
                 Xóa bộ lọc
               </button>
@@ -194,97 +340,132 @@ export default function ProductListPage() {
           ) : null}
         </aside>
 
-        <section>
-          <div className="mb-4 flex flex-col gap-3 rounded-xl border border-[#e3beb6]/70 bg-white p-3 shadow-sm md:flex-row md:items-center md:justify-between">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm text-[#5b403b]">Sắp xếp theo</span>
-              {sortOptions.map((option) => (
-                <button
-                  key={option.value || 'default'}
-                  type="button"
-                  onClick={() => updateFilters({ sort: option.value })}
-                  className={`rounded-md border px-4 py-2 text-sm font-medium transition ${
-                    sort === option.value
-                      ? 'border-[#ee4d2d] bg-[#ee4d2d] text-white'
-                    : 'border-[#e3beb6] bg-white text-[#1b1c1c] hover:border-[#ee4d2d]'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
+        <div className="min-w-0 flex-1">
+          <div className="mb-4 rounded-lg border border-[#e3beb6] bg-white p-3 shadow-sm">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="hidden text-sm text-[#8f7069] sm:inline">Sắp xếp theo:</span>
+                {sortOptions.map((option) => (
+                  <button
+                    key={option.value || 'default'}
+                    type="button"
+                    onClick={() => updateFilters({ sort: option.value })}
+                    className={`rounded px-3 py-1.5 text-xs font-medium transition ${
+                      sort === option.value
+                        ? 'bg-[#ee4d2d] text-white'
+                        : 'border border-[#e3beb6] bg-[#fbf9f9] text-[#1b1c1c] hover:border-[#ee4d2d]'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              <span className="text-xs text-[#8f7069]">
+                Hiển thị {(safePage - 1) * PRODUCTS_PER_PAGE + 1} - {Math.min(safePage * PRODUCTS_PER_PAGE, filteredProducts.length)} của {filteredProducts.length} sản phẩm
+              </span>
             </div>
-            <span className="text-sm text-[#5b403b]">Hiển thị {products.length} sản phẩm</span>
           </div>
 
-          <div className="mb-4 flex flex-wrap gap-2 lg:hidden">
-            <button
-              type="button"
-              onClick={() => updateFilters({ category: 'all' })}
-              className={`rounded-full px-3 py-2 text-sm transition ${
-                category === 'all' ? 'bg-[#ee4d2d] text-white' : 'bg-white text-[#5b403b] border border-[#e3beb6]'
-              }`}
-            >
-              Tất cả
-            </button>
-            {categories.map((item) => (
-              <button
-                key={item}
-                type="button"
-                onClick={() => updateFilters({ category: item })}
-                className={`rounded-full px-3 py-2 text-sm transition ${
-                  category === item ? 'bg-[#ee4d2d] text-white' : 'bg-white text-[#5b403b] border border-[#e3beb6]'
-                }`}
-              >
-                {item}
-              </button>
-            ))}
+          <div className="mb-4 rounded-xl border border-[#e3beb6] bg-white p-4 shadow-sm">
+            <div className="space-y-3 md:hidden">
+              <input
+                type="search"
+                value={keyword}
+                onChange={(event) => updateFilters({ keyword: event.target.value })}
+                placeholder="Tìm kiếm sản phẩm..."
+                className="h-11 w-full rounded-lg border border-[#e3beb6] bg-[#fbf9f9] px-4 text-sm outline-none transition focus:border-[#ee4d2d]"
+              />
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={clearCategoryFilter}
+                  className={`rounded-full px-3 py-2 text-sm ${
+                    !selectedCategories.length
+                      ? 'bg-[#ee4d2d] text-white'
+                      : 'border border-[#e3beb6] bg-white text-[#5b403b]'
+                  }`}
+                >
+                  Tất cả
+                </button>
+                {categories.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => toggleCategory(item)}
+                    className={`rounded-full px-3 py-2 text-sm ${
+                      selectedCategories.includes(item)
+                        ? 'bg-[#ee4d2d] text-white'
+                        : 'border border-[#e3beb6] bg-white text-[#5b403b]'
+                    }`}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="hidden md:block">
+              <input
+                type="search"
+                value={keyword}
+                onChange={(event) => updateFilters({ keyword: event.target.value })}
+                placeholder="Tìm kiếm sản phẩm..."
+                className="h-11 w-full rounded-full border border-[#e3beb6] bg-[#fbf9f9] px-4 text-sm outline-none transition focus:border-[#ee4d2d]"
+              />
+            </div>
           </div>
 
           {isLoading ? (
-            <div className="rounded-xl border border-[#e3beb6]/70 bg-white py-16 text-center text-[#5b403b]">
+            <div className="rounded-xl border border-[#e3beb6] bg-white py-16 text-center text-[#5b403b]">
               Đang tải danh sách sản phẩm...
             </div>
-          ) : products.length ? (
+          ) : filteredProducts.length ? (
             <>
-              <ProductGrid products={products} />
-              <div className="mt-8 flex items-center justify-center gap-2">
+              <ProductGrid products={paginatedProducts} />
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
                 <button
                   type="button"
-                  className="grid h-8 w-8 place-items-center rounded border border-[#e3beb6] bg-white text-[#8f7069]"
-                  disabled
+                  disabled={safePage === 1}
+                  onClick={() => updateFilters({ page: safePage - 1 })}
+                  className="grid h-8 w-8 place-items-center rounded border border-[#e3beb6] bg-white text-[#8f7069] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   ‹
                 </button>
+
+                {paginationItems.map((item, index) =>
+                  typeof item === 'number' ? (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => updateFilters({ page: item })}
+                      className={`grid h-8 w-8 place-items-center rounded text-xs font-semibold ${
+                        safePage === item
+                          ? 'bg-[#ee4d2d] text-white'
+                          : 'border border-[#e3beb6] bg-white text-[#1b1c1c]'
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  ) : (
+                    <span key={`${item}-${index}`} className="px-1 text-sm text-[#8f7069]">
+                      ...
+                    </span>
+                  ),
+                )}
+
                 <button
                   type="button"
-                  className="grid h-8 w-8 place-items-center rounded bg-[#ee4d2d] text-xs font-semibold text-white"
-                >
-                  1
-                </button>
-                <button
-                  type="button"
-                  className="grid h-8 w-8 place-items-center rounded border border-[#e3beb6] bg-white text-xs font-semibold text-[#1b1c1c] hover:border-[#ee4d2d] hover:text-[#ee4d2d]"
-                >
-                  2
-                </button>
-                <button
-                  type="button"
-                  className="grid h-8 w-8 place-items-center rounded border border-[#e3beb6] bg-white text-xs font-semibold text-[#1b1c1c] hover:border-[#ee4d2d] hover:text-[#ee4d2d]"
-                >
-                  3
-                </button>
-                <span className="px-1 text-sm text-[#8f7069]">...</span>
-                <button
-                  type="button"
-                  className="grid h-8 w-8 place-items-center rounded border border-[#e3beb6] bg-white text-[#1b1c1c] hover:border-[#ee4d2d] hover:text-[#ee4d2d]"
+                  disabled={safePage === totalPages}
+                  onClick={() => updateFilters({ page: safePage + 1 })}
+                  className="grid h-8 w-8 place-items-center rounded border border-[#e3beb6] bg-white text-[#1b1c1c] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   ›
                 </button>
               </div>
             </>
           ) : (
-            <div className="rounded-xl border border-[#e3beb6]/70 bg-white py-16 text-center">
-              <h2 className="text-xl font-semibold">Không tìm thấy sản phẩm phù hợp</h2>
+            <div className="rounded-xl border border-[#e3beb6] bg-white py-16 text-center">
+              <h2 className="text-xl font-semibold text-[#1b1c1c]">Không tìm thấy sản phẩm phù hợp</h2>
               <p className="mt-2 text-sm text-[#5b403b]">Hãy thử đổi từ khóa hoặc chọn danh mục khác.</p>
               <button
                 type="button"
@@ -295,8 +476,8 @@ export default function ProductListPage() {
               </button>
             </div>
           )}
-        </section>
+        </div>
       </div>
-    </div>
+    </main>
   )
 }

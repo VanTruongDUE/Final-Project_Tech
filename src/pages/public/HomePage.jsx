@@ -1,94 +1,63 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { formatCurrency } from '../../utils/formatCurrency'
+import ProductCard from '../../components/buyer/ProductCard'
 import { productService } from '../../services/productService'
 
 const categoryItems = [
-  { label: 'Điện tử', icon: '🎧', accent: 'bg-[#eaf3ff]' },
-  { label: 'Thời trang', icon: '👕', accent: 'bg-[#fff1ec]' },
-  { label: 'Gia dụng', icon: '🏠', accent: 'bg-[#eef8ef]' },
-  { label: 'Mỹ phẩm', icon: '✨', accent: 'bg-[#fff4f8]' },
-  { label: 'Sách & VPP', icon: '📚', accent: 'bg-[#f4f0ff]' },
-  { label: 'Thể thao', icon: '⚽', accent: 'bg-[#eef7ff]' },
-  { label: 'Laptop', icon: '💻', accent: 'bg-[#f3f4f6]' },
-  { label: 'Xem thêm', icon: '🛍️', accent: 'bg-[#fff8e8]' },
+  { label: 'Điện thoại', icon: '📱', categoryMatch: 'Điện tử' },
+  { label: 'Laptop', icon: '💻', categoryMatch: 'Điện tử' },
+  { label: 'Thời trang', icon: '👕', categoryMatch: 'Thời trang' },
+  { label: 'Đồng hồ', icon: '⌚', categoryMatch: 'Điện tử' },
+  { label: 'Phụ kiện', icon: '🎧', categoryMatch: 'Điện tử' },
+  { label: 'Nội thất', icon: '🪑', categoryMatch: 'Gia dụng' },
+  { label: 'Gaming', icon: '🎮', categoryMatch: 'Điện tử' },
+  { label: 'Gia dụng', icon: '🏠', categoryMatch: 'Gia dụng' },
+  { label: 'Mỹ phẩm', icon: '✨', categoryMatch: 'Mỹ phẩm' },
+  { label: 'Sách', icon: '📚', categoryMatch: 'Sách - Văn phòng phẩm' },
+  { label: 'Văn phòng phẩm', icon: '✏️', categoryMatch: 'Sách - Văn phòng phẩm' },
+  { label: 'Thể thao', icon: '⚽', categoryMatch: 'Thể thao' },
+  { label: 'Làm đẹp', icon: '💄', categoryMatch: 'Mỹ phẩm' },
+  { label: 'Nhà bếp', icon: '🍳', categoryMatch: 'Gia dụng' },
+  { label: 'Âm thanh', icon: '🔊', categoryMatch: 'Điện tử' },
+  { label: 'Xem thêm', icon: '⋯', categoryMatch: '' },
 ]
 
-function HomeProductCard({ product }) {
-  const isAvailable = product.stockQuantity > 0 && product.status === 'ACTIVE'
+const topSearchSoldLabels = ['177k+', '171k+', '148k+', '139k+', '133k+', '119k+']
 
-  return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-lg border border-[#e3e2e2] bg-white transition duration-300 hover:-translate-y-0.5 hover:shadow-md">
-      <Link to={`/products/${product.id}`} className="block">
-        <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-[#f8f8f8] p-4">
-          <img
-            src={product.imageUrl}
-            alt={product.name}
-            className="max-h-full max-w-full object-contain transition duration-500 group-hover:scale-105"
-          />
-          <button
-            type="button"
-            className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 text-sm text-[#8f7069] shadow-sm transition hover:text-[#ee4d2d]"
-            aria-label={`Yêu thích ${product.name}`}
-          >
-            ♡
-          </button>
-          {product.discountPercent > 0 ? (
-            <span className="absolute left-2 top-2 rounded-full bg-[#ee4d2d] px-2 py-1 text-[10px] font-bold text-white">
-              -{product.discountPercent}%
-            </span>
-          ) : null}
-        </div>
-      </Link>
-
-      <div className="flex flex-1 flex-col p-3">
-        <div className="flex items-center justify-between gap-2">
-          <span
-            className={`rounded-full px-2 py-1 text-[10px] font-semibold ${
-              isAvailable ? 'bg-[#fff1ec] text-[#ee4d2d]' : 'bg-[#f5f3f3] text-[#8f7069]'
-            }`}
-          >
-            {isAvailable ? 'Đang mở bán' : 'Hết hàng'}
-          </span>
-          <span className="text-[11px] text-[#8f7069]">{product.location}</span>
-        </div>
-
-        <Link
-          to={`/products/${product.id}`}
-          className="mt-3 line-clamp-2 min-h-10 text-sm leading-5 text-[#1b1c1c] transition hover:text-[#ee4d2d]"
-        >
-          {product.name}
-        </Link>
-        <div className="mt-2 flex items-center gap-2 text-xs text-[#8f7069]">
-          <span>★ {product.rating}</span>
-          <span>•</span>
-          <span>Đã bán {product.soldQuantity}</span>
-        </div>
-        <p className="mt-3 text-[18px] font-bold leading-none text-[#d0011b]">{formatCurrency(product.price)}</p>
-        {product.originalPrice > product.price ? (
-          <p className="mt-1 text-xs text-[#8f7069] line-through">{formatCurrency(product.originalPrice)}</p>
-        ) : null}
-        <div className="mt-3 rounded-lg bg-[#faf8f8] px-3 py-2">
-          <p className="truncate text-xs font-medium text-[#5b403b]">{product.storeName}</p>
-          <p className="mt-1 text-[11px] text-[#8f7069]">{product.category}</p>
-        </div>
-        <button
-          type="button"
-          onClick={() => window.alert(`Đã thêm tạm thời sản phẩm "${product.name}" vào giỏ hàng mock.`)}
-          className="mt-auto flex h-10 w-full items-center justify-center gap-2 rounded bg-[#ee4d2d] text-sm font-semibold text-white transition hover:bg-[#d73211]"
-        >
-          <span aria-hidden="true">+</span>
-          Thêm vào giỏ
-        </button>
-      </div>
-    </article>
-  )
-}
+const saleCampaigns = [
+  {
+    badge: 'Siêu sale công nghệ',
+    title: 'Giảm giá lên đến 50%\nCho thiết bị thông minh',
+    description:
+      'Khám phá hàng ngàn sản phẩm công nghệ chính hãng với mức giá ưu đãi nhất năm. Miễn phí vận chuyển toàn quốc.',
+    to: '/products?category=Điện tử&sort=best-selling',
+    productIndex: 0,
+  },
+  {
+    badge: 'Deal thời trang',
+    title: 'Lên đồ mùa mới\nƯu đãi đến 40%',
+    description:
+      'Các bộ sưu tập thời trang nổi bật, phụ kiện hot trend và nhiều lựa chọn phù hợp cho mọi phong cách.',
+    to: '/products?category=Thời trang&sort=best-selling',
+    productIndex: 3,
+  },
+  {
+    badge: 'Nhà cửa tiện nghi',
+    title: 'Sắm đồ gia dụng\nGiá tốt mỗi ngày',
+    description:
+      'Tìm nhanh những sản phẩm gia dụng, nhà bếp và nội thất bán chạy cho không gian sống hiện đại.',
+    to: '/products?category=Gia dụng&sort=best-selling',
+    productIndex: 5,
+  },
+]
 
 export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [featuredPage, setFeaturedPage] = useState(1)
+  const [saleCampaignIndex, setSaleCampaignIndex] = useState(0)
+  const [saleTouchStart, setSaleTouchStart] = useState(null)
 
   useEffect(() => {
     let isMounted = true
@@ -123,143 +92,363 @@ export default function HomePage() {
     }
   }, [])
 
+  useEffect(() => {
+    const autoSlideTimer = window.setInterval(() => {
+      setSaleCampaignIndex((currentIndex) =>
+        currentIndex === saleCampaigns.length - 1 ? 0 : currentIndex + 1,
+      )
+    }, 4000)
+
+    return () => {
+      window.clearInterval(autoSlideTimer)
+    }
+  }, [])
+
   const heroProduct = featuredProducts[0]
   const secondaryProducts = featuredProducts.slice(1, 3)
-  const featuredCategoryLinks = categoryItems.map((item, index) => ({
-    ...item,
-    category: categories[index] || '',
-  }))
+  const featuredProductsPerPage = 16
+  const totalFeaturedPages = Math.max(1, Math.ceil(featuredProducts.length / featuredProductsPerPage))
+  const featuredPageProducts = featuredProducts.slice(
+    (featuredPage - 1) * featuredProductsPerPage,
+    featuredPage * featuredProductsPerPage,
+  )
   const featuredStores = Object.values(
     featuredProducts.reduce((stores, product) => {
       if (!stores[product.storeId]) {
         stores[product.storeId] = {
           storeId: product.storeId,
           storeName: product.storeName,
-          location: product.location,
           category: product.category,
-          productCount: 0,
-          soldQuantity: 0,
+          rating: product.rating,
+          followers: 4000 + product.soldQuantity,
         }
       }
-
-      stores[product.storeId].productCount += 1
-      stores[product.storeId].soldQuantity += product.soldQuantity
 
       return stores
     }, {}),
   ).slice(0, 3)
 
+  const featuredCategoryLinks = categoryItems.map((item) => {
+    const matchedCategory = categories.find((category) => category === item.categoryMatch) || ''
+    return {
+      ...item,
+      category: matchedCategory,
+    }
+  })
+  const topSearchItems = featuredProducts.slice(0, 6).map((product, index) => ({
+    ...product,
+    soldLabel: `Bán ${topSearchSoldLabels[index] || `${Math.max(1, product.soldQuantity)}+`} / tháng`,
+  }))
+  const showPreviousSaleCampaign = () => {
+    setSaleCampaignIndex((currentIndex) =>
+      currentIndex === 0 ? saleCampaigns.length - 1 : currentIndex - 1,
+    )
+  }
+  const showNextSaleCampaign = () => {
+    setSaleCampaignIndex((currentIndex) =>
+      currentIndex === saleCampaigns.length - 1 ? 0 : currentIndex + 1,
+    )
+  }
+  const handleSaleTouchEnd = (event) => {
+    if (saleTouchStart === null) {
+      return
+    }
+
+    const touchDistance = saleTouchStart - event.changedTouches[0].clientX
+
+    if (touchDistance > 40) {
+      showNextSaleCampaign()
+    }
+
+    if (touchDistance < -40) {
+      showPreviousSaleCampaign()
+    }
+
+    setSaleTouchStart(null)
+  }
+
   return (
     <div>
-      <section className="mx-auto max-w-[1200px] px-3 py-6 md:px-4 md:py-8">
-        <div className="grid gap-4 md:h-[480px] md:grid-cols-12">
-          <Link
-            to="/products?sort=best-selling"
-            className="relative min-h-[300px] overflow-hidden rounded-xl bg-[#303031] text-white shadow-sm md:col-span-8"
+      <main className="mx-auto flex w-full max-w-[1200px] flex-col gap-8 px-3 py-6 md:py-8">
+        <section className="grid grid-cols-1 gap-4 md:h-[500px] md:grid-cols-12">
+          <div
+            className="group relative min-h-[320px] overflow-hidden rounded-xl bg-[#303031] shadow-sm md:col-span-8 md:h-full"
+            onTouchStart={(event) => setSaleTouchStart(event.touches[0].clientX)}
+            onTouchEnd={handleSaleTouchEnd}
           >
-            <img
-              src={heroProduct?.imageUrl || 'https://placehold.co/900x520/e3e2e2/1b1c1c?text=TechToShop'}
-              alt="Khuyến mãi TechToShop"
-              className="absolute inset-0 h-full w-full object-cover transition duration-700 hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent" />
-            <div className="relative flex h-full w-full max-w-2xl flex-col items-start justify-center p-8 text-white md:p-12">
-              <span className="mb-4 w-fit rounded-full bg-[#ee4d2d] px-3 py-1 text-xs font-bold uppercase tracking-wide">
-                Siêu sale công nghệ
-              </span>
-              <h1 className="text-4xl font-bold leading-tight md:text-5xl">
-                Giảm giá lên đến 50% cho thiết bị thông minh
-              </h1>
-              <p className="mt-4 text-sm leading-6 text-white/90 md:text-base">
-                Khám phá hàng ngàn sản phẩm công nghệ chính hãng với mức giá ưu đãi nhất năm.
-                Miễn phí vận chuyển toàn quốc.
-              </p>
-              <span className="mt-8 inline-flex w-fit items-center rounded bg-[#ee4d2d] px-5 py-2 text-sm font-semibold">
-                Khám phá ngay
-              </span>
-            </div>
-          </Link>
+            <div
+              className="flex h-full transition-transform duration-700 ease-out"
+              style={{ transform: `translateX(-${saleCampaignIndex * 100}%)` }}
+            >
+              {saleCampaigns.map((campaign) => {
+                const campaignProduct = featuredProducts[campaign.productIndex] || heroProduct
 
-          <div className="grid gap-4 md:col-span-4">
+                return (
+                  <div key={campaign.badge} className="relative min-h-[320px] w-full shrink-0 md:h-full">
+                    <img
+                      src={campaignProduct?.imageUrl || 'https://placehold.co/900x520/e3e2e2/1b1c1c?text=TechToShop'}
+                      alt={campaign.badge}
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent" />
+                    <div className="relative flex h-full w-full max-w-2xl flex-col items-start justify-center p-8 text-white md:p-12">
+                      <span className="mb-4 rounded-full bg-[#ee4d2d] px-3 py-1 text-xs font-bold uppercase tracking-wide">
+                        {campaign.badge}
+                      </span>
+                      <h1 className="text-4xl font-bold leading-tight md:text-5xl">
+                        {campaign.title.split('\n').map((line) => (
+                          <span key={line} className="block">
+                            {line}
+                          </span>
+                        ))}
+                      </h1>
+                      <p className="mt-4 max-w-md text-sm leading-6 text-white/90 md:text-base">
+                        {campaign.description}
+                      </p>
+                      <Link
+                        to={campaign.to}
+                        className="mt-8 inline-flex items-center gap-2 rounded bg-[#ee4d2d] px-5 py-3 text-sm font-semibold transition hover:bg-[#d73211]"
+                      >
+                        Khám phá ngay
+                        <span aria-hidden="true">→</span>
+                      </Link>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            <button
+              type="button"
+              onClick={showPreviousSaleCampaign}
+              aria-label="Chương trình sale trước"
+              className="absolute left-4 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/95 text-[#5b403b] shadow-md transition hover:bg-white hover:text-[#ee4d2d] md:grid"
+            >
+              <svg
+                aria-hidden="true"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={showNextSaleCampaign}
+              aria-label="Chương trình sale tiếp theo"
+              className="absolute right-4 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/95 text-[#5b403b] shadow-md transition hover:bg-white hover:text-[#ee4d2d] md:grid"
+            >
+              <svg
+                aria-hidden="true"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M9 6l6 6-6 6" />
+              </svg>
+            </button>
+
+            <div className="absolute bottom-5 left-8 z-10 flex items-center gap-2 md:left-12">
+              {saleCampaigns.map((campaign, index) => (
+                <button
+                  key={campaign.badge}
+                  type="button"
+                  onClick={() => setSaleCampaignIndex(index)}
+                  aria-label={`Chọn ${campaign.badge}`}
+                  className={`h-2.5 rounded-full transition ${
+                    index === saleCampaignIndex ? 'w-8 bg-white' : 'w-2.5 bg-white/50 hover:bg-white/80'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-4 md:col-span-4 md:h-full">
             {secondaryProducts.map((product) => (
               <Link
                 key={product.id}
                 to={`/products/${product.id}`}
-                className="relative min-h-[190px] overflow-hidden rounded-xl bg-[#303031] text-white shadow-sm"
+                className="group relative min-h-[210px] overflow-hidden rounded-xl shadow-sm md:flex-1 md:min-h-0"
               >
                 <img
                   src={product.imageUrl}
                   alt={product.name}
-                  className="absolute inset-0 h-full w-full object-cover transition duration-700 hover:scale-105"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent" />
-                <div className="relative flex h-full flex-col justify-end p-6">
-                  <h2 className="text-2xl font-bold leading-tight">{product.category}</h2>
-                  <p className="mt-1 text-sm text-white/90">{product.name}</p>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 p-6 text-white">
+                  <div className="max-w-[85%]">
+                    <h2 className="text-2xl font-bold leading-tight">{product.category}</h2>
+                    <p className="mt-1 text-sm leading-5 text-white/90">{product.name}</p>
+                  </div>
                 </div>
               </Link>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="mx-auto max-w-[1200px] px-3 pb-8 md:px-4">
-        <h2 className="mb-5 text-xl font-semibold">Danh mục nổi bật</h2>
-        <div className="grid grid-cols-4 gap-4 md:grid-cols-8 md:gap-6">
-          {featuredCategoryLinks.map((item, index) => (
-            <Link
-              key={`${item.label}-${index}`}
-              to={item.category ? `/products?category=${encodeURIComponent(item.category)}` : '/products'}
-              className="group flex flex-col items-center text-center text-xs text-[#5b403b] transition hover:text-[#ee4d2d]"
-            >
-              <span
-                className={`grid h-16 w-16 place-items-center rounded-full border border-[#e3e2e2] text-2xl shadow-sm transition group-hover:-translate-y-0.5 group-hover:border-[#ee4d2d] md:h-20 md:w-20 ${item.accent}`}
-              >
-                {item.icon}
-              </span>
-              <span className="mt-3">{item.label}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-[1200px] px-3 pb-12 md:px-4">
-        <div className="mb-5 flex items-center justify-between border-b border-[#e3beb6]/60 pb-3">
-          <h2 className="text-xl font-semibold">
-            <span className="mr-2 text-[#ee4d2d]">★</span>
-            Sản phẩm nổi bật
-          </h2>
-          <Link to="/products" className="text-sm font-medium text-[#ee4d2d]">
-            Sản phẩm
-          </Link>
-        </div>
-
-        {isLoading ? (
-          <div className="rounded-xl border border-[#e3beb6]/70 bg-white py-16 text-center text-[#5b403b]">
-            Đang tải sản phẩm nổi bật...
+        <section>
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-[#1b1c1c]">Danh mục nổi bật</h2>
           </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            {featuredProducts.slice(0, 4).map((product) => (
-              <HomeProductCard key={product.id} product={product} />
+          <div className="grid grid-cols-4 gap-x-4 gap-y-6 md:grid-cols-8 md:gap-x-6 md:gap-y-7">
+            {featuredCategoryLinks.map((item) => (
+              <Link
+                key={item.label}
+                to={item.category ? `/products?category=${encodeURIComponent(item.category)}` : '/products'}
+                className="group flex flex-col items-center gap-3"
+              >
+                <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[#e3e2e2] bg-white text-[24px] shadow-sm transition-all duration-300 group-hover:border-[#ee4d2d] group-hover:shadow-md md:h-[68px] md:w-[68px] md:text-[28px]">
+                  <span>{item.icon}</span>
+                </div>
+                <span className="text-center text-[12px] font-medium text-[#1b1c1c] md:text-[13px]">{item.label}</span>
+              </Link>
             ))}
           </div>
-        )}
-      </section>
+        </section>
 
-      <section className="bg-[#f5f3f3] py-10">
-        <div className="mx-auto max-w-[1200px] px-3 md:px-4">
-          <div className="mb-5 flex items-center gap-2 text-xl font-semibold text-[#1b1c1c]">
-            <span className="text-[#ee4d2d]">▣</span>
-            <h2>Cửa hàng nổi bật</h2>
+        <section className="overflow-hidden border border-[#e3e2e2] bg-white">
+          <div className="flex items-center justify-between border-b border-[#e3e2e2] px-4 py-4 md:px-5">
+            <h2 className="text-sm font-medium uppercase text-[#ee4d2d] md:text-base">Tìm kiếm hàng đầu</h2>
+            <Link
+              to="/products?sort=best-selling"
+              className="flex items-center gap-1 text-sm font-medium text-[#ee4d2d] hover:underline"
+            >
+              Xem Tất Cả
+              <span aria-hidden="true">›</span>
+            </Link>
           </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            {featuredStores.map((store, index) => (
+
+          <div className="relative">
+            {isLoading ? (
+              <div className="py-12 text-center text-sm text-[#5b403b]">Đang tải tìm kiếm hàng đầu...</div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+                {topSearchItems.map((product) => (
+                  <Link
+                    key={product.id}
+                    to={`/products/${product.id}`}
+                    className="group flex min-w-0 flex-col px-3 pb-5 pt-5 transition hover:bg-[#fbf9f9]"
+                  >
+                    <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-white">
+                      <span className="absolute left-0 top-0 z-10 rounded-b-sm bg-[#ee4d2d] px-2 py-2 text-[11px] font-bold leading-none text-white">
+                        TOP
+                      </span>
+                      <img
+                        src={product.imageUrl}
+                        alt={product.name}
+                        className="h-full w-full object-contain p-3 transition duration-300 group-hover:scale-105"
+                      />
+                      <span className="absolute inset-x-0 bottom-0 bg-black/30 px-2 py-1 text-center text-sm text-white">
+                        {product.soldLabel}
+                      </span>
+                    </div>
+                    <h3 className="mt-3 line-clamp-2 min-h-[48px] text-base font-medium leading-6 text-[#3a2b28] transition group-hover:text-[#ee4d2d]">
+                      {product.name}
+                    </h3>
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            <Link
+              to="/products?sort=best-selling"
+              aria-label="Xem tất cả tìm kiếm hàng đầu"
+              className="absolute right-[-14px] top-1/2 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white text-xl font-semibold text-[#8f7069] shadow-md transition hover:text-[#ee4d2d] lg:flex"
+            >
+              <span aria-hidden="true">›</span>
+            </Link>
+          </div>
+        </section>
+
+        <section>
+          <div className="mb-6 flex items-center justify-between border-b border-[#e3e2e2] pb-3">
+            <h2 className="flex items-center gap-2 text-xl font-semibold text-[#1b1c1c]">
+              <span className="text-[#ee4d2d]">★</span>
+              Sản phẩm nổi bật
+            </h2>
+            <Link to="/products" className="flex items-center gap-1 text-sm font-medium text-[#ee4d2d] hover:underline">
+              Xem tất cả
+              <span aria-hidden="true">›</span>
+            </Link>
+          </div>
+
+          {isLoading ? (
+            <div className="rounded-xl border border-[#e3e2e2] bg-white py-16 text-center text-[#5b403b]">
+              Đang tải sản phẩm nổi bật...
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+                {featuredPageProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} variant="home" />
+                ))}
+              </div>
+
+              {totalFeaturedPages > 1 ? (
+                <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFeaturedPage((currentPage) => Math.max(1, currentPage - 1))}
+                    disabled={featuredPage === 1}
+                    className="h-10 rounded border border-[#e3e2e2] bg-white px-4 text-sm font-semibold text-[#5b403b] transition hover:border-[#ee4d2d] hover:text-[#ee4d2d] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Trước
+                  </button>
+
+                  {Array.from({ length: totalFeaturedPages }, (_, index) => index + 1).map((pageNumber) => (
+                    <button
+                      key={pageNumber}
+                      type="button"
+                      onClick={() => setFeaturedPage(pageNumber)}
+                      className={`h-10 min-w-10 rounded border px-3 text-sm font-semibold transition ${
+                        pageNumber === featuredPage
+                          ? 'border-[#ee4d2d] bg-[#ee4d2d] text-white'
+                          : 'border-[#e3e2e2] bg-white text-[#5b403b] hover:border-[#ee4d2d] hover:text-[#ee4d2d]'
+                      }`}
+                    >
+                      {pageNumber}
+                    </button>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() => setFeaturedPage((currentPage) => Math.min(totalFeaturedPages, currentPage + 1))}
+                    disabled={featuredPage === totalFeaturedPages}
+                    className="h-10 rounded border border-[#e3e2e2] bg-white px-4 text-sm font-semibold text-[#5b403b] transition hover:border-[#ee4d2d] hover:text-[#ee4d2d] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Sau
+                  </button>
+                </div>
+              ) : null}
+            </>
+          )}
+        </section>
+
+        <section className="bg-[#f5f3f3] px-5 py-7">
+          <div className="mb-5 flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-xl font-semibold text-[#1b1c1c]">
+              <span className="text-[#ee4d2d]">🏬</span>
+              Cửa hàng nổi bật
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+            {featuredStores.map((store) => (
               <div
                 key={store.storeId}
-                className="flex items-center gap-4 rounded-xl border border-[#e3e2e2] bg-white p-5 transition hover:shadow-md"
+                className="flex min-h-[132px] items-center gap-5 rounded-xl border border-[#e3e2e2] bg-white p-6 transition-shadow hover:shadow-md"
               >
-                <div className="grid h-16 w-16 place-items-center rounded-full bg-[#fff1ec] text-lg font-bold text-[#ee4d2d]">
+                <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-full bg-[#fff1ec] text-2xl font-bold text-[#ee4d2d]">
                   {store.storeName
                     .split(' ')
                     .slice(0, 2)
@@ -267,32 +456,27 @@ export default function HomePage() {
                     .join('')}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="truncate font-semibold">{store.storeName}</h3>
-                  <p className="mt-1 text-xs text-[#5b403b]">
-                    {store.category} • {store.location}
-                  </p>
-                  <p className="mt-2 text-[11px] text-[#8f7069]">
-                    {store.productCount} sản phẩm nổi bật • Đã bán {store.soldQuantity}
-                  </p>
-                  <p className="mt-2 text-[11px] text-[#8f7069]">
-                    {index === 0
-                      ? 'Gian hàng bán chạy với nhiều ưu đãi công nghệ.'
-                      : index === 1
-                        ? 'Nhiều sản phẩm được yêu thích trong tuần.'
-                        : 'Danh mục đa dạng, phù hợp mua sắm hằng ngày.'}
-                  </p>
+                  <h3 className="truncate text-xl font-semibold text-[#1b1c1c]">{store.storeName}</h3>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-[#8f7069]">
+                    <span className="flex items-center gap-1 text-[#ee4d2d]">
+                      <span>★</span>
+                      {store.rating}
+                    </span>
+                    <span>•</span>
+                    <span>{store.followers.toLocaleString('vi-VN')}+ người theo dõi</span>
+                  </div>
                 </div>
                 <Link
                   to={`/products?category=${encodeURIComponent(store.category)}`}
-                  className="rounded-full bg-[#ee4d2d] px-3 py-2 text-xs font-semibold text-white"
+                  className="shrink-0 rounded-full bg-[#ee4d2d] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#d73211]"
                 >
-                  Xem sản phẩm
+                  Xem Shop
                 </Link>
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
     </div>
   )
 }

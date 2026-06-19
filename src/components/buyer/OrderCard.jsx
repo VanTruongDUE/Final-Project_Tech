@@ -1,191 +1,188 @@
-import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { formatCurrency } from '../../utils/formatCurrency'
 import { ORDER_STATUS } from '../../services/orderService'
-import OrderStatusBadge from './OrderStatusBadge'
 
-const paymentMethodLabels = {
-  COD: 'Thanh toán khi nhận hàng',
-  BANK_TRANSFER: 'Chuyển khoản ngân hàng',
+const statusPresentation = {
+  [ORDER_STATUS.PENDING]: {
+    label: 'CHỜ THANH TOÁN',
+    message: 'Đơn hàng đang chờ xác nhận và thanh toán.',
+    tone: 'text-[#ee4d2d]',
+  },
+  [ORDER_STATUS.CONFIRMED]: {
+    label: 'ĐANG CHUẨN BỊ HÀNG',
+    message: 'Người bán đang chuẩn bị hàng cho đơn của bạn.',
+    tone: 'text-[#b45309]',
+  },
+  [ORDER_STATUS.SHIPPING]: {
+    label: 'ĐANG GIAO',
+    message: 'Đơn hàng đang giao đến bạn',
+    tone: 'text-[#26aa99]',
+  },
+  [ORDER_STATUS.COMPLETED]: {
+    label: 'HOÀN THÀNH',
+    message: 'Đơn hàng đã được giao thành công',
+    tone: 'text-[#26aa99]',
+  },
+  [ORDER_STATUS.CANCELLED]: {
+    label: 'ĐÃ HỦY',
+    message: 'Đơn hàng đã được hủy',
+    tone: 'text-[#8f7069]',
+  },
 }
 
-const shippingMethodLabels = {
-  STANDARD: 'Giao hàng tiêu chuẩn',
-  EXPRESS: 'Giao hàng hỏa tốc',
+function StoreIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M4 10h16l-1-5H5l-1 5z" />
+      <path d="M5 10v9h14v-9" />
+      <path d="M9 19v-5h6v5" />
+    </svg>
+  )
 }
 
-const formatDateTime = (value) => {
+function ChatIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M21 12a8 8 0 0 1-8 8H7l-4 3 1.5-5A8 8 0 1 1 21 12z" />
+    </svg>
+  )
+}
+
+function ShippingIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M3 7h11v10H3z" />
+      <path d="M14 10h4l3 3v4h-7z" />
+      <circle cx="7" cy="18" r="1.5" />
+      <circle cx="18" cy="18" r="1.5" />
+    </svg>
+  )
+}
+
+function formatDate(value) {
   if (!value) {
     return '--'
   }
 
   return new Intl.DateTimeFormat('vi-VN', {
     dateStyle: 'medium',
-    timeStyle: 'short',
   }).format(new Date(value))
 }
 
-const getStatusDescription = (status) => {
-  if (status === ORDER_STATUS.CANCELLED) {
-    return 'Đơn hàng đã được hủy và không còn tiếp tục xử lý.'
-  }
-
-  if (status === ORDER_STATUS.COMPLETED) {
-    return 'Đơn hàng đã được giao thành công. Cảm ơn bạn đã mua sắm tại TechToShop.'
-  }
-
-  if (status === ORDER_STATUS.SHIPPING) {
-    return 'Đơn hàng đang được giao đến địa chỉ nhận hàng của bạn.'
-  }
-
-  if (status === ORDER_STATUS.CONFIRMED) {
-    return 'Người bán đã xác nhận đơn hàng và đang chuẩn bị đóng gói.'
-  }
-
-  return 'Đơn hàng đang chờ người bán xác nhận.'
-}
-
 export default function OrderCard({ order, onCancel }) {
-  const [isExpanded, setIsExpanded] = useState(false)
-  const firstItems = useMemo(() => order.items.slice(0, 2), [order.items])
-  const hiddenItemsCount = Math.max(0, order.items.length - firstItems.length)
-  const totalQuantity = useMemo(
-    () => order.items.reduce((total, item) => total + item.quantity, 0),
-    [order.items],
-  )
-  const primaryStoreName = order.items[0]?.product?.storeName || 'TechToShop Mall'
+  const firstItem = order.items[0]
+  const primaryStoreName = firstItem?.product?.storeName || 'TechToShop Mall'
+  const statusMeta = statusPresentation[order.status] || statusPresentation[ORDER_STATUS.PENDING]
+  const canCancel = order.status === ORDER_STATUS.PENDING
+  const canReview = order.status === ORDER_STATUS.COMPLETED
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-[#e5e7eb] bg-white shadow-[0px_1px_20px_0px_rgba(0,0,0,0.05)]">
-      <div className="flex flex-col gap-3 border-b border-[#e5e7eb] bg-[#faf7f6] px-5 py-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-full bg-[#fff1ec] text-lg text-[#ee4d2d]">
-            🏬
-          </span>
-          <div>
-            <p className="text-sm font-semibold text-[#1b1c1c]">{primaryStoreName}</p>
-            <p className="text-xs text-[#8f7069]">
-              Mã đơn hàng: <span className="font-medium text-[#5b403b]">{order.id}</span>
-            </p>
+    <article className="overflow-hidden rounded border border-[#e8e8e8] bg-white shadow-sm">
+      <div className="flex flex-col gap-3 border-b border-[#e8e8e8] p-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-[#1b1c1c]">
+            <span className="text-[#ee4d2d]">
+              <StoreIcon />
+            </span>
+            <span>{primaryStoreName}</span>
           </div>
+          <Link
+            to="/messages"
+            className="inline-flex items-center gap-1 rounded border border-[#e8e8e8] px-2 py-1 text-xs font-medium text-[#5b403b] transition hover:bg-[#f5f3f3] hover:text-[#ee4d2d]"
+          >
+            <ChatIcon />
+            Chat
+          </Link>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <p className="text-xs text-[#8f7069]">{formatDateTime(order.createdAt)}</p>
-          <OrderStatusBadge status={order.status} />
+        <div className="flex flex-wrap items-center gap-2 text-xs font-medium uppercase">
+          <span className={`inline-flex items-center gap-1 ${statusMeta.tone}`}>
+            <ShippingIcon />
+            {statusMeta.message}
+          </span>
+          <span className="hidden text-[#e3e2e2] md:inline">|</span>
+          <span className={statusMeta.tone}>{statusMeta.label}</span>
         </div>
       </div>
 
-      <div className="space-y-4 px-5 py-5">
-        {firstItems.map((item) => {
+      <Link to={`/orders/${encodeURIComponent(order.id)}`} className="block divide-y divide-[#e8e8e8]">
+        {order.items.map((item) => {
           const product = item.product
 
           return (
-            <div key={`${order.id}-${item.productId}`} className="flex gap-4">
-              <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border border-[#e5e7eb] bg-[#f5f3f3]">
+            <div key={`${order.id}-${item.productId}`} className="flex gap-4 p-4 transition hover:bg-[#fafafa]">
+              <div className="h-20 w-20 shrink-0 overflow-hidden rounded border border-[#e8e8e8] bg-[#f5f5f5]">
                 {product?.imageUrl ? (
                   <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
                 ) : (
-                  <div className="grid h-full w-full place-items-center text-2xl text-[#c7b7b2]">📦</div>
+                  <div className="h-full w-full bg-[#f5f3f3]" />
                 )}
               </div>
-
-              <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-start md:justify-between">
-                <div className="min-w-0">
-                  <h3 className="line-clamp-2 text-sm font-semibold text-[#1b1c1c]">
-                    {product?.name || 'Sản phẩm không còn khả dụng'}
-                  </h3>
-                  <p className="mt-1 text-sm text-[#8f7069]">
-                    {product?.category || 'Đơn hàng mua sắm'} • SL: {item.quantity}
-                  </p>
-                  <p className="mt-1 text-sm text-[#8f7069]">{product?.location || 'Toàn quốc'}</p>
-                </div>
-                <p className="text-right text-base font-bold text-[#ee4d2d]">
-                  {formatCurrency(item.price * item.quantity)}
-                </p>
+              <div className="min-w-0 flex-1">
+                <h3 className="line-clamp-2 text-sm font-medium text-[#1b1c1c]">{product?.name || 'Sản phẩm không còn khả dụng'}</h3>
+                <p className="mt-1 text-xs text-[#8f7069]">Phân loại: {product?.category || 'Đơn hàng mua sắm'}</p>
+                <p className="mt-2 text-sm text-[#5b403b]">x{item.quantity}</p>
+              </div>
+              <div className="shrink-0 text-right text-sm font-medium text-[#ee4d2d]">
+                {formatCurrency(item.price)}
               </div>
             </div>
           )
         })}
+      </Link>
 
-        {hiddenItemsCount > 0 ? (
-          <p className="rounded-xl bg-[#fff8f6] px-4 py-3 text-sm text-[#8f7069]">
-            Và {hiddenItemsCount} sản phẩm khác trong đơn hàng này.
+      <div className="border-t border-[#e8e8e8] bg-[#fffaf7] p-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <p className="text-sm text-[#5b403b]">
+            Mã đơn: <span className="font-medium text-[#1b1c1c]">{order.id}</span> · Ngày đặt: {formatDate(order.createdAt)}
           </p>
-        ) : null}
-      </div>
-
-      <div className="border-t border-[#e5e7eb] bg-[#fcfbfb] px-5 py-4">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-1 text-sm text-[#5b403b]">
-            <p>{getStatusDescription(order.status)}</p>
-            <p>
-              {totalQuantity} sản phẩm • {shippingMethodLabels[order.shippingMethod] || order.shippingMethod} •{' '}
-              {paymentMethodLabels[order.paymentMethod] || order.paymentMethod}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="text-right">
-              <p className="text-xs text-[#8f7069]">Tổng thanh toán</p>
-              <p className="text-xl font-bold text-[#ee4d2d]">{formatCurrency(order.totalAmount)}</p>
-            </div>
-
-            {order.status === ORDER_STATUS.PENDING ? (
-              <button
-                type="button"
-                onClick={() => onCancel(order.id)}
-                className="rounded-xl border border-[#d8d3d2] bg-white px-4 py-2 text-sm font-semibold text-[#5b403b] transition hover:bg-[#f5f3f3]"
-              >
-                Hủy đơn
-              </button>
-            ) : null}
-
-            <button
-              type="button"
-              onClick={() => setIsExpanded((prev) => !prev)}
-              className="rounded-xl border border-[#ee4d2d] bg-white px-4 py-2 text-sm font-semibold text-[#ee4d2d] transition hover:bg-[#fff1ec]"
-            >
-              {isExpanded ? 'Ẩn chi tiết' : 'Xem chi tiết'}
-            </button>
+          <div className="text-right">
+            <span className="text-sm text-[#5b403b]">Thành tiền: </span>
+            <span className="text-2xl font-bold text-[#ee4d2d]">{formatCurrency(order.totalAmount)}</span>
           </div>
         </div>
 
-        {isExpanded ? (
-          <div className="mt-4 grid gap-4 rounded-2xl border border-[#f0e5e1] bg-white p-4 md:grid-cols-2">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8f7069]">Người nhận</p>
-              <p className="mt-2 text-sm font-semibold text-[#1b1c1c]">{order.customerInfo.fullName || '--'}</p>
-              <p className="mt-1 text-sm text-[#5b403b]">{order.customerInfo.phone || '--'}</p>
-              <p className="mt-1 text-sm text-[#5b403b]">{order.customerInfo.email || 'Chưa cung cấp email'}</p>
-              <p className="mt-1 text-sm text-[#5b403b]">{order.customerInfo.address || '--'}</p>
-              {order.customerInfo.note ? (
-                <p className="mt-2 text-sm text-[#8f7069]">Ghi chú: {order.customerInfo.note}</p>
-              ) : null}
-            </div>
+        <div className="mt-4 flex flex-wrap justify-end gap-2">
+          {canCancel ? (
+            <button
+              type="button"
+              onClick={() => onCancel(order.id)}
+              className="rounded border border-[#e8e8e8] bg-white px-5 py-2 text-sm font-semibold text-[#5b403b] transition hover:bg-[#f5f3f3]"
+            >
+              Hủy đơn
+            </button>
+          ) : null}
 
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8f7069]">Chi tiết thanh toán</p>
-              <div className="mt-2 space-y-2 text-sm text-[#5b403b]">
-                <div className="flex items-center justify-between">
-                  <span>Tạm tính</span>
-                  <span>{formatCurrency(order.subtotal)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Phí vận chuyển</span>
-                  <span>{formatCurrency(order.shippingFee)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Giảm giá</span>
-                  <span>{formatCurrency(order.discountAmount)}</span>
-                </div>
-                <div className="flex items-center justify-between border-t border-[#f0e5e1] pt-2 font-semibold text-[#1b1c1c]">
-                  <span>Tổng cộng</span>
-                  <span>{formatCurrency(order.totalAmount)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : null}
+          {canReview ? (
+            <Link
+              to={`/orders/${encodeURIComponent(order.id)}`}
+              className="rounded bg-[#ee4d2d] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#d73211]"
+            >
+              Đánh giá
+            </Link>
+          ) : (
+            <Link
+              to="/products"
+              className="rounded border border-[#ee4d2d] bg-white px-5 py-2 text-sm font-semibold text-[#ee4d2d] transition hover:bg-[#fff1ec]"
+            >
+              Mua Lại
+            </Link>
+          )}
+
+          <Link
+            to="/messages"
+            className="rounded border border-[#e8e8e8] bg-white px-5 py-2 text-sm font-semibold text-[#5b403b] transition hover:bg-[#f5f3f3]"
+          >
+            Liên hệ Người bán
+          </Link>
+
+          <Link
+            to={`/orders/${encodeURIComponent(order.id)}`}
+            className="rounded border border-[#e8e8e8] bg-white px-5 py-2 text-sm font-semibold text-[#5b403b] transition hover:bg-[#f5f3f3]"
+          >
+            Xem Chi Tiết Đơn Hàng
+          </Link>
+        </div>
       </div>
     </article>
   )

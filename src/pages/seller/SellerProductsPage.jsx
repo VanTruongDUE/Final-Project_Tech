@@ -1,219 +1,151 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-
-const categoryGroups = [
-  {
-    id: 'fashion',
-    label: 'Thời trang',
-    hint: 'Áo quần, giày dép, phụ kiện',
-    children: ['Áo thun', 'Đầm nữ', 'Giày sneaker', 'Túi xách'],
-  },
-  {
-    id: 'electronics',
-    label: 'Điện tử',
-    hint: 'Thiết bị số, điện thoại, phụ kiện',
-    children: ['Điện thoại', 'Laptop', 'Tai nghe', 'Phụ kiện sạc'],
-  },
-  {
-    id: 'home',
-    label: 'Gia dụng',
-    hint: 'Thiết bị nhà bếp và chăm sóc nhà cửa',
-    children: ['Nồi chiên', 'Máy hút bụi', 'Đèn bàn', 'Kệ lưu trữ'],
-  },
-  {
-    id: 'beauty',
-    label: 'Mỹ phẩm',
-    hint: 'Skincare, makeup, chăm sóc cá nhân',
-    children: ['Son môi', 'Kem chống nắng', 'Serum', 'Nước hoa'],
-  },
-]
-
-const initialCategory = categoryGroups[0]
+import SellerIcon from '../../components/seller/SellerIcon'
+import SellerProductFilterBar from '../../components/seller/SellerProductFilterBar'
+import SellerProductStatusBadge from '../../components/seller/SellerProductStatusBadge'
+import SellerProductTable from '../../components/seller/SellerProductTable'
+import { useAuth } from '../../contexts/useAuth'
+import { sellerService } from '../../services/sellerService'
+import { formatCurrency } from '../../utils/formatCurrency'
 
 export default function SellerProductsPage() {
   const navigate = useNavigate()
-  const [selectedCategoryId, setSelectedCategoryId] = useState(initialCategory.id)
-  const [selectedSubcategory, setSelectedSubcategory] = useState(initialCategory.children[0])
-  const [estimatedVariants, setEstimatedVariants] = useState(1)
+  const { currentUser } = useAuth()
+  const [keyword, setKeyword] = useState('')
+  const [selectedProduct, setSelectedProduct] = useState(null)
+  const [refreshKey, setRefreshKey] = useState(0)
 
-  const selectedCategory =
-    categoryGroups.find((category) => category.id === selectedCategoryId) || initialCategory
+  const productsResponse = sellerService.getSellerProducts(currentUser, {
+    keyword,
+    refreshKey,
+  })
 
-  const handleCategoryChange = (category) => {
-    setSelectedCategoryId(category.id)
-    setSelectedSubcategory(category.children[0])
-  }
-
-  const handleVariantChange = (nextValue) => {
-    setEstimatedVariants(Math.max(1, nextValue))
-  }
-
-  const handleContinue = () => {
-    window.alert(
-      `Đã chọn ngành hàng "${selectedCategory.label}" - "${selectedSubcategory}". Chúng ta sẽ nối sang màn tạo sản phẩm ở bước tiếp theo.`,
+  if (!productsResponse.success) {
+    return (
+      <section className="min-h-screen bg-[#f5f3f3] p-4 md:p-6">
+        <div className="rounded-xl border border-[#e3beb6] bg-white p-6 text-sm text-[#ba1a1a] shadow-sm">
+          {productsResponse.message || 'Không thể tải danh sách sản phẩm của seller.'}
+        </div>
+      </section>
     )
   }
 
+  const { data: products, meta } = productsResponse
+
+  const handleDeleteProduct = (product) => {
+    const confirmed = window.confirm(`Xóa sản phẩm "${product.name}" khỏi danh sách seller?`)
+
+    if (!confirmed) {
+      return
+    }
+
+    const response = sellerService.deleteSellerProduct(currentUser, product.id)
+
+    if (!response.success) {
+      window.alert(response.message || 'Không thể xóa sản phẩm.')
+      return
+    }
+
+    if (selectedProduct && String(selectedProduct.id) === String(product.id)) {
+      setSelectedProduct(null)
+    }
+
+    setRefreshKey((currentKey) => currentKey + 1)
+  }
+
   return (
-    <section className="relative isolate overflow-hidden rounded-[30px] bg-[#f3eeec] px-4 py-5 sm:px-6 sm:py-6 lg:min-h-[calc(100vh-5rem)] lg:px-8 lg:py-8">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-8 top-8 h-24 w-44 rounded-[28px] bg-white/60 shadow-[0_25px_60px_rgba(101,67,33,0.08)] blur-[1px]" />
-        <div className="absolute right-10 top-12 h-12 w-48 rounded-full bg-[#f7d7d0]/70 blur-sm" />
-        <div className="absolute bottom-8 left-8 h-44 w-[38%] rounded-[36px] bg-[#d8d8d8]/80 shadow-inner blur-[1px]" />
-        <div className="absolute bottom-10 right-8 h-16 w-[34%] rounded-[28px] bg-[#c84626]/18 blur-[1px]" />
-      </div>
+    <section className="min-h-screen overflow-x-hidden bg-[#f5f3f3] p-4 md:p-6">
+      <div className="flex w-full min-w-0 flex-col gap-6 xl:pr-8">
+        <SellerProductFilterBar
+          keyword={keyword}
+          onKeywordChange={setKeyword}
+          totalProducts={meta.totalCount}
+          onAddProduct={() => navigate('/seller/products/new')}
+        />
 
-      <div className="relative z-10 mx-auto flex max-w-5xl flex-col gap-6">
-        <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9a4c3f]">
-            Seller Center
-          </p>
-          <h1 className="mt-3 text-2xl font-bold tracking-tight text-[#1b1c1c] sm:text-3xl">
-            Chọn phân loại sản phẩm trước khi đăng bán
-          </h1>
-          <p className="mt-3 text-sm leading-6 text-[#6d5a55] sm:text-base">
-            Bước này giúp chúng ta gán đúng ngành hàng và nhóm thuộc tính để màn tạo sản phẩm
-            phía sau có form phù hợp hơn.
-          </p>
-        </div>
-
-        <div className="mx-auto w-full max-w-[640px] overflow-hidden rounded-[26px] bg-white shadow-[0_30px_80px_rgba(84,44,32,0.18)]">
-          <div className="flex items-center justify-between border-b border-[#f1c9bf] px-5 py-5 sm:px-6">
-            <h2 className="text-[28px] font-bold tracking-tight text-[#1b1c1c]">
-              Chọn phân loại
-            </h2>
-            <button
-              type="button"
-              onClick={() => navigate('/seller/dashboard')}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full text-3xl leading-none text-[#6d3f36] transition hover:bg-[#f7efed]"
-              aria-label="Đóng màn chọn phân loại"
-            >
-              ×
+        {products.length ? (
+          <SellerProductTable
+            products={products}
+            totalCount={meta.totalCount}
+            onViewProduct={setSelectedProduct}
+            onEditProduct={(product) => navigate(`/seller/products/${encodeURIComponent(product.id)}/edit`)}
+            onDeleteProduct={handleDeleteProduct}
+          />
+        ) : (
+          <div className="rounded-xl border border-[#e3beb6] bg-white px-6 py-14 text-center shadow-sm">
+            <h2 className="text-xl font-semibold text-[#1b1c1c]">Không tìm thấy sản phẩm phù hợp</h2>
+            <p className="mt-2 text-sm text-[#5b403b]">
+              Seller hiện chỉ được xem sản phẩm thuộc shop của mình trong mock data. Hãy thử đổi từ khóa tìm kiếm để tiếp tục demo giao diện.
+            </p>
+            <button type="button" onClick={() => setKeyword('')} className="mt-5 rounded-lg bg-[#ee4d2d] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#d73211]">
+              Xóa tìm kiếm
             </button>
           </div>
+        )}
+      </div>
 
-          <div className="px-5 py-5 sm:px-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-2xl bg-[radial-gradient(circle_at_top,_#18314a,_#0d1722_62%,_#070b12)] shadow-[0_8px_22px_rgba(13,23,34,0.22)]">
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-3xl text-white/90">
-                  +
-                </div>
+      {selectedProduct ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" role="dialog" aria-modal="true" aria-label="Chi tiết sản phẩm">
+          <div className="w-full max-w-3xl overflow-hidden rounded-xl border border-[#e3beb6] bg-white shadow-xl">
+            <div className="flex items-start justify-between gap-4 border-b border-[#e3beb6] bg-[#fbf9f9] px-5 py-4">
+              <div>
+                <h2 className="text-xl font-bold text-[#1b1c1c]">Chi tiết sản phẩm</h2>
+                <p className="mt-1 text-xs text-[#8f7069]">SKU: TT-{String(selectedProduct.id).padStart(3, '0')}</p>
               </div>
-
-              <div className="space-y-2">
-                <p className="text-[18px] font-semibold text-[#7b1905] sm:text-[20px]">
-                  Chuẩn bị đăng sản phẩm mới
-                </p>
-                <div className="text-[40px] font-bold leading-none tracking-tight text-[#ba2204] sm:text-[46px]">
-                  {selectedCategory.label}
-                </div>
-                <p className="text-base text-[#594642]">
-                  Nhóm con đã chọn: <span className="font-medium">{selectedSubcategory}</span>
-                </p>
-              </div>
+              <button type="button" onClick={() => setSelectedProduct(null)} className="rounded-full p-1.5 text-[#5b403b] transition hover:bg-[#efeded] hover:text-[#b22204]" aria-label="Đóng">
+                <SellerIcon name="close" className="text-[20px]" />
+              </button>
             </div>
 
-            <div className="mt-8 space-y-8">
-              <div>
-                <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-[#251d1b]">
-                  Ngành hàng
-                </h3>
-                <div className="mt-4 flex flex-wrap gap-3">
-                  {categoryGroups.map((category) => {
-                    const isActive = category.id === selectedCategory.id
-
-                    return (
-                      <button
-                        key={category.id}
-                        type="button"
-                        onClick={() => handleCategoryChange(category)}
-                        className={`rounded-2xl border px-4 py-3 text-left transition ${
-                          isActive
-                            ? 'border-[#df5839] bg-[#fff4f1] text-[#b22204] shadow-[0_10px_24px_rgba(178,34,4,0.08)]'
-                            : 'border-[#efc9bf] bg-white text-[#2a2422] hover:border-[#df5839]'
-                        }`}
-                      >
-                        <div className="text-lg font-semibold">{category.label}</div>
-                        <div className="mt-1 text-sm text-[#7a6660]">{category.hint}</div>
-                      </button>
-                    )
-                  })}
-                </div>
+            <div className="grid gap-5 p-5 md:grid-cols-[180px_minmax(0,1fr)]">
+              <div className="overflow-hidden rounded-lg border border-[#e3beb6] bg-[#efeded]">
+                <img src={selectedProduct.imageUrl} alt={selectedProduct.name} className="aspect-square h-full w-full object-cover" />
               </div>
-
-              <div>
-                <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-[#251d1b]">
-                  Phân loại con
-                </h3>
-                <div className="mt-4 flex flex-wrap gap-3">
-                  {selectedCategory.children.map((item) => {
-                    const isActive = item === selectedSubcategory
-
-                    return (
-                      <button
-                        key={item}
-                        type="button"
-                        onClick={() => setSelectedSubcategory(item)}
-                        className={`min-w-[132px] rounded-2xl border px-5 py-3 text-lg transition ${
-                          isActive
-                            ? 'border-[#df5839] bg-[#fff4f1] font-semibold text-[#b22204]'
-                            : 'border-[#efc9bf] bg-white text-[#2a2422] hover:border-[#df5839]'
-                        }`}
-                      >
-                        {item}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-[#251d1b]">
-                    Số lượng biến thể dự kiến
-                  </h3>
-                  <p className="mt-2 max-w-md text-sm leading-6 text-[#6d5a55]">
-                    Chúng ta tạm ghi nhận số biến thể để chuẩn bị form thuộc tính ở bước tạo sản
-                    phẩm tiếp theo.
-                  </p>
-                </div>
-
-                <div className="flex h-14 w-full max-w-[236px] items-center overflow-hidden rounded-2xl border border-[#efc9bf] bg-[#faf6f5]">
-                  <button
-                    type="button"
-                    onClick={() => handleVariantChange(estimatedVariants - 1)}
-                    className="flex h-full w-16 items-center justify-center text-3xl text-[#5b4a45] transition hover:bg-[#f0e5e1]"
-                    aria-label="Giảm số lượng biến thể"
-                  >
-                    −
-                  </button>
-                  <div className="flex-1 text-center text-[32px] font-medium text-[#1b1c1c]">
-                    {estimatedVariants}
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h3 className="text-lg font-bold text-[#1b1c1c]">{selectedProduct.name}</h3>
+                    <p className="mt-1 text-sm text-[#5b403b]">{selectedProduct.category}</p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleVariantChange(estimatedVariants + 1)}
-                    className="flex h-full w-16 items-center justify-center text-3xl text-[#5b4a45] transition hover:bg-[#f0e5e1]"
-                    aria-label="Tăng số lượng biến thể"
-                  >
-                    +
+                  <SellerProductStatusBadge status={selectedProduct.status} />
+                </div>
+
+                <p className="mt-4 text-sm leading-6 text-[#5b403b]">{selectedProduct.description || 'Sản phẩm chưa có mô tả chi tiết.'}</p>
+
+                <div className="mt-5 grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
+                  <div className="rounded-lg bg-[#fbf9f9] p-3">
+                    <p className="text-xs text-[#8f7069]">Giá bán</p>
+                    <p className="mt-1 font-bold text-[#b22204]">{formatCurrency(selectedProduct.price)}</p>
+                  </div>
+                  <div className="rounded-lg bg-[#fbf9f9] p-3">
+                    <p className="text-xs text-[#8f7069]">Tồn kho</p>
+                    <p className="mt-1 font-bold text-[#1b1c1c]">{selectedProduct.stockQuantity}</p>
+                  </div>
+                  <div className="rounded-lg bg-[#fbf9f9] p-3">
+                    <p className="text-xs text-[#8f7069]">Đã bán</p>
+                    <p className="mt-1 font-bold text-[#1b1c1c]">{selectedProduct.soldQuantity}</p>
+                  </div>
+                  <div className="rounded-lg bg-[#fbf9f9] p-3">
+                    <p className="text-xs text-[#8f7069]">Shop</p>
+                    <p className="mt-1 truncate font-bold text-[#1b1c1c]">{selectedProduct.storeName}</p>
+                  </div>
+                </div>
+
+                <div className="mt-5 flex justify-end gap-3">
+                  <button type="button" onClick={() => navigate(`/seller/products/${encodeURIComponent(selectedProduct.id)}/edit`)} className="inline-flex h-10 items-center gap-2 rounded border border-[#b22204] px-4 text-sm font-semibold text-[#b22204] transition hover:bg-[#ffdad3]">
+                    <SellerIcon name="edit" className="text-[18px]" />
+                    Chỉnh sửa
+                  </button>
+                  <button type="button" onClick={() => handleDeleteProduct(selectedProduct)} className="inline-flex h-10 items-center gap-2 rounded bg-[#ba1a1a] px-4 text-sm font-semibold text-white transition hover:bg-[#93000a]">
+                    <SellerIcon name="delete" className="text-[18px]" />
+                    Xóa
                   </button>
                 </div>
               </div>
             </div>
           </div>
-
-          <div className="border-t border-[#f1c9bf] bg-white px-5 py-5 sm:px-6">
-            <button
-              type="button"
-              onClick={handleContinue}
-              className="flex h-16 w-full items-center justify-center rounded-2xl bg-[#c72100] px-6 text-2xl font-bold text-white shadow-[0_16px_32px_rgba(199,33,0,0.18)] transition hover:bg-[#af1d00]"
-            >
-              Tiếp tục tạo sản phẩm
-            </button>
-          </div>
         </div>
-      </div>
+      ) : null}
     </section>
   )
 }

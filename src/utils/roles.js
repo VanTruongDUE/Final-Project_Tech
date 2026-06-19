@@ -6,7 +6,7 @@ export const ROLES = {
 }
 
 export const ROLE_LABELS = {
-  [ROLES.CUSTOMER]: 'Khach hang',
+  [ROLES.CUSTOMER]: 'Khách hàng',
   [ROLES.SELLER]: 'Seller',
   [ROLES.ADMIN]: 'Admin',
   [ROLES.SHIPPER]: 'Shipper',
@@ -14,8 +14,8 @@ export const ROLE_LABELS = {
 
 export const ROLE_DEFAULT_ROUTES = {
   [ROLES.CUSTOMER]: '/',
-  [ROLES.SELLER]: '/seller/dashboard',
-  [ROLES.ADMIN]: '/admin/dashboard',
+  [ROLES.SELLER]: '/',
+  [ROLES.ADMIN]: '/',
   [ROLES.SHIPPER]: '/shipper/dashboard',
 }
 

@@ -9,6 +9,14 @@ const defaultCredentials = {
   password: '123456',
 }
 
+function FieldIcon({ children }) {
+  return (
+    <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-[#8f7069]">
+      {children}
+    </span>
+  )
+}
+
 export default function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -16,6 +24,16 @@ export default function LoginPage() {
   const [formData, setFormData] = useState(defaultCredentials)
   const [errorMessage, setErrorMessage] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+
+  useEffect(() => {
+    if (location.state?.prefillEmail) {
+      setFormData((prev) => ({
+        ...prev,
+        email: location.state.prefillEmail,
+        password: '',
+      }))
+    }
+  }, [location.state])
 
   useEffect(() => {
     if (currentUser) {
@@ -36,6 +54,7 @@ export default function LoginPage() {
   const handleChange = (event) => {
     const { name, value } = event.target
     setFormData((prev) => ({ ...prev, [name]: value }))
+    setErrorMessage('')
   }
 
   const handleQuickFill = (email, password) => {
@@ -65,66 +84,86 @@ export default function LoginPage() {
     }
   }
 
+  const noticeMessage =
+    location.state?.resetSuccessMessage || location.state?.registerSuccessMessage || ''
+
   return (
-    <div className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-[#fbf9f9] px-3 py-12">
-      <section className="w-full max-w-[480px] rounded-xl border border-[#e3beb6]/80 bg-white p-8 shadow-[0_12px_32px_rgba(0,0,0,0.05)] sm:p-12">
-        <div className="text-center">
-          <Link to="/" className="text-3xl font-bold text-[#ee4d2d]">
+    <div className="relative flex min-h-[calc(100vh-64px)] items-center justify-center overflow-hidden bg-[#fbf9f9] px-3 py-12">
+      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute left-[-8%] top-[-10%] h-[320px] w-[320px] rounded-full bg-[#ffdad3]/50 blur-[90px]" />
+        <div className="absolute bottom-[-12%] right-[-10%] h-[320px] w-[320px] rounded-full bg-[#ffb4a4]/35 blur-[100px]" />
+      </div>
+
+      <main className="relative z-10 w-full max-w-[480px] rounded-xl border border-[#e3beb6] bg-white p-8 shadow-[0px_12px_32px_rgba(0,0,0,0.05)] sm:p-12">
+        <div className="mb-12 text-center">
+          <Link to="/" className="text-[32px] font-bold tracking-tight text-[#ee4d2d]">
             TechToShop
           </Link>
-          <p className="mt-3 text-sm text-[#5b403b]">Quản trị hệ thống & cửa hàng</p>
+          <p className="mt-3 text-sm text-[#5b403b]">Quản trị hệ thống & Cửa hàng</p>
         </div>
 
-        <form className="mt-10 space-y-6" onSubmit={handleSubmit}>
-          <label className="block">
-            <span className="text-sm font-medium">Email hoặc số điện thoại</span>
-            <div className="mt-2 flex h-12 items-center rounded-lg border border-[#e3beb6] px-3 focus-within:border-[#ee4d2d] focus-within:ring-2 focus-within:ring-[#ee4d2d]/15">
-              <span className="text-[#5b403b]">♙</span>
+        <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="email" className="text-sm font-medium text-[#1b1c1c]">
+              Email hoặc Số điện thoại
+            </label>
+            <div className="relative">
+              <FieldIcon>👤</FieldIcon>
               <input
-                type="email"
+                id="email"
+                type="text"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="min-w-0 flex-1 px-3 py-3 outline-none"
                 placeholder="Nhập email hoặc số điện thoại"
+                className="h-12 w-full rounded-lg border border-[#e3beb6] bg-white pl-10 pr-4 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/20"
                 required
               />
             </div>
-          </label>
+          </div>
 
-          <label className="block">
-            <span className="text-sm font-medium">Mật khẩu</span>
-            <div className="mt-2 flex h-12 items-center rounded-lg border border-[#e3beb6] px-3 focus-within:border-[#ee4d2d] focus-within:ring-2 focus-within:ring-[#ee4d2d]/15">
-              <span className="text-[#5b403b]">▣</span>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="password" className="text-sm font-medium text-[#1b1c1c]">
+              Mật khẩu
+            </label>
+            <div className="relative">
+              <FieldIcon>🔒</FieldIcon>
               <input
+                id="password"
                 type={showPassword ? 'text' : 'password'}
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="min-w-0 flex-1 px-3 py-3 outline-none"
                 placeholder="Nhập mật khẩu"
+                className="h-12 w-full rounded-lg border border-[#e3beb6] bg-white pl-10 pr-12 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/20"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((value) => !value)}
-                className="text-sm font-semibold text-[#5b403b] transition hover:text-[#ee4d2d]"
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-[#8f7069] transition hover:text-[#ee4d2d]"
                 aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
               >
-                {showPassword ? 'Ẩn' : 'Hiện'}
+                {showPassword ? '🙈' : '👁️'}
               </button>
             </div>
-          </label>
+          </div>
 
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2">
-              <input type="checkbox" className="h-4 w-4 accent-[#ee4d2d]" />
+          <div className="mt-[-8px] flex items-center justify-between">
+            <label className="flex items-center gap-2 text-sm text-[#1b1c1c]">
+              <input type="checkbox" className="h-4 w-4 rounded border-[#e3beb6] accent-[#ee4d2d]" />
               Ghi nhớ đăng nhập
             </label>
-            <Link to="/forgot-password" className="text-[#ee4d2d]">
+            <Link to="/forgot-password" className="text-sm font-medium text-[#ee4d2d] hover:underline">
               Quên mật khẩu?
             </Link>
           </div>
+
+          {noticeMessage ? (
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              {noticeMessage}
+            </div>
+          ) : null}
 
           {errorMessage ? (
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -134,21 +173,30 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="w-full rounded-lg bg-[#ee4d2d] px-4 py-3 font-semibold text-white transition hover:bg-[#d73211]"
+            className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#ee4d2d] text-sm font-semibold text-white transition hover:bg-[#b22204]"
           >
             Đăng nhập
+            <span aria-hidden="true">→</span>
           </button>
         </form>
 
-        <div className="mt-6 flex justify-center gap-2 text-sm">
-          <span className="text-[#5b403b]">Chưa có tài khoản?</span>
-          <Link to="/register" className="font-semibold text-[#ee4d2d]">
+        <div className="my-6 flex items-center gap-4">
+          <div className="h-px flex-1 bg-[#e3beb6]" />
+          <span className="text-[12px] uppercase tracking-[0.22em] text-[#8f7069]">hoặc</span>
+          <div className="h-px flex-1 bg-[#e3beb6]" />
+        </div>
+
+        <div className="text-center text-sm text-[#1b1c1c]">
+          Chưa có tài khoản?
+          <Link to="/register" className="ml-1 font-medium text-[#ee4d2d] hover:underline">
             Đăng ký ngay
           </Link>
         </div>
 
         <div className="mt-6 border-t border-[#e3beb6]/70 pt-4">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#8f7069]">Tài khoản demo</p>
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#8f7069]">
+            Tài khoản demo
+          </p>
           <div className="grid gap-2 sm:grid-cols-2">
             {mockUsers.map((user) => (
               <button
@@ -163,7 +211,7 @@ export default function LoginPage() {
             ))}
           </div>
         </div>
-      </section>
+      </main>
     </div>
   )
 }

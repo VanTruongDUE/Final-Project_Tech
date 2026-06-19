@@ -27,6 +27,15 @@ export const productService = {
     await delay()
 
     const normalizedKeyword = keyword.trim().toLowerCase()
+    const categories = Array.isArray(category)
+      ? category.filter(Boolean)
+      : category && category !== 'all'
+        ? String(category)
+            .split(',')
+            .map((item) => item.trim())
+            .filter(Boolean)
+        : []
+
     let filteredProducts = getVisibleProducts()
 
     if (normalizedKeyword) {
@@ -35,8 +44,8 @@ export const productService = {
       )
     }
 
-    if (category && category !== 'all') {
-      filteredProducts = filteredProducts.filter((product) => product.category === category)
+    if (categories.length) {
+      filteredProducts = filteredProducts.filter((product) => categories.includes(product.category))
     }
 
     return {
@@ -69,7 +78,6 @@ export const productService = {
     const featuredProducts = getVisibleProducts()
       .filter((product) => product.status === PRODUCT_STATUSES.ACTIVE)
       .sort((first, second) => second.soldQuantity - first.soldQuantity)
-      .slice(0, 8)
 
     return {
       success: true,

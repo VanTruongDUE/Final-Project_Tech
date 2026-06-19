@@ -131,7 +131,7 @@ export default function CartPage() {
 
   if (isLoading) {
     return (
-      <section className="mx-auto max-w-[1200px] px-4 py-10">
+      <section className="mx-auto w-full max-w-[1440px] px-4 py-10 sm:px-6 lg:px-8">
         <div className="rounded-lg border border-[#e3e2e2] bg-white p-10 text-center text-[#5b403b] shadow-sm">
           Đang tải giỏ hàng...
         </div>
@@ -141,7 +141,7 @@ export default function CartPage() {
 
   if (!detailedItems.length) {
     return (
-      <section className="mx-auto max-w-[1200px] px-4 py-10">
+      <section className="mx-auto w-full max-w-[1440px] px-4 py-10 sm:px-6 lg:px-8">
         <div className="rounded-xl border border-[#e3e2e2] bg-white p-10 text-center shadow-sm">
           <p className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#fff1ec] text-2xl text-[#ee4d2d]">
             🛒
@@ -167,7 +167,7 @@ export default function CartPage() {
   }
 
   return (
-    <section className="mx-auto max-w-[1200px] px-4 py-8">
+    <section className="mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-[#1b1c1c]">Giỏ hàng của bạn</h1>

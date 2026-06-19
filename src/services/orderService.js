@@ -38,6 +38,14 @@ const normalizeNumber = (value, fallback = 0) => {
   return Number.isFinite(parsedValue) ? parsedValue : fallback
 }
 
+const normalizeCustomerId = (customerId) => {
+  if (customerId === undefined || customerId === null || customerId === '') {
+    return null
+  }
+
+  return String(customerId)
+}
+
 const normalizeOrderItem = (item) => {
   const product = item?.product
   const productId = item?.productId ?? product?.id
@@ -74,11 +82,15 @@ const sanitizeOrders = (orders) => {
       const shippingFee = Math.max(0, normalizeNumber(order.shippingFee, 0))
       const discountAmount = Math.max(0, normalizeNumber(order.discountAmount, 0))
       const totalAmount = Math.max(0, normalizeNumber(order.totalAmount, subtotal + shippingFee - discountAmount))
+      const customerId = normalizeCustomerId(order.customerId)
 
       return {
         id: order.id,
         createdAt: order.createdAt || new Date().toISOString(),
         status: order.status || ORDER_STATUS.PENDING,
+        customerId,
+        customerEmail: order.customerEmail?.trim() || '',
+        customerName: order.customerName?.trim() || '',
         customerInfo: {
           fullName: order.customerInfo?.fullName?.trim() || '',
           phone: order.customerInfo?.phone?.trim() || '',
@@ -109,6 +121,27 @@ const saveOrders = (orders) => {
   return sanitizedOrders
 }
 
+const readOrders = () => {
+  if (!canUseStorage()) {
+    return []
+  }
+
+  try {
+    const rawOrders = window.localStorage.getItem(ORDER_STORAGE_KEY)
+    const parsedOrders = rawOrders ? JSON.parse(rawOrders) : []
+    const sanitizedOrders = sanitizeOrders(parsedOrders)
+
+    if (rawOrders && JSON.stringify(parsedOrders) !== JSON.stringify(sanitizedOrders)) {
+      saveOrders(sanitizedOrders)
+    }
+
+    return sanitizedOrders
+  } catch {
+    window.localStorage.removeItem(ORDER_STORAGE_KEY)
+    return []
+  }
+}
+
 const getDateKey = (date = new Date()) => {
   const year = date.getFullYear()
   const month = `${date.getMonth() + 1}`.padStart(2, '0')
@@ -128,29 +161,30 @@ export const orderService = {
     return ORDER_STORAGE_KEY
   },
 
-  getOrders() {
-    if (!canUseStorage()) {
-      return []
+  getOrders(customerId) {
+    const orders = readOrders()
+    const normalizedCustomerId = normalizeCustomerId(customerId)
+
+    if (!normalizedCustomerId) {
+      return orders
     }
 
-    try {
-      const rawOrders = window.localStorage.getItem(ORDER_STORAGE_KEY)
-      const parsedOrders = rawOrders ? JSON.parse(rawOrders) : []
-      const sanitizedOrders = sanitizeOrders(parsedOrders)
-
-      if (rawOrders && JSON.stringify(parsedOrders) !== JSON.stringify(sanitizedOrders)) {
-        saveOrders(sanitizedOrders)
-      }
-
-      return sanitizedOrders
-    } catch {
-      window.localStorage.removeItem(ORDER_STORAGE_KEY)
-      return []
-    }
+    return orders.filter((order) => order.customerId === normalizedCustomerId)
   },
 
-  getOrderById(orderId) {
-    const order = this.getOrders().find((item) => item.id === orderId)
+  getOrderById(orderId, customerId) {
+    const normalizedCustomerId = normalizeCustomerId(customerId)
+
+    if (!orderId || !normalizedCustomerId) {
+      return {
+        success: false,
+        message: 'Không tìm thấy đơn hàng',
+      }
+    }
+
+    const order = readOrders().find(
+      (item) => item.id === orderId && item.customerId === normalizedCustomerId,
+    )
 
     if (!order) {
       return {
@@ -166,7 +200,16 @@ export const orderService = {
   },
 
   createOrder(orderPayload) {
-    const existingOrders = this.getOrders()
+    const customerId = normalizeCustomerId(orderPayload?.customerId)
+
+    if (!customerId) {
+      return {
+        success: false,
+        message: 'Không thể tạo đơn hàng khi thiếu thông tin người mua',
+      }
+    }
+
+    const existingOrders = readOrders()
     const normalizedItems = Array.isArray(orderPayload?.items)
       ? orderPayload.items.map(normalizeOrderItem).filter(Boolean)
       : []
@@ -187,6 +230,9 @@ export const orderService = {
       id: buildOrderId(existingOrders),
       createdAt: new Date().toISOString(),
       status: ORDER_STATUS.PENDING,
+      customerId,
+      customerEmail: orderPayload.customerEmail?.trim() || '',
+      customerName: orderPayload.customerName?.trim() || '',
       customerInfo: {
         fullName: orderPayload.customerInfo?.fullName?.trim() || '',
         phone: orderPayload.customerInfo?.phone?.trim() || '',
@@ -211,9 +257,18 @@ export const orderService = {
     }
   },
 
-  cancelOrder(orderId) {
-    const orders = this.getOrders()
-    const targetOrder = orders.find((order) => order.id === orderId)
+  cancelOrder(orderId, customerId) {
+    const normalizedCustomerId = normalizeCustomerId(customerId)
+
+    if (!normalizedCustomerId) {
+      return {
+        success: false,
+        message: 'Không thể hủy đơn hàng khi thiếu thông tin người mua',
+      }
+    }
+
+    const orders = readOrders()
+    const targetOrder = orders.find((order) => order.id === orderId && order.customerId === normalizedCustomerId)
 
     if (!targetOrder) {
       return {
@@ -230,11 +285,15 @@ export const orderService = {
     }
 
     const nextOrders = orders.map((order) =>
-      order.id === orderId ? { ...order, status: ORDER_STATUS.CANCELLED } : order,
+      order.id === orderId && order.customerId === normalizedCustomerId
+        ? { ...order, status: ORDER_STATUS.CANCELLED }
+        : order,
     )
 
     const savedOrders = saveOrders(nextOrders)
-    const cancelledOrder = savedOrders.find((order) => order.id === orderId)
+    const cancelledOrder = savedOrders.find(
+      (order) => order.id === orderId && order.customerId === normalizedCustomerId,
+    )
 
     return {
       success: true,

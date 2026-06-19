@@ -19,16 +19,35 @@ import ResetPasswordPage from '../pages/auth/ResetPasswordPage'
 import CartPage from '../pages/buyer/CartPage'
 import CheckoutPage from '../pages/buyer/CheckoutPage'
 import OrderHistoryPage from '../pages/buyer/OrderHistoryPage'
-import ProfilePage from '../pages/buyer/ProfilePage'
+import OrderDetailPage from '../pages/buyer/OrderDetailPage'
+import BuyerMessagesPage from '../pages/buyer/BuyerMessagesPage'
+import BuyerConversationPage from '../pages/buyer/BuyerConversationPage'
+import BuyerAddressPage from '../pages/buyer/BuyerAddressPage'
+import BuyerBankPage from '../pages/buyer/BuyerBankPage'
+import BuyerNotificationsPage from '../pages/buyer/BuyerNotificationsPage'
+import BuyerChangePasswordPage from '../pages/buyer/BuyerChangePasswordPage'
+import BuyerPrivacyPage from '../pages/buyer/BuyerPrivacyPage'
+import BuyerPersonalInfoPage from '../pages/buyer/BuyerPersonalInfoPage'
 import SellerDashboardPage from '../pages/seller/SellerDashboardPage'
+import SellerProductCreatePage from '../pages/seller/SellerProductCreatePage'
+import SellerProductEditPage from '../pages/seller/SellerProductEditPage'
 import SellerProductsPage from '../pages/seller/SellerProductsPage'
+import SellerInventoryPage from '../pages/seller/SellerInventoryPage'
+import SellerShippingPage from '../pages/seller/SellerShippingPage'
+import SellerPromotionCreatePage from '../pages/seller/SellerPromotionCreatePage'
+import SellerOrderDetailPage from '../pages/seller/SellerOrderDetailPage'
 import SellerOrdersPage from '../pages/seller/SellerOrdersPage'
 import SellerRevenuePage from '../pages/seller/SellerRevenuePage'
+import SellerMessagesPage from '../pages/seller/SellerMessagesPage'
+import SellerConversationPage from '../pages/seller/SellerConversationPage'
+import SellerSettingsPage from '../pages/seller/SellerSettingsPage'
 import AdminDashboardPage from '../pages/admin/AdminDashboardPage'
 import AdminUsersPage from '../pages/admin/AdminUsersPage'
 import AdminStoresPage from '../pages/admin/AdminStoresPage'
 import AdminOrdersPage from '../pages/admin/AdminOrdersPage'
 import AdminStatisticsPage from '../pages/admin/AdminStatisticsPage'
+import AdminStoreApprovalsPage from '../pages/admin/AdminStoreApprovalsPage'
+import AdminReportedProductsPage from '../pages/admin/AdminReportedProductsPage'
 import ShipperDashboardPage from '../pages/shipper/ShipperDashboardPage'
 import ShipperShipmentsPage from '../pages/shipper/ShipperShipmentsPage'
 import ShipperShipmentDetailPage from '../pages/shipper/ShipperShipmentDetailPage'
@@ -47,25 +66,48 @@ export default function AppRoutes() {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
       </Route>
 
-      <Route element={<ProtectedRoute allowedRoles={[ROLES.CUSTOMER]} />}>
+      <Route element={<ProtectedRoute allowedRoles={[ROLES.CUSTOMER, ROLES.SELLER]} />}>
         <Route element={<MarketplaceProtectedLayout />}>
           <Route path="/cart" element={<CartPage />} />
-          <Route path="/orders" element={<OrderHistoryPage />} />
+          <Route path="/messages" element={<BuyerMessagesPage />} />
+          <Route path="/messages/:conversationId" element={<BuyerConversationPage />} />
         </Route>
         <Route element={<CheckoutLayout />}>
           <Route path="/checkout" element={<CheckoutPage />} />
         </Route>
         <Route element={<BuyerLayout />}>
-          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/orders" element={<OrderHistoryPage />} />
+          <Route path="/orders/:id" element={<OrderDetailPage />} />
+        </Route>
+      </Route>
+
+      <Route element={<ProtectedRoute allowedRoles={[ROLES.CUSTOMER, ROLES.SELLER, ROLES.ADMIN]} />}>
+        <Route element={<BuyerLayout />}>
+          <Route path="/profile" element={<BuyerPersonalInfoPage />} />
+          <Route path="/profile/banks" element={<BuyerBankPage />} />
+          <Route path="/profile/addresses" element={<BuyerAddressPage />} />
+          <Route path="/profile/notifications" element={<BuyerNotificationsPage />} />
+          <Route path="/profile/change-password" element={<BuyerChangePasswordPage />} />
+          <Route path="/profile/privacy" element={<BuyerPrivacyPage />} />
+          <Route path="/profile/personal-info" element={<Navigate to="/profile" replace />} />
         </Route>
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={[ROLES.SELLER]} />}>
         <Route element={<SellerLayout />}>
           <Route path="/seller/dashboard" element={<SellerDashboardPage />} />
+          <Route path="/seller/products/new" element={<SellerProductCreatePage />} />
+          <Route path="/seller/products/:productId/edit" element={<SellerProductEditPage />} />
           <Route path="/seller/products" element={<SellerProductsPage />} />
+          <Route path="/seller/inventory" element={<SellerInventoryPage />} />
+          <Route path="/seller/shipping" element={<SellerShippingPage />} />
+          <Route path="/seller/promotions/new" element={<SellerPromotionCreatePage />} />
+          <Route path="/seller/orders/:orderId" element={<SellerOrderDetailPage />} />
           <Route path="/seller/orders" element={<SellerOrdersPage />} />
           <Route path="/seller/revenue" element={<SellerRevenuePage />} />
+          <Route path="/seller/messages" element={<SellerMessagesPage />} />
+          <Route path="/seller/messages/:conversationId" element={<SellerConversationPage />} />
+          <Route path="/seller/settings" element={<SellerSettingsPage />} />
         </Route>
       </Route>
 
@@ -74,8 +116,10 @@ export default function AppRoutes() {
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
           <Route path="/admin/users" element={<AdminUsersPage />} />
           <Route path="/admin/stores" element={<AdminStoresPage />} />
+          <Route path="/admin/store-approvals" element={<AdminStoreApprovalsPage />} />
           <Route path="/admin/orders" element={<AdminOrdersPage />} />
           <Route path="/admin/statistics" element={<AdminStatisticsPage />} />
+          <Route path="/admin/reported-products" element={<AdminReportedProductsPage />} />
         </Route>
       </Route>
 

@@ -5,6 +5,7 @@ import CheckoutOrderSummary from '../../components/buyer/CheckoutOrderSummary'
 import CheckoutPaymentMethod from '../../components/buyer/CheckoutPaymentMethod'
 import CheckoutShippingMethod from '../../components/buyer/CheckoutShippingMethod'
 import { shippingOptions } from '../../components/buyer/checkout-options'
+import { useAuth } from '../../contexts/useAuth'
 import { useCart } from '../../contexts/useCart'
 import { orderService } from '../../services/orderService'
 import { productService } from '../../services/productService'
@@ -63,6 +64,7 @@ const normalizeCheckoutItems = (items) => {
 export default function CheckoutPage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { currentUser } = useAuth()
   const { cartItems, removeSelectedItems } = useCart()
   const buyNowItem = location.state?.buyNowItem
   const checkoutItemsFromState = location.state?.checkoutItems
@@ -164,40 +166,39 @@ export default function CheckoutPage() {
 
   if (isLoading) {
     return (
-      <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-cyan-700">Checkout</p>
-        <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900">Đang tải thông tin thanh toán</h1>
-        <p className="mt-3 max-w-3xl text-base leading-7 text-slate-600">
-          Chúng tôi đang chuẩn bị danh sách sản phẩm đã chọn từ giỏ hàng của bạn.
-        </p>
+      <section className="mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8">
+        <div className="rounded-lg border border-[#e3e2e2] bg-white p-6 shadow-sm">
+          <h1 className="text-3xl font-bold text-[#1b1c1c]">Đang tải thông tin thanh toán</h1>
+          <p className="mt-3 text-base leading-7 text-[#5b403b]">
+            Chúng tôi đang chuẩn bị danh sách sản phẩm đã chọn từ giỏ hàng của bạn.
+          </p>
+        </div>
       </section>
     )
   }
 
   if (!checkoutItems.length) {
     return (
-      <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-cyan-700">Checkout</p>
-        <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900">
-          Chưa có sản phẩm để thanh toán
-        </h1>
-        <p className="mt-3 max-w-3xl text-base leading-7 text-slate-600">
-          Hãy quay lại giỏ hàng hoặc trang chi tiết sản phẩm để chọn sản phẩm trước khi tiếp tục
-          thanh toán.
-        </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link
-            to="/cart"
-            className="inline-flex rounded-2xl bg-[#ee4d2d] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#d73211]"
-          >
-            Quay lại giỏ hàng
-          </Link>
-          <Link
-            to="/products"
-            className="inline-flex rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-          >
-            Quay lại danh sách sản phẩm
-          </Link>
+      <section className="mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8">
+        <div className="rounded-lg border border-[#e3e2e2] bg-white p-6 shadow-sm">
+          <h1 className="text-3xl font-bold text-[#1b1c1c]">Chưa có sản phẩm để thanh toán</h1>
+          <p className="mt-3 text-base leading-7 text-[#5b403b]">
+            Hãy quay lại giỏ hàng hoặc trang chi tiết sản phẩm để chọn sản phẩm trước khi tiếp tục thanh toán.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link
+              to="/cart"
+              className="inline-flex rounded-lg bg-[#ee4d2d] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#d73211]"
+            >
+              Quay lại giỏ hàng
+            </Link>
+            <Link
+              to="/products"
+              className="inline-flex rounded-lg border border-[#e3e2e2] px-5 py-3 text-sm font-semibold text-[#5b403b] transition hover:bg-[#f5f3f3]"
+            >
+              Quay lại danh sách sản phẩm
+            </Link>
+          </div>
         </div>
       </section>
     )
@@ -262,10 +263,18 @@ export default function CheckoutPage() {
       return
     }
 
+    if (!currentUser?.id) {
+      setSubmitError('Vui lòng đăng nhập để đặt hàng.')
+      return
+    }
+
     const shippingMethod = shippingMethodId === 'express' ? 'EXPRESS' : 'STANDARD'
     const paymentMethod = paymentMethodId === 'bank' ? 'BANK_TRANSFER' : 'COD'
 
     const response = orderService.createOrder({
+      customerId: currentUser.id,
+      customerEmail: currentUser.email,
+      customerName: currentUser.fullName,
       customerInfo: shippingForm,
       items: normalizedItems,
       shippingMethod,
@@ -295,24 +304,8 @@ export default function CheckoutPage() {
   }
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-8 md:px-8">
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#1b1c1c]">Thanh toán</h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-[#5b403b]">
-          {isBuyNowFlow
-            ? 'Đây là màn thanh toán mock cho flow "Mua ngay". Chúng ta chưa kết nối cổng thanh toán thật ở bước này.'
-            : 'Đây là màn thanh toán mock cho các sản phẩm được chọn từ giỏ hàng. Chúng ta chưa kết nối cổng thanh toán thật ở bước này.'}
-          </p>
-        </div>
-        <Link
-          to="/cart"
-          className="inline-flex items-center gap-2 rounded-lg border border-[#e3beb6] bg-white px-4 py-2 text-sm font-semibold text-[#ee4d2d] transition hover:bg-[#fff1ec]"
-        >
-          <span aria-hidden="true">←</span>
-          Trở về giỏ hàng
-        </Link>
-      </div>
+    <section className="mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8">
+      <h1 className="mb-8 text-3xl font-bold text-[#1b1c1c]">Thanh toán</h1>
 
       {submitError ? (
         <div className="mb-6 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -327,14 +320,8 @@ export default function CheckoutPage() {
             errors={formErrors}
             onChange={handleShippingFormChange}
           />
-          <CheckoutShippingMethod
-            selectedShippingId={shippingMethodId}
-            onChange={setShippingMethodId}
-          />
-          <CheckoutPaymentMethod
-            selectedPaymentId={paymentMethodId}
-            onChange={setPaymentMethodId}
-          />
+          <CheckoutShippingMethod selectedShippingId={shippingMethodId} onChange={setShippingMethodId} />
+          <CheckoutPaymentMethod selectedPaymentId={paymentMethodId} onChange={setPaymentMethodId} />
         </div>
 
         <div className="lg:col-span-5 xl:col-span-4">
@@ -351,6 +338,12 @@ export default function CheckoutPage() {
           />
         </div>
       </div>
+
+      <p className="mt-6 text-sm leading-6 text-[#5b403b]">
+        {isBuyNowFlow
+          ? 'Đây là màn thanh toán mock cho flow "Mua ngay". Chúng ta chưa kết nối cổng thanh toán thật ở bước này.'
+          : 'Đây là màn thanh toán mock cho các sản phẩm được chọn từ giỏ hàng. Chúng ta chưa kết nối cổng thanh toán thật ở bước này.'}
+      </p>
     </section>
   )
 }

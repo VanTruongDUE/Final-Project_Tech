@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Link, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/useAuth'
 import { useCart } from '../contexts/useCart'
-import { resolveRoleHome } from '../utils/roles'
+import FloatingChatButton from '../components/buyer/FloatingChatButton'
 
 function SearchIcon() {
   return (
@@ -15,13 +15,15 @@ function SearchIcon() {
 
 function CartIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M6 6h15l-2 8H8L6 3H3" />
       <circle cx="9" cy="20" r="1.5" />
       <circle cx="18" cy="20" r="1.5" />
     </svg>
   )
 }
+
+const popularKeywords = ['Tai nghe bluetooth', 'Đồng hồ thông minh', 'Nồi chiên không dầu', 'Son tint']
 
 export default function MarketplaceProtectedLayout() {
   const navigate = useNavigate()
@@ -41,76 +43,121 @@ export default function MarketplaceProtectedLayout() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#fbf9f9] text-[#1b1c1c]">
-      <header className="sticky top-0 z-40 border-b border-[#e3e2e2] bg-white shadow-sm">
-        <div className="mx-auto max-w-[1200px] px-3 md:px-4">
-          <div className="flex min-h-[64px] items-center justify-between gap-4">
-            <div className="flex items-center gap-6">
-              <Link to="/" className="text-2xl font-bold tracking-tight text-[#ee4d2d]">
-                TechToShop
+    <div className="flex min-h-screen flex-col bg-[#f5f5f5] text-[#1b1c1c]">
+      <header className="sticky top-0 z-40 bg-[#ee4d2d] text-white shadow-sm">
+        <div className="mx-auto w-full max-w-[1200px] px-3 py-2">
+          <div className="hidden items-center justify-between pb-2 text-[12px] text-white/85 md:flex">
+            <div className="flex items-center gap-4">
+              <Link to="/" className="transition hover:text-white">
+                Kênh người mua
               </Link>
-              <form onSubmit={handleSearch} className="hidden md:block">
-                <div className="relative w-64">
-                  <input
-                    type="search"
-                    value={keyword}
-                    onChange={(event) => setKeyword(event.target.value)}
-                    placeholder="Tìm kiếm sản phẩm..."
-                    className="h-10 w-full rounded-lg border border-[#e3e2e2] bg-[#fbf9f9] pl-10 pr-4 text-sm outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
-                  />
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8f7069]">
-                    <SearchIcon />
-                  </span>
-                </div>
-              </form>
+              <Link to="/products" className="transition hover:text-white">
+                Sản phẩm
+              </Link>
+              <span>Theo dõi TechToShop</span>
             </div>
+            <div className="flex items-center gap-4">
+              {currentUser?.role === 'SELLER' ? (
+                <Link to="/seller/dashboard" className="transition hover:text-white">
+                  Kênh người bán
+                </Link>
+              ) : null}
+              <Link to="/messages" className="transition hover:text-white">
+                Tin nhắn
+              </Link>
+              <Link to="/orders" className="transition hover:text-white">
+                Đơn mua
+              </Link>
+              <Link to="/profile" className="font-semibold text-white transition hover:opacity-85">
+                {currentUser?.fullName || 'Tài khoản'}
+              </Link>
+              <button type="button" onClick={handleLogout} className="transition hover:text-white">
+                Đăng xuất
+              </button>
+            </div>
+          </div>
 
-            <NavLink to="/products" className="hidden text-sm font-medium text-[#5b403b] hover:text-[#ee4d2d] md:block">
-              Danh mục
-            </NavLink>
+          <div className="flex items-center justify-between gap-3 py-2 md:gap-8">
+            <Link to="/" className="flex shrink-0 items-center gap-2 text-xl font-bold text-white md:text-2xl">
+              <span className="material-symbols-outlined text-[30px]">shopping_bag</span>
+              <span>TechToShop</span>
+            </Link>
 
-            <div className="flex items-center gap-2 md:gap-3">
-              <Link
-                to="/cart"
-                className="relative grid h-10 w-10 place-items-center rounded text-[#ee4d2d] transition hover:bg-[#fff1ec]"
-                aria-label="Giỏ hàng"
-              >
+            <form onSubmit={handleSearch} className="hidden flex-1 md:block">
+              <div className="flex w-full overflow-hidden rounded-sm bg-white p-1 shadow-sm">
+                <input
+                  type="search"
+                  value={keyword}
+                  onChange={(event) => setKeyword(event.target.value)}
+                  placeholder="Tìm kiếm sản phẩm, thương hiệu và shop"
+                  className="h-9 min-w-0 flex-1 border-none px-3 text-sm text-[#1b1c1c] outline-none focus:ring-0"
+                />
+                <button
+                  type="submit"
+                  className="grid h-9 w-16 place-items-center rounded-sm bg-[#ee4d2d] text-white transition hover:bg-[#d64124]"
+                  aria-label="Tìm kiếm"
+                >
+                  <SearchIcon />
+                </button>
+              </div>
+            </form>
+
+            <div className="flex shrink-0 items-center gap-3">
+              {currentUser?.role === 'SELLER' ? (
+                <Link
+                  to="/seller/dashboard"
+                  className="hidden rounded-sm border border-white/70 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/10 lg:block"
+                >
+                  Quản lý shop
+                </Link>
+              ) : null}
+              <Link to="/cart" className="relative block p-2 text-white transition hover:opacity-85" aria-label="Giỏ hàng">
                 <CartIcon />
                 {cartCount > 0 ? (
-                  <span className="absolute right-0 top-0 grid h-4 min-w-4 place-items-center rounded-full bg-[#ee4d2d] px-1 text-[10px] font-bold text-white">
+                  <span className="absolute right-0 top-0 grid h-5 min-w-5 place-items-center rounded-full border border-[#ee4d2d] bg-white px-1 text-[11px] font-bold leading-none text-[#ee4d2d]">
                     {cartCount}
                   </span>
                 ) : null}
               </Link>
-
-              <div className="hidden items-center gap-3 border-l border-[#e3e2e2] pl-3 md:flex">
-                <Link to={resolveRoleHome(currentUser.role)} className="text-sm font-semibold text-[#ee4d2d]">
-                  {currentUser.fullName}
-                </Link>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="rounded bg-[#ee4d2d] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#d73211]"
-                >
-                  Đăng xuất
-                </button>
-              </div>
+              <Link
+                to="/profile"
+                className="hidden max-w-[180px] truncate rounded-sm border border-white/70 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/10 sm:block"
+              >
+                {currentUser?.fullName || 'Tài khoản'}
+              </Link>
             </div>
           </div>
 
-          <div className="pb-3 md:hidden">
-            <form onSubmit={handleSearch} className="relative">
+          <form onSubmit={handleSearch} className="pb-2 md:hidden">
+            <div className="flex w-full overflow-hidden rounded-sm bg-white p-1 shadow-sm">
               <input
                 type="search"
                 value={keyword}
                 onChange={(event) => setKeyword(event.target.value)}
                 placeholder="Tìm kiếm sản phẩm..."
-                className="h-10 w-full rounded-lg border border-[#e3e2e2] bg-[#fbf9f9] pl-10 pr-4 text-sm outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
+                className="h-9 min-w-0 flex-1 border-none px-3 text-sm text-[#1b1c1c] outline-none focus:ring-0"
               />
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8f7069]">
+              <button
+                type="submit"
+                className="grid h-9 w-12 place-items-center rounded-sm bg-[#ee4d2d] text-white"
+                aria-label="Tìm kiếm"
+              >
                 <SearchIcon />
-              </span>
-            </form>
+              </button>
+            </div>
+          </form>
+
+          <div className="hidden gap-3 pb-1 text-[12px] text-white/85 md:flex">
+            {popularKeywords.map((item) => (
+              <button
+                key={item}
+                type="button"
+                onClick={() => navigate(`/products?keyword=${encodeURIComponent(item)}`)}
+                className="transition hover:text-white"
+              >
+                {item}
+              </button>
+            ))}
           </div>
         </div>
       </header>
@@ -119,33 +166,32 @@ export default function MarketplaceProtectedLayout() {
         <Outlet />
       </main>
 
-      <footer className="border-t border-[#e3e2e2] bg-white">
-        <div className="mx-auto grid max-w-[1200px] gap-6 px-4 py-10 md:grid-cols-3">
-          <div>
-            <p className="text-2xl font-bold text-[#ee4d2d]">TechToShop</p>
-            <p className="mt-3 max-w-sm text-sm leading-6 text-[#5b403b]">
-              Nền tảng thương mại điện tử hiện đại, mang lại trải nghiệm mua sắm rõ ràng, nhanh chóng và chuyên nghiệp.
-            </p>
-          </div>
-          <div>
-            <h3 className="font-semibold text-[#1b1c1c]">Liên kết hữu ích</h3>
-            <div className="mt-3 space-y-2 text-sm text-[#5b403b]">
-              <p>Về chúng tôi</p>
-              <p>Liên hệ</p>
+      <footer className="mt-8 border-t border-[#e8e8e8] bg-[#f5f5f5]">
+        <div className="mx-auto w-full max-w-[1200px] px-3 py-10">
+          <div className="mb-8">
+            <p className="mb-4 text-lg font-bold text-[#ee4d2d]">TechToShop</p>
+            <div className="flex flex-wrap gap-4 text-sm text-[#5b403b]">
+              <Link to="/products" className="underline transition hover:text-[#ee4d2d]">
+                Sản phẩm
+              </Link>
+              <Link to="/orders" className="underline transition hover:text-[#ee4d2d]">
+                Đơn mua
+              </Link>
+              <Link to="/messages" className="underline transition hover:text-[#ee4d2d]">
+                Tin nhắn
+              </Link>
+              <Link to="/cart" className="underline transition hover:text-[#ee4d2d]">
+                Giỏ hàng
+              </Link>
             </div>
           </div>
-          <div>
-            <h3 className="font-semibold text-[#1b1c1c]">Chính sách</h3>
-            <div className="mt-3 space-y-2 text-sm text-[#5b403b]">
-              <p>Chính sách bảo mật</p>
-              <p>Điều khoản sử dụng</p>
-            </div>
+          <div className="border-t border-[#e8e8e8] pt-6 text-center text-sm text-[#8f7069]">
+            © 2024 TechToShop. All Rights Reserved.
           </div>
-        </div>
-        <div className="border-t border-[#e3e2e2] py-4 text-center text-xs text-[#5b403b]">
-          © 2024 TechToShop. All rights reserved.
         </div>
       </footer>
+
+      <FloatingChatButton currentUser={currentUser} />
     </div>
   )
 }

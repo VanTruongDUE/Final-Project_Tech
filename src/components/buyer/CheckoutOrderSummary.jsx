@@ -12,12 +12,12 @@ export default function CheckoutOrderSummary({
   onPlaceOrder,
 }) {
   return (
-    <aside className="sticky top-24 rounded-lg border border-[#e3e2e2] bg-white p-6 shadow-sm">
+    <aside className="sticky top-24 flex flex-col gap-6 rounded-lg border border-[#e3e2e2] bg-white p-6 shadow-sm">
       <h2 className="border-b border-[#e3e2e2] pb-4 text-xl font-semibold text-[#1b1c1c]">
         Đơn hàng của bạn ({checkoutItems.length} sản phẩm)
       </h2>
 
-      <div className="mt-4 max-h-[320px] space-y-4 overflow-y-auto pr-2">
+      <div className="max-h-[300px] space-y-4 overflow-y-auto pr-2">
         {checkoutItems.map((item, index) => {
           const product = item.product
           if (!product) {
@@ -28,7 +28,7 @@ export default function CheckoutOrderSummary({
 
           return (
             <div key={`${item.productId}-${index}`} className="flex gap-4">
-              <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border border-[#e3e2e2] bg-[#f5f3f3]">
+              <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md border border-[#e3e2e2] bg-[#f5f3f3]">
                 <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
               </div>
               <div className="flex flex-1 flex-col justify-between">
@@ -46,7 +46,7 @@ export default function CheckoutOrderSummary({
         })}
       </div>
 
-      <div className="my-4 flex gap-2 border-y border-[#e3e2e2] py-4">
+      <div className="flex gap-2 border-y border-[#e3e2e2] py-4">
         <input
           type="text"
           value={voucherCode}
@@ -64,7 +64,7 @@ export default function CheckoutOrderSummary({
       </div>
 
       {voucherMessage ? (
-        <p className="mb-4 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
+        <p className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
           {voucherMessage}
         </p>
       ) : null}
@@ -84,10 +84,10 @@ export default function CheckoutOrderSummary({
         </div>
       </div>
 
-      <div className="mt-4 flex items-end justify-between border-t border-[#e3e2e2] pt-4">
+      <div className="flex items-end justify-between border-t border-[#e3e2e2] pt-4">
         <span className="text-xl font-semibold text-[#1b1c1c]">Tổng cộng</span>
         <div className="text-right">
-          <span className="block text-3xl font-bold text-[#ee4d2d]">{formatCurrency(total)}</span>
+          <span className="block text-3xl font-bold tracking-tight text-[#ee4d2d]">{formatCurrency(total)}</span>
           <span className="mt-1 block text-xs text-[#8f7069]">(Đã bao gồm VAT)</span>
         </div>
       </div>
@@ -95,7 +95,7 @@ export default function CheckoutOrderSummary({
       <button
         type="button"
         onClick={onPlaceOrder}
-        className="mt-6 flex h-10 w-full items-center justify-center gap-2 rounded bg-[#ee4d2d] px-4 text-sm font-bold text-white transition hover:bg-[#d73211]"
+        className="flex h-10 w-full items-center justify-center gap-2 rounded bg-[#ee4d2d] px-4 text-sm font-bold text-white transition hover:bg-[#d73211]"
       >
         Đặt hàng
         <span aria-hidden="true">→</span>

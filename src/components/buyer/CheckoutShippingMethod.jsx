@@ -32,9 +32,7 @@ export default function CheckoutShippingMethod({ selectedShippingId, onChange })
                   <p className="mt-1 text-sm text-[#5b403b]">{option.description}</p>
                 </div>
               </div>
-              <span className="text-sm font-semibold text-[#1b1c1c]">
-                {option.fee.toLocaleString('vi-VN')}đ
-              </span>
+              <span className="text-sm font-semibold text-[#1b1c1c]">{option.fee.toLocaleString('vi-VN')}đ</span>
             </label>
           )
         })}
