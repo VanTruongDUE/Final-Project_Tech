@@ -31,21 +31,27 @@ export default function MessageComposer({
           disabled={disabled}
           className="rounded-full p-1 transition hover:text-[#ee4d2d]"
         >
-          🖼️
+          <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+            image
+          </span>
         </button>
         <button
           type="button"
           disabled={disabled}
           className="rounded-full p-1 transition hover:text-[#ee4d2d]"
         >
-          🏷️
+          <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+            sell
+          </span>
         </button>
         <button
           type="button"
           disabled={disabled}
           className="rounded-full p-1 transition hover:text-[#ee4d2d]"
         >
-          🧾
+          <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+            receipt_long
+          </span>
         </button>
       </div>
 
@@ -68,7 +74,9 @@ export default function MessageComposer({
           aria-label="Gửi tin nhắn"
           className="mb-0.5 mr-0.5 grid h-10 w-10 place-items-center rounded-xl bg-[#ee4d2d] text-white transition hover:bg-[#db3514] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          ➤
+          <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+            send
+          </span>
         </button>
       </form>
     </div>

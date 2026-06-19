@@ -112,7 +112,9 @@ export default function VerifyOtpPage() {
 
         <div className="text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#f5f3f3] text-[30px] text-[#b22204]">
-            🛡️
+            <span className="material-symbols-outlined text-[32px]" aria-hidden="true">
+              shield_lock
+            </span>
           </div>
           <h1 className="text-[32px] font-bold leading-tight text-[#1b1c1c]">Xác minh OTP</h1>
           <p className="mt-3 text-sm leading-6 text-[#5b403b]">
@@ -171,7 +173,9 @@ export default function VerifyOtpPage() {
 
           {errorMessage ? (
             <div className="flex items-center justify-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
-              <span aria-hidden="true">⚠️</span>
+              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                warning
+              </span>
               <span>{errorMessage}</span>
             </div>
           ) : null}

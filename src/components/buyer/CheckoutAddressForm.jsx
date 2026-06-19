@@ -5,7 +5,11 @@ export default function CheckoutAddressForm({ formData, errors, onChange }) {
   return (
     <section className="rounded-lg border border-[#e3e2e2] bg-white p-6 shadow-sm">
       <div className="mb-6 flex items-center gap-3">
-        <div className="grid h-8 w-8 place-items-center rounded-full bg-[#fff1ec] text-[#ee4d2d]">🚚</div>
+        <div className="grid h-8 w-8 place-items-center rounded-full bg-[#fff1ec] text-[#ee4d2d]">
+          <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+            local_shipping
+          </span>
+        </div>
         <h2 className="text-xl font-semibold text-[#1b1c1c]">Thông tin giao hàng</h2>
         <button type="button" className="ml-auto text-xs font-bold text-[#ee4d2d] transition hover:text-[#d0011b]">
           Thay đổi

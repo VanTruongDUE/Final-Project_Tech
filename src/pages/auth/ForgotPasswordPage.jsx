@@ -88,7 +88,9 @@ export default function ForgotPasswordPage() {
             className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#ee4d2d] text-base font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isSubmitting ? 'Đang gửi mã OTP' : 'Gửi mã OTP'}
-            <span aria-hidden="true">➤</span>
+            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+              send
+            </span>
           </button>
         </form>
 
@@ -97,7 +99,9 @@ export default function ForgotPasswordPage() {
             to="/login"
             className="inline-flex items-center gap-2 text-sm font-medium text-[#ee4d2d] transition hover:opacity-80"
           >
-            <span aria-hidden="true">←</span>
+            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+              arrow_back
+            </span>
             Quay lại Đăng nhập
           </Link>
         </div>

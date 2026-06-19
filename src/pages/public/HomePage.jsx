@@ -4,22 +4,22 @@ import ProductCard from '../../components/buyer/ProductCard'
 import { productService } from '../../services/productService'
 
 const categoryItems = [
-  { label: 'Điện thoại', icon: '📱', categoryMatch: 'Điện tử' },
-  { label: 'Laptop', icon: '💻', categoryMatch: 'Điện tử' },
-  { label: 'Thời trang', icon: '👕', categoryMatch: 'Thời trang' },
-  { label: 'Đồng hồ', icon: '⌚', categoryMatch: 'Điện tử' },
-  { label: 'Phụ kiện', icon: '🎧', categoryMatch: 'Điện tử' },
-  { label: 'Nội thất', icon: '🪑', categoryMatch: 'Gia dụng' },
-  { label: 'Gaming', icon: '🎮', categoryMatch: 'Điện tử' },
-  { label: 'Gia dụng', icon: '🏠', categoryMatch: 'Gia dụng' },
-  { label: 'Mỹ phẩm', icon: '✨', categoryMatch: 'Mỹ phẩm' },
-  { label: 'Sách', icon: '📚', categoryMatch: 'Sách - Văn phòng phẩm' },
-  { label: 'Văn phòng phẩm', icon: '✏️', categoryMatch: 'Sách - Văn phòng phẩm' },
-  { label: 'Thể thao', icon: '⚽', categoryMatch: 'Thể thao' },
-  { label: 'Làm đẹp', icon: '💄', categoryMatch: 'Mỹ phẩm' },
-  { label: 'Nhà bếp', icon: '🍳', categoryMatch: 'Gia dụng' },
-  { label: 'Âm thanh', icon: '🔊', categoryMatch: 'Điện tử' },
-  { label: 'Xem thêm', icon: '⋯', categoryMatch: '' },
+  { label: 'Điện thoại', icon: 'smartphone', categoryMatch: 'Điện tử' },
+  { label: 'Laptop', icon: 'laptop_mac', categoryMatch: 'Điện tử' },
+  { label: 'Thời trang', icon: 'checkroom', categoryMatch: 'Thời trang' },
+  { label: 'Đồng hồ', icon: 'watch', categoryMatch: 'Điện tử' },
+  { label: 'Phụ kiện', icon: 'headphones', categoryMatch: 'Điện tử' },
+  { label: 'Nội thất', icon: 'chair', categoryMatch: 'Gia dụng' },
+  { label: 'Gaming', icon: 'sports_esports', categoryMatch: 'Điện tử' },
+  { label: 'Gia dụng', icon: 'home', categoryMatch: 'Gia dụng' },
+  { label: 'Mỹ phẩm', icon: 'spa', categoryMatch: 'Mỹ phẩm' },
+  { label: 'Sách', icon: 'menu_book', categoryMatch: 'Sách - Văn phòng phẩm' },
+  { label: 'Văn phòng phẩm', icon: 'edit_square', categoryMatch: 'Sách - Văn phòng phẩm' },
+  { label: 'Thể thao', icon: 'sports_soccer', categoryMatch: 'Thể thao' },
+  { label: 'Làm đẹp', icon: 'face_retouching_natural', categoryMatch: 'Mỹ phẩm' },
+  { label: 'Nhà bếp', icon: 'skillet', categoryMatch: 'Gia dụng' },
+  { label: 'Âm thanh', icon: 'volume_up', categoryMatch: 'Điện tử' },
+  { label: 'Xem thêm', icon: 'more_horiz', categoryMatch: '' },
 ]
 
 const topSearchSoldLabels = ['177k+', '171k+', '148k+', '139k+', '133k+', '119k+']
@@ -308,7 +308,9 @@ export default function HomePage() {
                 className="group flex flex-col items-center gap-3"
               >
                 <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[#e3e2e2] bg-white text-[24px] shadow-sm transition-all duration-300 group-hover:border-[#ee4d2d] group-hover:shadow-md md:h-[68px] md:w-[68px] md:text-[28px]">
-                  <span>{item.icon}</span>
+                  <span className="material-symbols-outlined text-[28px]" aria-hidden="true">
+                    {item.icon}
+                  </span>
                 </div>
                 <span className="text-center text-[12px] font-medium text-[#1b1c1c] md:text-[13px]">{item.label}</span>
               </Link>
@@ -437,7 +439,9 @@ export default function HomePage() {
         <section className="bg-[#f5f3f3] px-5 py-7">
           <div className="mb-5 flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-xl font-semibold text-[#1b1c1c]">
-              <span className="text-[#ee4d2d]">🏬</span>
+              <span className="material-symbols-outlined text-[22px] text-[#ee4d2d]" aria-hidden="true">
+                storefront
+              </span>
               Cửa hàng nổi bật
             </h2>
           </div>

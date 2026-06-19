@@ -103,7 +103,9 @@ export default function ConversationHeader({ conversation, mobileBackLink = null
                 className="h-full w-full object-cover"
               />
             ) : (
-              <span className="text-xl text-[#c7b7b2]">📦</span>
+              <span className="material-symbols-outlined text-[24px] text-[#c7b7b2]" aria-hidden="true">
+                inventory_2
+              </span>
             )}
           </div>
 

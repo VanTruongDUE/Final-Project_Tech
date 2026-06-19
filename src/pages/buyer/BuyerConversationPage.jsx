@@ -83,7 +83,9 @@ export default function BuyerConversationPage() {
         <div className="border-b border-[#e3beb6]/30 p-3">
           <div className="relative">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-[#8f7069]">
-              🔎
+              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                search
+              </span>
             </span>
             <input
               type="search"

@@ -198,7 +198,7 @@ export default function BuyerLayout() {
               {initials}
             </div>
             <div className="min-w-0">
-              <p className="truncate text-[1.55rem] font-semibold leading-none text-[#1b1c1c]">{currentUser?.fullName}</p>
+              <p className="truncate text-lg font-semibold leading-snug text-[#1b1c1c]">{currentUser?.fullName}</p>
               <p className="mt-2 text-sm text-[#8f7069]">Thành viên Bạc</p>
             </div>
           </div>

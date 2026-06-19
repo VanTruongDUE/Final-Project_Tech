@@ -87,7 +87,9 @@ export default function CartItem({ item, product, onQuantityChange, onRemove, on
               onClick={() => onRemove(product.id)}
               className="flex items-center gap-1 text-sm text-[#8f7069] transition hover:text-[#ba1a1a] lg:opacity-0 lg:group-hover:opacity-100 lg:focus:opacity-100"
             >
-              <span>🗑</span>
+              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                delete
+              </span>
               Xóa
             </button>
           </div>

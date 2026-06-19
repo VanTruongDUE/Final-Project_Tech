@@ -89,13 +89,17 @@ export default function ProductCard({ product, variant = 'compact' }) {
             onClick={handleMockAddToCart}
             className="mt-4 flex h-10 w-full items-center justify-center gap-2 rounded bg-[#ee4d2d] text-sm font-semibold text-white transition hover:bg-[#d73211]"
           >
-            <span aria-hidden="true">🛒</span>
+            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+              add_shopping_cart
+            </span>
             Thêm vào giỏ
           </button>
         ) : (
           <div className="mt-4 flex items-center justify-between gap-2">
             <span className="flex min-w-0 items-center gap-1 text-[12px] text-[#8f7069]">
-              <span className="text-[13px]">🏬</span>
+              <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
+                storefront
+              </span>
               <span className="truncate">{product.storeName}</span>
             </span>
             <button
@@ -105,7 +109,9 @@ export default function ProductCard({ product, variant = 'compact' }) {
               title="Thêm vào giỏ"
               aria-label={`Thêm ${product.name} vào giỏ hàng`}
             >
-              🛒
+              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                add_shopping_cart
+              </span>
             </button>
           </div>
         )}

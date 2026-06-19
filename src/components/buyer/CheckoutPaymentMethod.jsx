@@ -3,13 +3,13 @@ const paymentOptions = [
     id: 'cod',
     label: 'Thanh toán khi nhận hàng (COD)',
     description: 'Thanh toán bằng tiền mặt khi giao hàng',
-    icon: '💵',
+    icon: 'payments',
   },
   {
     id: 'bank',
     label: 'Chuyển khoản ngân hàng',
     description: 'Chuyển khoản qua quét mã QR hoặc số tài khoản',
-    icon: '🏦',
+    icon: 'account_balance',
   },
 ]
 
@@ -17,7 +17,11 @@ export default function CheckoutPaymentMethod({ selectedPaymentId, onChange }) {
   return (
     <section className="rounded-lg border border-[#e3e2e2] bg-white p-6 shadow-sm">
       <div className="mb-6 flex items-center gap-3">
-        <div className="grid h-8 w-8 place-items-center rounded-full bg-[#fff1ec] text-[#ee4d2d]">💳</div>
+        <div className="grid h-8 w-8 place-items-center rounded-full bg-[#fff1ec] text-[#ee4d2d]">
+          <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+            credit_card
+          </span>
+        </div>
         <h2 className="text-xl font-semibold text-[#1b1c1c]">Phương thức thanh toán</h2>
       </div>
 
@@ -39,7 +43,7 @@ export default function CheckoutPaymentMethod({ selectedPaymentId, onChange }) {
                 onChange={() => onChange(option.id)}
                 className="h-4 w-4 border-[#e3beb6] text-[#ee4d2d] focus:ring-[#ee4d2d]"
               />
-              <span className="text-xl" aria-hidden="true">
+              <span className="material-symbols-outlined text-[22px]" aria-hidden="true">
                 {option.icon}
               </span>
               <div>

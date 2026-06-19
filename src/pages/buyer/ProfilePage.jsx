@@ -123,8 +123,8 @@ export default function ProfilePage() {
     <section className="space-y-8">
       <div className="rounded-2xl bg-white p-6 shadow-[0_1px_20px_0_rgba(0,0,0,0.05)] md:p-8">
         <div className="border-b border-[#e5e7eb] pb-5">
-          <h1 className="text-[2.7rem] font-bold leading-none text-[#1b1c1c] md:text-[3.4rem]">Hồ sơ của tôi</h1>
-          <p className="mt-4 text-lg text-[#5b403b]">Quản lý thông tin hồ sơ để bảo mật tài khoản</p>
+          <h1 className="text-3xl font-bold leading-tight text-[#1b1c1c] md:text-4xl">Hồ sơ của tôi</h1>
+          <p className="mt-3 text-base leading-6 text-[#5b403b]">Quản lý thông tin hồ sơ để bảo mật tài khoản</p>
         </div>
 
         {feedbackMessage ? (

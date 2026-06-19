@@ -40,7 +40,9 @@ export default function BuyerMessagesPage() {
       <section className="mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8">
         <div className="rounded-2xl border border-[#e3e2e2] bg-white px-6 py-14 text-center shadow-sm">
           <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#fff1ec] text-3xl text-[#ee4d2d]">
-            💬
+            <span className="material-symbols-outlined text-[32px]" aria-hidden="true">
+              chat
+            </span>
           </div>
           <h1 className="mt-5 text-2xl font-bold text-[#1b1c1c]">Bạn chưa có cuộc trò chuyện nào</h1>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-[#5b403b]">
@@ -70,7 +72,9 @@ export default function BuyerMessagesPage() {
         <div className="border-b border-[#e3beb6]/30 p-3">
           <div className="relative">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-[#8f7069]">
-              🔎
+              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                search
+              </span>
             </span>
             <input
               type="search"
@@ -105,7 +109,9 @@ export default function BuyerMessagesPage() {
 
         <div className="flex flex-1 flex-col items-center justify-center bg-[#fafafa] px-8 text-center">
           <div className="grid h-20 w-20 place-items-center rounded-full bg-[#fff1ec] text-4xl text-[#ee4d2d]">
-            💬
+            <span className="material-symbols-outlined text-[36px]" aria-hidden="true">
+              forum
+            </span>
           </div>
           <h3 className="mt-5 text-2xl font-bold text-[#1b1c1c]">Hộp thư hỗ trợ của bạn</h3>
           <p className="mt-3 max-w-md text-sm leading-6 text-[#5b403b]">

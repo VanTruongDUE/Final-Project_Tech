@@ -143,8 +143,10 @@ export default function CartPage() {
     return (
       <section className="mx-auto w-full max-w-[1440px] px-4 py-10 sm:px-6 lg:px-8">
         <div className="rounded-xl border border-[#e3e2e2] bg-white p-10 text-center shadow-sm">
-          <p className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#fff1ec] text-2xl text-[#ee4d2d]">
-            🛒
+          <p className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#fff1ec] text-[#ee4d2d]">
+            <span className="material-symbols-outlined text-[32px]" aria-hidden="true">
+              shopping_cart
+            </span>
           </p>
           <h1 className="mt-5 text-2xl font-bold text-[#1b1c1c]">Giỏ hàng của bạn đang trống</h1>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-[#5b403b]">
@@ -201,7 +203,9 @@ export default function CartPage() {
                     className="h-5 w-5 rounded border-[#e3beb6] text-[#ee4d2d] focus:ring-[#ee4d2d]"
                     aria-label={`Chọn cửa hàng ${group.storeName}`}
                   />
-                  <span className="text-[#8f7069]">🏪</span>
+                  <span className="material-symbols-outlined text-[18px] text-[#8f7069]" aria-hidden="true">
+                    storefront
+                  </span>
                   <h2 className="text-sm font-semibold text-[#1b1c1c]">{group.storeName}</h2>
                 </div>
 
@@ -237,7 +241,9 @@ export default function CartPage() {
               onClick={removeSelectedItems}
               className="flex items-center gap-2 text-sm font-semibold text-[#ba1a1a] transition hover:text-[#93000a]"
             >
-              <span>🗑</span>
+              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                delete
+              </span>
               Xóa mục đã chọn
             </button>
           </div>

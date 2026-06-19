@@ -63,7 +63,11 @@ export default function ResetPasswordPage() {
       <main className="w-full max-w-[480px] overflow-hidden rounded-xl bg-white shadow-[0px_1px_20px_0px_rgba(0,0,0,0.05)]">
         <div className="p-6 sm:p-12">
           <div className="flex flex-col gap-2 text-center">
-            <div className="mb-2 flex justify-center text-[48px] text-[#b22204]">🔐</div>
+            <div className="mb-2 flex justify-center text-[#b22204]">
+              <span className="material-symbols-outlined text-[44px]" aria-hidden="true">
+                lock_reset
+              </span>
+            </div>
             <h1 className="text-[32px] font-bold leading-tight text-[#1b1c1c]">Đặt lại mật khẩu</h1>
             <p className="text-sm leading-6 text-[#5b403b]">
               Vui lòng nhập mật khẩu mới cho tài khoản của bạn.
@@ -106,7 +110,9 @@ export default function ResetPasswordPage() {
                 Mật khẩu mới
               </label>
               <div className="flex items-center rounded-lg border border-[#e3beb6] bg-white px-4 transition focus-within:border-[#ee4d2d] focus-within:ring-2 focus-within:ring-[#ee4d2d]/20">
-                <span className="mr-3 text-[#8f7069]">🔒</span>
+                <span className="material-symbols-outlined mr-3 text-[20px] text-[#8f7069]" aria-hidden="true">
+                  lock
+                </span>
                 <input
                   id="newPassword"
                   type={showNewPassword ? 'text' : 'password'}
@@ -132,7 +138,9 @@ export default function ResetPasswordPage() {
                 Xác nhận mật khẩu
               </label>
               <div className="flex items-center rounded-lg border border-[#e3beb6] bg-white px-4 transition focus-within:border-[#ee4d2d] focus-within:ring-2 focus-within:ring-[#ee4d2d]/20">
-                <span className="mr-3 text-[#8f7069]">🛡️</span>
+                <span className="material-symbols-outlined mr-3 text-[20px] text-[#8f7069]" aria-hidden="true">
+                  shield_lock
+                </span>
                 <input
                   id="confirmPassword"
                   type={showConfirmPassword ? 'text' : 'password'}
@@ -169,7 +177,9 @@ export default function ResetPasswordPage() {
               className="mt-1 flex h-12 items-center justify-center gap-2 rounded-lg bg-[#ee4d2d] text-sm font-semibold text-white transition hover:bg-[#d44124] disabled:cursor-not-allowed disabled:opacity-70"
             >
               {isSubmitting ? 'Đang cập nhật mật khẩu' : 'Cập nhật mật khẩu'}
-              <span aria-hidden="true">→</span>
+              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                arrow_forward
+              </span>
             </button>
 
             <div className="text-center">
@@ -177,7 +187,9 @@ export default function ResetPasswordPage() {
                 to="/login"
                 className="inline-flex items-center gap-2 text-sm text-[#5b403b] transition hover:text-[#ee4d2d]"
               >
-                <span aria-hidden="true">←</span>
+                <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                  arrow_back
+                </span>
                 Quay lại Đăng nhập
               </Link>
             </div>

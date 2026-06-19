@@ -9,10 +9,12 @@ const defaultCredentials = {
   password: '123456',
 }
 
-function FieldIcon({ children }) {
+function FieldIcon({ name }) {
   return (
     <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-[#8f7069]">
-      {children}
+      <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+        {name}
+      </span>
     </span>
   )
 }
@@ -108,7 +110,7 @@ export default function LoginPage() {
               Email hoặc Số điện thoại
             </label>
             <div className="relative">
-              <FieldIcon>👤</FieldIcon>
+              <FieldIcon name="person" />
               <input
                 id="email"
                 type="text"
@@ -127,7 +129,7 @@ export default function LoginPage() {
               Mật khẩu
             </label>
             <div className="relative">
-              <FieldIcon>🔒</FieldIcon>
+              <FieldIcon name="lock" />
               <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
@@ -144,7 +146,9 @@ export default function LoginPage() {
                 className="absolute inset-y-0 right-0 flex items-center pr-3 text-[#8f7069] transition hover:text-[#ee4d2d]"
                 aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
               >
-                {showPassword ? '🙈' : '👁️'}
+                <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                  {showPassword ? 'visibility_off' : 'visibility'}
+                </span>
               </button>
             </div>
           </div>
@@ -176,7 +180,9 @@ export default function LoginPage() {
             className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#ee4d2d] text-sm font-semibold text-white transition hover:bg-[#b22204]"
           >
             Đăng nhập
-            <span aria-hidden="true">→</span>
+            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+              arrow_forward
+            </span>
           </button>
         </form>
 
