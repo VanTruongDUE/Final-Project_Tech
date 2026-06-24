@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import SellerIcon from '../../components/seller/SellerIcon'
 import { useAuth } from '../../contexts/useAuth'
 import { sellerService } from '../../services/sellerService'
@@ -32,6 +32,14 @@ const stockStateMeta = {
     label: 'Đã hết',
     className: 'bg-[#FEE2E2] text-[#BA1A1A]',
   },
+}
+
+function normalizeInventorySearch(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/gi, 'd')
+    .toLowerCase()
 }
 
 function InventoryStatCard({ stat }) {
@@ -85,6 +93,7 @@ function InventoryActionButton({ icon, label, onClick }) {
 
 export default function SellerInventoryPage() {
   const { currentUser } = useAuth()
+  const navigate = useNavigate()
   const [keyword, setKeyword] = useState('')
   const [category, setCategory] = useState('all')
   const [stockStatus, setStockStatus] = useState('all')
@@ -93,6 +102,7 @@ export default function SellerInventoryPage() {
   const [historyKeyword, setHistoryKeyword] = useState('')
   const [historyRange, setHistoryRange] = useState('30d')
   const [stockInput, setStockInput] = useState('')
+  const [stockProductKeyword, setStockProductKeyword] = useState('')
   const [refreshKey, setRefreshKey] = useState(0)
 
   const inventoryResponse = sellerService.getSellerInventoryReport(currentUser, {
@@ -101,23 +111,48 @@ export default function SellerInventoryPage() {
     stockStatus,
     refreshKey,
   })
+  const allInventoryResponse = sellerService.getSellerInventoryReport(currentUser, { refreshKey })
+  const inventoryOptions = allInventoryResponse.data?.rows || []
+  const normalizedStockProductKeyword = normalizeInventorySearch(stockProductKeyword)
+  const filteredInventoryOptions = normalizedStockProductKeyword
+    ? inventoryOptions.filter((product) => (
+      normalizeInventorySearch([
+        product.name,
+        product.variantName,
+        product.skuCode,
+        product.category,
+      ].filter(Boolean).join(' ')).includes(normalizedStockProductKeyword)
+    ))
+    : inventoryOptions
 
   const categories = useMemo(() => inventoryResponse.data?.categories || [], [inventoryResponse.data?.categories])
   const historyResponse = historyProduct
-    ? sellerService.getSellerProductOrderHistory(currentUser, historyProduct.id, {
+    ? sellerService.getSellerProductOrderHistory(currentUser, historyProduct.productId || historyProduct.id, {
         keyword: historyKeyword,
         range: historyRange,
+        skuCode: historyProduct.skuCode,
       })
     : null
 
   const openStockModal = (product = null) => {
     setEditingProduct(product)
     setStockInput(product ? String(product.availableStock) : '')
+    setStockProductKeyword('')
+  }
+
+  const selectInventorySku = (inventoryRowId) => {
+    const selectedProduct = inventoryOptions.find((product) => product.inventoryRowId === inventoryRowId)
+
+    if (!selectedProduct) return
+
+    setEditingProduct(selectedProduct)
+    setStockInput(String(selectedProduct.availableStock))
   }
 
   const closeStockModal = () => {
     setEditingProduct(null)
     setStockInput('')
+    setStockProductKeyword('')
   }
 
   const openHistoryModal = (product) => {
@@ -140,7 +175,12 @@ export default function SellerInventoryPage() {
       return
     }
 
-    const response = sellerService.updateSellerInventoryStock(currentUser, editingProduct.id, stockInput)
+    const response = sellerService.updateSellerInventoryStock(
+      currentUser,
+      editingProduct.productId || editingProduct.id,
+      editingProduct.skuId || editingProduct.skuCode,
+      stockInput,
+    )
 
     if (!response.success) {
       window.alert(response.message || 'Không thể cập nhật tồn kho.')
@@ -180,7 +220,7 @@ export default function SellerInventoryPage() {
 
           <button
             type="button"
-            onClick={() => openStockModal(rows[0] || null)}
+            onClick={() => openStockModal(inventoryOptions[0] || null)}
             className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-[#ee4d2d] px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#d73211]"
           >
             <SellerIcon name="add_box" className="text-[22px]" />
@@ -250,7 +290,7 @@ export default function SellerInventoryPage() {
               </thead>
               <tbody className="divide-y divide-[#e3beb6]/50">
                 {rows.map((product) => (
-                  <tr key={product.id} className="transition hover:bg-[#fbf9f9]">
+                  <tr key={product.inventoryRowId || product.id} className="transition hover:bg-[#fbf9f9]">
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-4">
                         <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-[#e3beb6] bg-[#efeded]">
@@ -258,7 +298,10 @@ export default function SellerInventoryPage() {
                         </div>
                         <div className="min-w-0">
                           <p className="max-w-[230px] truncate text-sm font-bold text-[#1b1c1c]">{product.name}</p>
-                          <p className="mt-1 text-xs text-[#5b403b]">SKU: TT-{String(product.id).padStart(3, '0')}</p>
+                          <p className="mt-0.5 max-w-[230px] truncate text-xs font-semibold text-[#8f3a28]" title={product.variantName}>
+                            {product.hasVariants ? product.variantName : 'Mặc định'}
+                          </p>
+                          <p className="mt-1 break-all text-xs text-[#5b403b]">SKU: {product.skuCode || 'Chưa có SKU'}</p>
                         </div>
                       </div>
                     </td>
@@ -276,6 +319,11 @@ export default function SellerInventoryPage() {
                     <td className="px-5 py-4">
                       <div className="flex items-center justify-center gap-1">
                         <InventoryActionButton icon="edit_square" label="Cập nhật tồn kho" onClick={() => openStockModal(product)} />
+                        <InventoryActionButton
+                          icon="visibility"
+                          label="Xem và chỉnh sửa biến thể"
+                          onClick={() => navigate(`/seller/products/${encodeURIComponent(product.productId || product.id)}/edit?sku=${encodeURIComponent(product.skuId || product.skuCode || '')}`)}
+                        />
                         <InventoryActionButton icon="history" label="Lịch sử đơn hàng" onClick={() => openHistoryModal(product)} />
                       </div>
                     </td>
@@ -287,7 +335,7 @@ export default function SellerInventoryPage() {
 
           <div className="flex flex-col gap-3 border-t border-[#e3beb6]/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-[#5b403b]">
-              Hiển thị 1-{rows.length} trên {inventoryResponse.meta.allCount} sản phẩm
+              Hiển thị 1-{rows.length} trên {inventoryResponse.meta.allCount} SKU
             </p>
             <div className="flex items-center gap-2">
               <button type="button" disabled className="grid h-9 w-9 place-items-center rounded-lg text-[#8f7069] opacity-60">
@@ -313,11 +361,11 @@ export default function SellerInventoryPage() {
 
       {editingProduct ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" role="dialog" aria-modal="true" aria-label="Nhập kho">
-          <form onSubmit={handleUpdateStock} className="w-full max-w-md overflow-hidden rounded-xl border border-[#e3beb6] bg-white shadow-xl">
+          <form onSubmit={handleUpdateStock} className="w-full max-w-lg overflow-hidden rounded-xl border border-[#e3beb6] bg-white shadow-xl">
             <div className="flex items-start justify-between gap-4 border-b border-[#e3beb6] bg-[#fbf9f9] px-5 py-4">
               <div>
                 <h2 className="text-lg font-bold text-[#1b1c1c]">Cập nhật tồn kho</h2>
-                <p className="mt-1 text-xs text-[#8f7069]">SKU: TT-{String(editingProduct.id).padStart(3, '0')}</p>
+                <p className="mt-1 break-all text-xs text-[#8f7069]">SKU: {editingProduct.skuCode || 'Chưa có SKU'}</p>
               </div>
               <button type="button" onClick={closeStockModal} className="rounded-full p-1.5 text-[#5b403b] transition hover:bg-[#efeded] hover:text-[#b22204]" aria-label="Đóng">
                 <SellerIcon name="close" className="text-[20px]" />
@@ -325,10 +373,48 @@ export default function SellerInventoryPage() {
             </div>
 
             <div className="space-y-4 p-5">
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-[#5b403b]" htmlFor="inventorySku">
+                  Chọn sản phẩm / SKU
+                </label>
+                <div className="relative mb-2">
+                  <SellerIcon name="search" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-[#8f7069]" />
+                  <input
+                    type="search"
+                    value={stockProductKeyword}
+                    onChange={(event) => setStockProductKeyword(event.target.value)}
+                    placeholder="Nhập tên sản phẩm, biến thể hoặc mã SKU..."
+                    className="h-11 w-full rounded-lg border border-[#e3beb6] bg-[#fbf9f9] pl-10 pr-4 text-sm text-[#1b1c1c] outline-none transition placeholder:text-[#9b8b87] focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
+                  />
+                </div>
+                <div className="relative">
+                  <select
+                    id="inventorySku"
+                    value={filteredInventoryOptions.some((product) => (
+                      (product.inventoryRowId || product.id) === (editingProduct.inventoryRowId || editingProduct.id)
+                    )) ? (editingProduct.inventoryRowId || editingProduct.id) : ''}
+                    onChange={(event) => selectInventorySku(event.target.value)}
+                    className="h-12 w-full appearance-none rounded-lg border border-[#e3beb6] bg-white pl-4 pr-10 text-sm font-medium text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
+                  >
+                    <option value="" disabled>
+                      {filteredInventoryOptions.length ? 'Chọn SKU phù hợp' : 'Không tìm thấy sản phẩm hoặc SKU'}
+                    </option>
+                    {filteredInventoryOptions.map((product) => (
+                      <option key={product.inventoryRowId || product.id} value={product.inventoryRowId || product.id}>
+                        {product.name} — {product.variantName || 'Mặc định'} — {product.skuCode || 'Chưa có SKU'}
+                      </option>
+                    ))}
+                  </select>
+                  <SellerIcon name="expand_more" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[20px] text-[#8f7069]" />
+                </div>
+                <p className="mt-1.5 text-xs text-[#8f7069]">Mỗi lựa chọn tương ứng với một SKU riêng trong kho.</p>
+              </div>
+
               <div className="flex items-center gap-3 rounded-lg bg-[#fbf9f9] p-3">
                 <img src={editingProduct.imageUrl} alt={editingProduct.name} className="h-12 w-12 rounded-lg border border-[#e3beb6] object-cover" />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold text-[#1b1c1c]">{editingProduct.name}</p>
+                  <p className="truncate text-xs font-semibold text-[#8f3a28]">Biến thể: {editingProduct.variantName || 'Mặc định'}</p>
                   <p className="text-xs text-[#5b403b]">{editingProduct.category}</p>
                 </div>
               </div>
@@ -388,7 +474,7 @@ export default function SellerInventoryPage() {
                         {historyProduct.category}
                       </span>
                       <span className="text-sm text-[#5b403b]">
-                        SKU: <strong className="text-[#1b1c1c]">TT-{String(historyProduct.id).padStart(3, '0')}</strong>
+                        SKU: <strong className="text-[#1b1c1c]">{historyProduct.skuCode || 'Chưa có SKU'}</strong>
                       </span>
                     </div>
                     <h3 className="truncate text-2xl font-bold text-[#1b1c1c]">{historyProduct.name}</h3>

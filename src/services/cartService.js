@@ -1,6 +1,14 @@
+import { mockProducts } from '../mocks/products.mock'
+import { getStoredSellerProducts } from './sellerService'
+
 const CART_STORAGE_KEY = 'techtonic_cart'
 
 const canUseStorage = () => typeof window !== 'undefined' && Boolean(window.localStorage)
+
+const findProductById = (productId) =>
+  [...getStoredSellerProducts(), ...mockProducts].find(
+    (product) => String(product.id) === String(productId),
+  )
 
 const normalizeQuantity = (quantity) => {
   const parsedQuantity = Number(quantity)
@@ -17,9 +25,18 @@ const normalizeCartItem = (item) => {
     return null
   }
 
+  const product = findProductById(item.productId)
+  const skuCode = item.skuCode || product?.skuCode || ''
+  const price = Number(item.price ?? product?.price)
+
   return {
     productId: item.productId,
+    skuId: item.skuId || product?.skuId || skuCode,
+    skuCode,
+    variantName: item.variantName || product?.variantName || 'Mặc định',
     quantity: normalizeQuantity(item.quantity),
+    price: Number.isFinite(price) ? price : 0,
+    storeId: item.storeId || product?.storeId || '',
     selected: item.selected !== false,
     addedAt: item.addedAt || new Date().toISOString(),
   }
@@ -86,7 +103,11 @@ export const cartService = {
     }
   },
 
-  addToCart(productId, quantity = 1) {
+  addToCart(productOrId, quantity = 1) {
+    const product = typeof productOrId === 'object'
+      ? productOrId
+      : findProductById(productOrId)
+    const productId = product?.id ?? productOrId
     const cartItems = this.getCartItems()
     const existingItem = cartItems.find((item) => String(item.productId) === String(productId))
 
@@ -99,7 +120,12 @@ export const cartService = {
       ...cartItems,
       {
         productId,
+        skuId: product?.skuId || product?.skuCode || '',
+        skuCode: product?.skuCode || '',
+        variantName: product?.variantName || 'Mặc định',
         quantity: normalizeQuantity(quantity),
+        price: Number(product?.price) || 0,
+        storeId: product?.storeId || '',
         selected: true,
         addedAt: new Date().toISOString(),
       },

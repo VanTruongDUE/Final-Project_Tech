@@ -1,7 +1,9 @@
 ﻿import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import SellerConfirmDialog from '../../components/seller/SellerConfirmDialog'
 import SellerIcon from '../../components/seller/SellerIcon'
 import { useAuth } from '../../contexts/useAuth'
+import { mockProducts } from '../../mocks/products.mock'
 import { sellerService } from '../../services/sellerService'
 import { formatCurrency } from '../../utils/formatCurrency'
 
@@ -36,6 +38,14 @@ const statusOptions = [
   { value: 'COMPLETED', label: 'Hoàn thành' },
   { value: 'CANCELLED', label: 'Đã hủy' },
 ]
+
+function OrderSkuSummary({ order }) {
+  const firstItem = order.items?.[0]
+  const product = mockProducts.find((item) => String(item.id) === String(firstItem?.productId))
+  const skuCode = firstItem?.skuCode || firstItem?.product?.skuCode || product?.skuCode
+
+  return skuCode ? <p className="mt-1 max-w-48 break-all text-xs text-[#8f7069]">SKU: {skuCode}</p> : null
+}
 
 function ActionButtons({ order, onStatusChange, onViewOrder }) {
   const availableActions = orderStatusActions[order.status] || []
@@ -73,6 +83,8 @@ export default function SellerOrdersPage() {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [, setOrdersVersion] = useState(0)
+  const [pendingUpdate, setPendingUpdate] = useState(null)
+  const [updateError, setUpdateError] = useState('')
 
   const ordersResponse = sellerService.getSellerOrders(currentUser, { keyword, status, dateFrom, dateTo })
 
@@ -103,19 +115,25 @@ export default function SellerOrdersPage() {
   }
 
   const handleStatusChange = (order, action) => {
-    const confirmed = window.confirm(`Chuyển đơn ${order.id} sang trạng thái "${action.label}"?`)
+    setUpdateError('')
+    setPendingUpdate({ order, action })
+  }
 
-    if (!confirmed) {
-      return
-    }
-
-    const response = sellerService.updateSellerOrderStatus(currentUser, order.id, action.nextStatus)
+  const confirmStatusChange = () => {
+    if (!pendingUpdate) return
+    const response = sellerService.updateSellerOrderStatus(
+      currentUser,
+      pendingUpdate.order.id,
+      pendingUpdate.action.nextStatus,
+    )
 
     if (!response.success) {
-      window.alert(response.message || 'Không thể cập nhật trạng thái đơn hàng.')
+      setUpdateError(response.message || 'Không thể cập nhật trạng thái đơn hàng.')
       return
     }
 
+    setPendingUpdate(null)
+    setUpdateError('')
     setOrdersVersion((version) => version + 1)
   }
 
@@ -244,6 +262,7 @@ export default function SellerOrdersPage() {
                         <button type="button" onClick={() => handleViewOrder(order)} className="font-medium text-[#ee4d2d] hover:underline">
                           {order.id}
                         </button>
+                        <OrderSkuSummary order={order} />
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
@@ -318,6 +337,18 @@ export default function SellerOrdersPage() {
           </div>
         </div>
       </div>
+
+      <SellerConfirmDialog
+        open={Boolean(pendingUpdate)}
+        title={pendingUpdate ? `${pendingUpdate.action.label} đơn hàng` : 'Cập nhật trạng thái đơn hàng'}
+        description={pendingUpdate ? `Bạn có chắc muốn cập nhật đơn ${pendingUpdate.order.id}? Thao tác sẽ được ghi vào lịch sử đơn hàng.` : ''}
+        confirmLabel={pendingUpdate?.action.label || 'Xác nhận'}
+        icon={pendingUpdate?.action.icon || 'help'}
+        danger={pendingUpdate?.action.nextStatus === 'CANCELLED'}
+        error={updateError}
+        onCancel={() => { setPendingUpdate(null); setUpdateError('') }}
+        onConfirm={confirmStatusChange}
+      />
     </section>
   )
 }

@@ -60,6 +60,18 @@ function buildPieGradient(points) {
     .join(', ')})`
 }
 
+function getDashboardOrderAction(orderStatus) {
+  if (orderStatus === 'SHIPPING') {
+    return { label: 'Theo dõi đơn', icon: 'local_shipping' }
+  }
+
+  if (orderStatus === 'COMPLETED' || orderStatus === 'CANCELLED') {
+    return { label: 'Xem chi tiết', icon: 'visibility' }
+  }
+
+  return { label: 'Xử lý đơn', icon: 'arrow_forward' }
+}
+
 export default function SellerDashboardPage() {
   const navigate = useNavigate()
   const { currentUser } = useAuth()
@@ -320,26 +332,40 @@ export default function SellerDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e3beb6]/30 text-sm text-[#1b1c1c]">
-                {recentOrders.map((order) => (
-                  <tr key={order.id} className="group transition-colors hover:bg-[#fbf9f9]">
-                    <td className="px-4 py-3 font-semibold">{order.id}</td>
-                    <td className="px-4 py-3">{order.customerName}</td>
-                    <td className="px-4 py-3">{order.productName}</td>
-                    <td className="px-4 py-3 text-right font-semibold">{formatCurrency(order.totalAmount)}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex rounded-md px-2 py-1 text-xs font-semibold ${order.statusMeta.className}`}>{order.statusMeta.label}</span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <button
-                        type="button"
-                        onClick={() => window.alert(`${order.actionLabel} hiện đang ở chế độ mock UI Seller.`)}
-                        className="rounded border border-[#b22204] px-3 py-1.5 text-sm font-semibold text-[#b22204] transition hover:bg-[#b22204] hover:text-white"
-                      >
-                        {order.actionLabel}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {recentOrders.map((order) => {
+                  const orderAction = getDashboardOrderAction(order.status)
+
+                  return (
+                    <tr key={order.id} className="group transition-colors hover:bg-[#fbf9f9]">
+                      <td className="px-4 py-3">
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/seller/orders/${encodeURIComponent(order.id)}`)}
+                          className="font-semibold text-[#1b1c1c] transition hover:text-[#b22204] hover:underline"
+                        >
+                          {order.id}
+                        </button>
+                      </td>
+                      <td className="px-4 py-3">{order.customerName}</td>
+                      <td className="px-4 py-3">{order.productName}</td>
+                      <td className="px-4 py-3 text-right font-semibold">{formatCurrency(order.totalAmount)}</td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex rounded-md px-2 py-1 text-xs font-semibold ${order.statusMeta.className}`}>{order.statusMeta.label}</span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/seller/orders/${encodeURIComponent(order.id)}`)}
+                          aria-label={`${orderAction.label} ${order.id}`}
+                          className="inline-flex min-w-[118px] items-center justify-center gap-1.5 rounded border border-[#b22204] px-3 py-1.5 text-sm font-semibold text-[#b22204] transition hover:bg-[#b22204] hover:text-white"
+                        >
+                          <SellerIcon name={orderAction.icon} className="text-[17px]" />
+                          {orderAction.label}
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>

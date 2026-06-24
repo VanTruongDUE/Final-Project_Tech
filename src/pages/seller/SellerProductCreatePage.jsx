@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import SellerIcon from '../../components/seller/SellerIcon'
 import { useAuth } from '../../contexts/useAuth'
@@ -16,9 +16,43 @@ const initialForm = {
   description:
     'Tai nghe không dây cao cấp với công nghệ chống ồn chủ động (ANC), mang lại trải nghiệm âm thanh rõ ràng. Thiết kế công thái học thoải mái khi đeo cả ngày dài.',
   price: '1500000',
+  originalPrice: '1890000',
   stockQuantity: '50',
   category: 'Thiết bị âm thanh',
-  imageUrl: 'https://placehold.co/600x600/dbe4e2/1b1c1c?text=Audio',
+  imageUrl: '/images/products/headphones.png',
+}
+
+const initialAttributes = [
+  { id: 'color', name: 'Màu sắc', values: ['Đen', 'Trắng', 'Bạc'] },
+  { id: 'version', name: 'Phiên bản', values: ['Tiêu chuẩn', 'Cao cấp'] },
+]
+
+function createCombinations(attributes) {
+  if (!attributes.length || attributes.some((attribute) => !attribute.values.length)) {
+    return []
+  }
+
+  return attributes.reduce(
+    (combinations, attribute) => combinations.flatMap((combination) => attribute.values.map((value) => [...combination, value])),
+    [[]],
+  )
+}
+
+function normalizeSkuPart(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/gi, 'D')
+    .toUpperCase()
+    .split(/[^A-Z0-9]+/)
+    .filter(Boolean)
+    .map((part) => (part.length > 4 ? part.slice(0, 4) : part))
+    .join('-') || 'STD'
+}
+
+function createVariantSku(defaultSku, variantName, index) {
+  const prefix = String(defaultSku || 'TTS-PRODUCT').replace(/-STD-\d{3}$/, '')
+  return `${prefix}-${normalizeSkuPart(variantName)}-${String(index + 1).padStart(3, '0')}`
 }
 
 function FieldLabel({ htmlFor, children, required = false }) {
@@ -35,6 +69,31 @@ export default function SellerProductCreatePage() {
   const [form, setForm] = useState(initialForm)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [hasVariants, setHasVariants] = useState(true)
+  const [attributes, setAttributes] = useState(initialAttributes)
+  const [attributeDrafts, setAttributeDrafts] = useState({})
+  const [variantData, setVariantData] = useState({})
+  const [images, setImages] = useState([initialForm.imageUrl])
+  const skuPreviewResponse = sellerService.previewSellerProductSku(currentUser, form)
+  const skuPreview = skuPreviewResponse.data?.skuCode || 'SKU sẽ hiển thị khi có tên và danh mục'
+  const variantNames = useMemo(
+    () => createCombinations(attributes).map((values) => values.join(' / ')),
+    [attributes],
+  )
+  const variantSkuPreviewResponse = sellerService.previewSellerProductVariantSkus(currentUser, {
+    ...form,
+    skus: variantNames.map((variantName) => ({ variantName, price: form.price, stockQuantity: form.stockQuantity })),
+  })
+  const variantSkuPreviews = variantSkuPreviewResponse.data || []
+  const variantRows = variantNames.map((variantName, index) => ({
+    skuId: `SKU-VARIANT-${String(index + 1).padStart(3, '0')}`,
+    skuCode: variantSkuPreviews[index]?.skuCode || createVariantSku(skuPreview, variantName, index),
+    variantName,
+    price: Number(variantData[variantName]?.price ?? form.price),
+    originalPrice: Number(variantData[variantName]?.originalPrice ?? form.originalPrice),
+    stockQuantity: Number(variantData[variantName]?.stockQuantity ?? form.stockQuantity),
+    status: variantData[variantName]?.hidden ? 'HIDDEN' : 'ACTIVE',
+  }))
 
   const updateField = (field, value) => {
     setForm((currentForm) => ({
@@ -46,21 +105,87 @@ export default function SellerProductCreatePage() {
   }
 
   const handleImageChange = (event) => {
-    const file = event.target.files?.[0]
+    const files = [...(event.target.files || [])].slice(0, 9 - images.length)
 
-    if (!file) {
+    if (!files.length) {
       return
     }
 
-    const reader = new FileReader()
-    reader.onload = () => updateField('imageUrl', String(reader.result || ''))
-    reader.readAsDataURL(file)
+    Promise.all(files.map((file) => new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(String(reader.result || ''))
+      reader.readAsDataURL(file)
+    }))).then((loadedImages) => {
+      setImages((current) => [...current, ...loadedImages])
+      if (!images.length && loadedImages[0]) updateField('imageUrl', loadedImages[0])
+    })
+    event.target.value = ''
   }
+
+
+  const addAttribute = () => {
+    if (attributes.length >= 4) {
+      setError('Chỉ được tạo tối đa 4 thuộc tính biến thể.')
+      return
+    }
+
+    setAttributes((current) => [
+      ...current,
+      { id: `attribute-${Date.now()}`, name: `Thuộc tính ${current.length + 1}`, values: ['Mặc định'] },
+    ])
+  }
+
+  const updateAttributeName = (attributeId, name) => {
+    setAttributes((current) => current.map((attribute) => (attribute.id === attributeId ? { ...attribute, name } : attribute)))
+  }
+
+  const addAttributeValue = (attributeId) => {
+    const value = String(attributeDrafts[attributeId] || '').trim()
+    const attribute = attributes.find((item) => item.id === attributeId)
+
+    if (!value || attribute?.values.some((item) => item.toLocaleLowerCase('vi') === value.toLocaleLowerCase('vi'))) {
+      setError(value ? 'Giá trị biến thể đã tồn tại.' : 'Vui lòng nhập giá trị biến thể.')
+      return
+    }
+
+    setAttributes((current) => current.map((item) => (item.id === attributeId ? { ...item, values: [...item.values, value] } : item)))
+    setAttributeDrafts((current) => ({ ...current, [attributeId]: '' }))
+    setError('')
+  }
+
+  const removeAttributeValue = (attributeId, value) => {
+    setAttributes((current) => current.map((attribute) => (
+      attribute.id === attributeId && attribute.values.length > 1
+        ? { ...attribute, values: attribute.values.filter((item) => item !== value) }
+        : attribute
+    )))
+  }
+
+  const updateVariant = (variantName, field, value) => {
+    setVariantData((current) => ({
+      ...current,
+      [variantName]: { ...current[variantName], [field]: value },
+    }))
+  }
+
 
   const handleSubmit = (event) => {
     event.preventDefault()
 
-    const response = sellerService.createSellerProduct(currentUser, form)
+    if (hasVariants && !variantRows.length) {
+      setError('Vui lòng cấu hình ít nhất một tổ hợp biến thể.')
+      return
+    }
+
+    const response = sellerService.createSellerProduct(currentUser, hasVariants
+      ? {
+          ...form,
+          price: Math.min(...variantRows.map((row) => row.price)),
+          originalPrice: Math.min(...variantRows.map((row) => row.originalPrice)),
+          stockQuantity: variantRows.reduce((total, row) => total + row.stockQuantity, 0),
+          skus: variantRows,
+        }
+      : form)
 
     if (!response.success) {
       setError(response.message || 'Không thể lưu sản phẩm mới.')
@@ -148,41 +273,70 @@ export default function SellerProductCreatePage() {
             </section>
 
             <section className="rounded-lg border border-[#e3beb6] bg-white p-6 shadow-sm">
-              <h2 className="mb-6 text-base font-bold text-[#1b1c1c]">Bán hàng & Kho</h2>
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="mb-6 flex flex-col gap-4 border-b border-[#e3beb6] pb-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <FieldLabel htmlFor="product-price" required>
-                    Giá bán (VNĐ)
-                  </FieldLabel>
-                  <div className="relative">
-                    <input
-                      id="product-price"
-                      type="number"
-                      min="0"
-                      value={form.price}
-                      onChange={(event) => updateField('price', event.target.value)}
-                      placeholder="0"
-                      className="h-12 w-full rounded border border-[#e3beb6] bg-[#fbf9f9] px-3 pr-10 text-right text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
-                    />
-                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[#5b403b]">đ</span>
+                  <h2 className="text-base font-bold text-[#1b1c1c]">Bán hàng & Kho</h2>
+                  <p className="mt-1 text-xs text-[#8f7069]">{hasVariants ? 'Mỗi tổ hợp biến thể có một SKU riêng.' : 'Sản phẩm sử dụng một SKU mặc định.'}</p>
+                </div>
+                <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-[#e3beb6] bg-[#fff7f5] px-4 py-3">
+                  <span className="text-sm font-semibold text-[#1b1c1c]">Sản phẩm có biến thể</span>
+                  <input type="checkbox" checked={hasVariants} onChange={(event) => setHasVariants(event.target.checked)} className="peer sr-only" />
+                  <span className="relative h-6 w-11 rounded-full bg-[#c7b7b2] transition peer-checked:bg-[#ee4d2d] after:absolute after:left-1 after:top-1 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition peer-checked:after:translate-x-5" />
+                  <span className="text-xs font-bold text-[#ee4d2d]">{hasVariants ? 'Bật' : 'Tắt'}</span>
+                </label>
+              </div>
+
+              {!hasVariants ? (
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                  <div className="md:col-span-2">
+                    <FieldLabel htmlFor="product-sku">Mã SKU tự động</FieldLabel>
+                    <input id="product-sku" value={skuPreview} readOnly className="h-12 w-full rounded border border-[#e3beb6] bg-[#efeded] px-3 text-sm font-semibold text-[#5b403b]" />
+                  </div>
+                  <div><FieldLabel htmlFor="product-price" required>Giá bán (VNĐ)</FieldLabel><input id="product-price" type="number" min="0" value={form.price} onChange={(event) => updateField('price', event.target.value)} className="h-12 w-full rounded border border-[#e3beb6] bg-[#fbf9f9] px-3 text-right text-sm outline-none focus:border-[#ee4d2d]" /></div>
+                  <div><FieldLabel htmlFor="product-original-price">Giá gốc (VNĐ)</FieldLabel><input id="product-original-price" type="number" min="0" value={form.originalPrice} onChange={(event) => updateField('originalPrice', event.target.value)} className="h-12 w-full rounded border border-[#e3beb6] bg-[#fbf9f9] px-3 text-right text-sm outline-none focus:border-[#ee4d2d]" /></div>
+                  <div><FieldLabel htmlFor="product-stock" required>Số lượng tồn kho</FieldLabel><input id="product-stock" type="number" min="0" value={form.stockQuantity} onChange={(event) => updateField('stockQuantity', event.target.value)} className="h-12 w-full rounded border border-[#e3beb6] bg-[#fbf9f9] px-3 text-right text-sm outline-none focus:border-[#ee4d2d]" /></div>
+                </div>
+              ) : (
+                <div className="space-y-5">
+                  <div className="flex items-center justify-between">
+                    <div><h3 className="font-bold text-[#1b1c1c]">Cấu hình biến thể</h3><p className="mt-1 text-xs text-[#8f7069]">Tối đa 4 thuộc tính cho mỗi sản phẩm.</p></div>
+                    <button type="button" onClick={addAttribute} className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#b22204] px-4 text-sm font-semibold text-[#b22204] hover:bg-[#fff7f5]"><SellerIcon name="add" className="text-[18px]" />Thêm thuộc tính</button>
+                  </div>
+                  <div className="overflow-hidden rounded-lg border border-[#e3beb6] bg-[#fbf9f9]">
+                    {attributes.map((attribute, attributeIndex) => (
+                      <div key={attribute.id} className={`grid gap-4 p-4 md:grid-cols-[160px_minmax(0,1fr)_40px] ${attributeIndex < attributes.length - 1 ? 'border-b border-[#e3beb6]' : ''}`}>
+                        <div><FieldLabel htmlFor={`attribute-${attribute.id}`}>Tên thuộc tính {attributeIndex + 1}</FieldLabel><input id={`attribute-${attribute.id}`} value={attribute.name} onChange={(event) => updateAttributeName(attribute.id, event.target.value)} className="h-10 w-full rounded-lg border border-[#e3beb6] bg-white px-3 text-sm font-semibold outline-none focus:border-[#ee4d2d]" /></div>
+                        <div>
+                          <span className="mb-2 block text-sm font-semibold">Giá trị thuộc tính</span>
+                          <div className="flex min-h-10 flex-wrap items-center gap-2">
+                            {attribute.values.map((value) => <span key={value} className="inline-flex items-center gap-1 rounded-full border border-[#e3beb6] bg-white py-2 pl-3 pr-2 text-sm">{value}<button type="button" onClick={() => removeAttributeValue(attribute.id, value)} aria-label={`Xóa ${value}`} className="grid h-5 w-5 place-items-center rounded-full hover:bg-red-50 hover:text-[#b22204]"><SellerIcon name="close" className="text-[14px]" /></button></span>)}
+                            <input value={attributeDrafts[attribute.id] || ''} onChange={(event) => setAttributeDrafts((current) => ({ ...current, [attribute.id]: event.target.value }))} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); addAttributeValue(attribute.id) } }} placeholder="Giá trị mới" className="h-9 w-32 rounded-full border border-dashed border-[#e3beb6] bg-white px-3 text-sm outline-none focus:border-[#ee4d2d]" />
+                            <button type="button" onClick={() => addAttributeValue(attribute.id)} className="h-9 rounded-full border border-dashed border-[#ee4d2d] px-3 text-sm font-semibold text-[#ee4d2d]">Thêm</button>
+                          </div>
+                        </div>
+                        <button type="button" disabled={attributes.length === 1} onClick={() => setAttributes((current) => current.filter((item) => item.id !== attribute.id))} aria-label={`Xóa thuộc tính ${attribute.name}`} className="mt-7 grid h-9 w-9 place-items-center rounded-lg text-[#5b403b] hover:bg-red-50 hover:text-[#b22204] disabled:cursor-not-allowed disabled:opacity-30"><SellerIcon name="delete" className="text-[18px]" /></button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="overflow-x-auto rounded-lg border border-[#e3beb6]">
+                    <table className="w-full min-w-[900px] text-left text-sm">
+                      <thead className="bg-[#fbf9f9] text-xs text-[#5b403b]"><tr><th className="px-4 py-3">Biến thể</th><th className="px-4 py-3">Mã SKU tự động</th><th className="px-4 py-3 text-right">Giá bán</th><th className="px-4 py-3 text-right">Giá gốc</th><th className="px-4 py-3 text-right">Tồn kho</th><th className="px-4 py-3">Trạng thái</th></tr></thead>
+                      <tbody className="divide-y divide-[#eee5e2]">
+                        {variantRows.map((row) => (
+                          <tr key={row.variantName}>
+                            <td className="px-4 py-3 font-semibold">{row.variantName}</td><td className="px-4 py-3 font-mono text-xs">{row.skuCode}</td>
+                            <td className="px-4 py-3"><input type="number" min="0" value={variantData[row.variantName]?.price ?? form.price} onChange={(event) => updateVariant(row.variantName, 'price', event.target.value)} className="h-9 w-28 rounded border border-[#e3beb6] px-2 text-right" /></td>
+                            <td className="px-4 py-3"><input type="number" min="0" value={variantData[row.variantName]?.originalPrice ?? form.originalPrice} onChange={(event) => updateVariant(row.variantName, 'originalPrice', event.target.value)} className="h-9 w-28 rounded border border-[#e3beb6] px-2 text-right" /></td>
+                            <td className="px-4 py-3"><input type="number" min="0" value={variantData[row.variantName]?.stockQuantity ?? form.stockQuantity} onChange={(event) => updateVariant(row.variantName, 'stockQuantity', event.target.value)} className="h-9 w-20 rounded border border-[#e3beb6] px-2 text-right" /></td>
+                            <td className="px-4 py-3"><button type="button" onClick={() => updateVariant(row.variantName, 'hidden', !variantData[row.variantName]?.hidden)} className={`rounded-full px-2.5 py-1 text-xs font-semibold ${variantData[row.variantName]?.hidden ? 'bg-slate-100 text-slate-600' : Number(row.stockQuantity) === 0 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-50 text-emerald-700'}`}>{variantData[row.variantName]?.hidden ? 'Đã ẩn' : Number(row.stockQuantity) === 0 ? 'Hết hàng' : 'Đang bán'}</button></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
-
-                <div>
-                  <FieldLabel htmlFor="product-stock" required>
-                    Số lượng tồn kho
-                  </FieldLabel>
-                  <input
-                    id="product-stock"
-                    type="number"
-                    min="0"
-                    value={form.stockQuantity}
-                    onChange={(event) => updateField('stockQuantity', event.target.value)}
-                    placeholder="0"
-                    className="h-12 w-full rounded border border-[#e3beb6] bg-[#fbf9f9] px-3 text-right text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
-                  />
-                </div>
-              </div>
+              )}
             </section>
           </div>
 

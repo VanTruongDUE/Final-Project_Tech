@@ -1,3 +1,6 @@
+import { mockProducts } from '../mocks/products.mock'
+import { getStoredSellerProducts } from './sellerService'
+
 const ORDER_STORAGE_KEY = 'techtonic_orders'
 
 const ORDER_STATUS = {
@@ -46,22 +49,36 @@ const normalizeCustomerId = (customerId) => {
   return String(customerId)
 }
 
+const findProductById = (productId) =>
+  [...getStoredSellerProducts(), ...mockProducts].find(
+    (product) => String(product.id) === String(productId),
+  )
+
 const normalizeOrderItem = (item) => {
-  const product = item?.product
-  const productId = item?.productId ?? product?.id
+  const embeddedProduct = item?.product
+  const productId = item?.productId ?? embeddedProduct?.id
+  const catalogProduct = findProductById(productId)
+  const product = embeddedProduct || catalogProduct
 
   if (!productId || !product) {
     return null
   }
 
   const quantity = Math.max(1, normalizeNumber(item.quantity, 1))
-  const price = normalizeNumber(item.price ?? product.price, 0)
+  const unitPrice = normalizeNumber(item.unitPrice ?? item.price ?? product.price, 0)
+  const skuCode = item.skuCode || product.skuCode || catalogProduct?.skuCode || ''
 
   return {
     productId,
+    skuId: item.skuId || product.skuId || catalogProduct?.skuId || skuCode,
+    skuCode,
+    productName: item.productName || product.name || '',
+    variantName: item.variantName || product.variantName || catalogProduct?.variantName || 'Mặc định',
+    unitPrice,
     product,
     quantity,
-    price,
+    price: unitPrice,
+    storeId: item.storeId || product.storeId || catalogProduct?.storeId || '',
   }
 }
 

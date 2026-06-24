@@ -35,6 +35,9 @@ export default function CheckoutOrderSummary({
                 <div>
                   <h3 className="line-clamp-2 text-sm font-semibold text-[#1b1c1c]">{product.name}</h3>
                   <p className="mt-1 text-sm text-[#8f7069]">{product.storeName}</p>
+                  <p className="mt-1 break-all text-xs text-[#8f7069]">
+                    {item.variantName || product.variantName || 'Mặc định'} · SKU: {item.skuCode || product.skuCode}
+                  </p>
                 </div>
                 <div className="mt-2 flex items-center justify-between text-sm">
                   <span className="text-[#5b403b]">SL: {item.quantity}</span>

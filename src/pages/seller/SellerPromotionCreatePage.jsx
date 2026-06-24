@@ -91,7 +91,7 @@ export default function SellerPromotionCreatePage() {
       return
     }
 
-    setMessage(response.message)
+    navigate('/seller/promotions', { replace: true })
   }
 
   return (
@@ -99,7 +99,7 @@ export default function SellerPromotionCreatePage() {
       <form onSubmit={handleSubmit} className="mx-auto grid w-full max-w-6xl gap-6 lg:grid-cols-[minmax(0,2fr)_360px]">
         <div className="flex min-w-0 flex-col gap-6">
           <header className="flex items-center gap-3 border-b border-[#e3beb6] pb-4">
-            <button type="button" onClick={() => navigate('/seller/dashboard')} className="grid h-10 w-10 place-items-center rounded-full text-[#5b403b] transition hover:bg-[#efeded] hover:text-[#b22204]" aria-label="Quay lại">
+            <button type="button" onClick={() => navigate('/seller/promotions')} className="grid h-10 w-10 place-items-center rounded-full text-[#5b403b] transition hover:bg-[#efeded] hover:text-[#b22204]" aria-label="Quay lại">
               <SellerIcon name="arrow_back" className="text-[24px]" />
             </button>
             <h1 className="text-[34px] font-bold leading-tight tracking-tight text-[#1b1c1c] md:text-[40px]">Tạo khuyến mãi mới</h1>
@@ -242,7 +242,7 @@ export default function SellerPromotionCreatePage() {
               <button type="submit" className="h-11 w-full rounded-lg bg-[#ee4d2d] text-sm font-bold text-white shadow-sm transition hover:bg-[#d73211]">
                 Lưu & Kích hoạt
               </button>
-              <button type="button" onClick={() => navigate('/seller/dashboard')} className="mt-3 h-11 w-full rounded-lg border border-[#e3beb6] text-sm font-semibold text-[#5b403b] transition hover:bg-[#f5f3f3]">
+              <button type="button" onClick={() => navigate('/seller/promotions')} className="mt-3 h-11 w-full rounded-lg border border-[#e3beb6] text-sm font-semibold text-[#5b403b] transition hover:bg-[#f5f3f3]">
                 Hủy
               </button>
             </div>

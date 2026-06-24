@@ -29,11 +29,11 @@ export default function ProductCard({ product, variant = 'compact' }) {
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-lg border border-[#e3e2e2] bg-white transition-shadow duration-300 hover:shadow-md">
       <Link to={`/products/${product.id}`} className="relative block">
-        <div className={`relative aspect-square overflow-hidden ${isHomeCard ? 'bg-white p-5' : 'bg-[#f5f3f3]'}`}>
+        <div className={`relative aspect-square overflow-hidden bg-white ${isHomeCard ? 'p-5' : 'p-3'}`}>
           <img
             src={product.imageUrl}
             alt={product.name}
-            className={`h-full w-full transition duration-500 group-hover:scale-105 ${isHomeCard ? 'object-contain' : 'object-cover'}`}
+            className="h-full w-full object-contain transition duration-500 group-hover:scale-105"
           />
 
           {product.discountPercent > 0 ? (

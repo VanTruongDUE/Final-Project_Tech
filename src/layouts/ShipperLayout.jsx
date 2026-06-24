@@ -83,6 +83,15 @@ export default function ShipperLayout() {
           Giao hàng mới
         </button>
 
+        <NavLink
+          to="/"
+          end
+          className="flex items-center justify-center gap-2 rounded-lg border border-[#e3beb6] bg-white px-4 py-2 text-sm font-semibold text-[#b22204] transition hover:border-[#b22204] hover:bg-[#fff1ec]"
+        >
+          <ShipperIcon name="storefront" className="text-[18px]" />
+          Về sàn
+        </NavLink>
+
         <button
           type="button"
           onClick={handleLogout}
@@ -104,6 +113,14 @@ export default function ShipperLayout() {
         </div>
 
         <div className="flex items-center gap-2">
+          <NavLink
+            to="/"
+            end
+            className="hidden items-center gap-2 rounded-lg border border-[#e3beb6] bg-white px-3 py-2 text-sm font-semibold text-[#b22204] transition hover:bg-[#fff1ec] sm:flex"
+          >
+            <ShipperIcon name="storefront" className="text-[18px]" />
+            Về sàn
+          </NavLink>
           <button type="button" className="hidden items-center gap-2 rounded-lg bg-[#b22204] px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#d63c1e] sm:flex">
             <ShipperIcon name="add" className="text-[18px]" />
             Giao hàng mới

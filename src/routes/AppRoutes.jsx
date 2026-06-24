@@ -29,12 +29,13 @@ import BuyerChangePasswordPage from '../pages/buyer/BuyerChangePasswordPage'
 import BuyerPrivacyPage from '../pages/buyer/BuyerPrivacyPage'
 import BuyerPersonalInfoPage from '../pages/buyer/BuyerPersonalInfoPage'
 import SellerDashboardPage from '../pages/seller/SellerDashboardPage'
-import SellerProductCreatePage from '../pages/seller/SellerProductCreatePage'
+import SellerProductVariantCreatePage from '../pages/seller/SellerProductVariantCreatePage'
 import SellerProductEditPage from '../pages/seller/SellerProductEditPage'
 import SellerProductsPage from '../pages/seller/SellerProductsPage'
 import SellerInventoryPage from '../pages/seller/SellerInventoryPage'
 import SellerShippingPage from '../pages/seller/SellerShippingPage'
 import SellerPromotionCreatePage from '../pages/seller/SellerPromotionCreatePage'
+import SellerPromotionsPage from '../pages/seller/SellerPromotionsPage'
 import SellerOrderDetailPage from '../pages/seller/SellerOrderDetailPage'
 import SellerOrdersPage from '../pages/seller/SellerOrdersPage'
 import SellerRevenuePage from '../pages/seller/SellerRevenuePage'
@@ -96,12 +97,13 @@ export default function AppRoutes() {
       <Route element={<ProtectedRoute allowedRoles={[ROLES.SELLER]} />}>
         <Route element={<SellerLayout />}>
           <Route path="/seller/dashboard" element={<SellerDashboardPage />} />
-          <Route path="/seller/products/new" element={<SellerProductCreatePage />} />
+          <Route path="/seller/products/new" element={<SellerProductVariantCreatePage />} />
           <Route path="/seller/products/:productId/edit" element={<SellerProductEditPage />} />
           <Route path="/seller/products" element={<SellerProductsPage />} />
           <Route path="/seller/inventory" element={<SellerInventoryPage />} />
           <Route path="/seller/shipping" element={<SellerShippingPage />} />
           <Route path="/seller/promotions/new" element={<SellerPromotionCreatePage />} />
+          <Route path="/seller/promotions" element={<SellerPromotionsPage />} />
           <Route path="/seller/orders/:orderId" element={<SellerOrderDetailPage />} />
           <Route path="/seller/orders" element={<SellerOrdersPage />} />
           <Route path="/seller/revenue" element={<SellerRevenuePage />} />

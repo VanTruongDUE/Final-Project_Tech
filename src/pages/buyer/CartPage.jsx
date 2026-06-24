@@ -117,6 +117,11 @@ export default function CartPage() {
         source: 'cart',
         checkoutItems: selectedItems.map(({ item, product }) => ({
           productId: product.id,
+          skuId: item.skuId || product.skuId,
+          skuCode: item.skuCode || product.skuCode,
+          variantName: item.variantName || product.variantName,
+          price: item.price ?? product.price,
+          storeId: item.storeId || product.storeId,
           product,
           quantity: item.quantity,
           selected: item.selected !== false,

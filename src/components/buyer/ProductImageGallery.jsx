@@ -7,7 +7,7 @@ export default function ProductImageGallery({ product, activeIndex, onSelect }) 
         <img
           src={galleryImages[activeIndex]}
           alt={product.name}
-          className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+          className="h-full w-full object-contain transition duration-300 group-hover:scale-105"
         />
         {product.discountPercent > 0 ? (
           <div className="absolute left-0 top-3 flex items-center gap-1 rounded-r-sm bg-[#fbbe00] px-2 py-1 text-xs font-bold text-[#251a00]">
@@ -28,7 +28,7 @@ export default function ProductImageGallery({ product, activeIndex, onSelect }) 
             }`}
             aria-label={`Xem ảnh ${index + 1} của ${product.name}`}
           >
-            <img src={imageUrl} alt={`${product.name} ${index + 1}`} className="h-full w-full object-cover" />
+            <img src={imageUrl} alt={`${product.name} ${index + 1}`} className="h-full w-full object-contain" />
           </button>
         ))}
       </div>

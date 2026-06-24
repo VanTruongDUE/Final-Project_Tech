@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seller - Thêm sản phẩm có biến thể SKU</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#b42318',
+            accent: '#ee4d2d',
+            ink: '#1b1c1c',
+            muted: '#5b403b',
+            line: '#e3beb6',
+            canvas: '#f7f5f4',
+            soft: '#fff7f5'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    input[type='number']::-webkit-inner-spin-button { opacity: 1; }
+    .toast-enter { animation: toast-in .2s ease-out; }
+    @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } }
+    .setup-summary-card { transition: box-shadow .3s ease, border-color .3s ease; }
+    .setup-summary-card.is-scrolled {
+      border-color: #d99a8d;
+      box-shadow: 0 18px 38px rgba(91, 64, 59, .16);
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-canvas text-ink">
+  <aside class="fixed inset-y-0 left-0 z-30 flex w-[272px] flex-col border-r border-line bg-white">
+    <div class="px-6 pb-5 pt-6">
+      <div class="flex items-center gap-3">
+        <div class="grid h-12 w-12 place-items-center rounded-full bg-primary text-base font-bold text-white">TTS</div>
+        <div>
+          <p class="text-xl font-semibold text-primary">TechToShop</p>
+          <p class="text-xs text-muted">TechToShop Panel</p>
+        </div>
+      </div>
+      <button id="newProductButton" type="button" class="mt-7 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-white shadow-sm">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Thêm sản phẩm mới
+      </button>
+      <button id="goShoppingButton" type="button" class="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-lg border border-line bg-soft px-4 text-sm font-medium text-primary">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h18M5 10v10h14V10M8 20v-6h8v6M4 10l2-6h12l2 6"/></svg>
+        Về trang mua sắm
+      </button>
+    </div>
+    <nav class="mt-3 space-y-1 px-4 text-sm">
+      <a class="flex items-center gap-3 rounded-lg px-4 py-3 text-muted" href="#"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>Dashboard</span></a>
+      <a class="flex items-center gap-3 rounded-lg px-4 py-3 text-muted" href="#"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 7h12l1 14H5L6 7Z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg><span>Đơn hàng</span></a>
+      <a class="flex items-center gap-3 rounded-r-full border-l-4 border-accent bg-[#fde9e4] px-4 py-3 font-semibold text-accent" href="#"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16v13H4zM7 4h10v3H7z"/></svg><span>Sản phẩm</span></a>
+      <a class="flex items-center gap-3 rounded-lg px-4 py-3 text-muted" href="#"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10 12 4l9 6v10H3V10Z"/><path d="M8 20v-6h8v6"/></svg><span>Kho hàng</span></a>
+      <a class="flex items-center gap-3 rounded-lg px-4 py-3 text-muted" href="#"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Báo cáo</span></a>
+      <a class="flex items-center gap-3 rounded-lg px-4 py-3 text-muted" href="#"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H8l-4 4V4Z"/></svg><span>Tin nhắn</span></a>
+      <a class="flex items-center gap-3 rounded-lg px-4 py-3 text-muted" href="#"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/></svg><span>Cài đặt</span></a>
+    </nav>
+    <button id="logoutButton" type="button" class="mt-auto flex items-center gap-3 border-t border-line px-6 py-5 text-left text-sm text-muted hover:text-primary"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 17l5-5-5-5M15 12H3M14 3h7v18h-7"/></svg>Đăng xuất</button>
+  </aside>
+
+  <main class="ml-[272px] min-h-screen min-w-0 border-t border-line">
+    <div class="mx-auto max-w-[1680px] p-6 xl:p-7">
+      <div class="grid grid-cols-12 gap-5">
+        <div class="col-span-9 flex items-center justify-between py-1">
+          <div>
+            <p class="text-sm text-muted">Sản phẩm &nbsp;/&nbsp; <span class="font-semibold text-ink">Thêm mới</span></p>
+            <h1 class="mt-1 text-[32px] font-bold leading-tight">Thêm sản phẩm mới</h1>
+          </div>
+          <div class="flex items-center gap-4">
+            <button id="savedProductsButton" type="button" class="h-10 rounded-lg border border-line px-3 text-sm font-semibold text-primary">Sản phẩm đã lưu</button>
+            <button id="cancelButton" type="button" class="h-10 px-3 text-sm font-semibold text-primary">Hủy</button>
+            <button id="saveButton" type="button" class="h-10 rounded-lg bg-primary px-5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(180,35,24,0.18)]">Lưu sản phẩm</button>
+          </div>
+        </div>
+
+        <div class="col-span-9 space-y-5">
+          <section class="rounded-xl border border-line bg-white p-6 shadow-sm">
+            <h2 class="mb-5 text-lg font-bold">Thông tin cơ bản</h2>
+            <div class="space-y-5">
+              <div>
+                <label class="mb-2 block text-sm font-semibold">Tên sản phẩm <span class="text-primary">*</span></label>
+                <input id="productName" class="h-12 w-full rounded-lg border border-line bg-[#fbf9f9] px-4 text-sm outline-none focus:border-accent" value="Tai nghe Bluetooth TechZone Pro" />
+              </div>
+              <div>
+                <label class="mb-2 block text-sm font-semibold">Danh mục sản phẩm <span class="text-primary">*</span></label>
+                <select id="productCategory" class="h-12 w-full rounded-lg border border-line bg-[#fbf9f9] px-4 text-sm"><option value="AUDIO">Thiết bị điện tử &gt; Phụ kiện âm thanh &gt; Tai nghe không dây</option><option value="FASHION">Thời trang &gt; Phụ kiện</option><option value="HOME">Nhà cửa &gt; Đồ gia dụng</option></select>
+              </div>
+              <div>
+                <label class="mb-2 block text-sm font-semibold">Mô tả chi tiết</label>
+                <textarea id="productDescription" class="h-28 w-full resize-none rounded-lg border border-line bg-[#fbf9f9] p-4 text-sm leading-6 outline-none focus:border-accent" placeholder="Nhập mô tả chi tiết sản phẩm..."></textarea>
+              </div>
+              <div>
+                <label class="mb-2 block text-sm font-semibold">Hình ảnh sản phẩm <span class="text-primary">*</span></label>
+                <input id="productImageInput" class="hidden" type="file" accept="image/*" multiple />
+                <div id="imageGallery" class="grid max-w-[700px] grid-cols-4 gap-2"></div>
+                <p class="mt-2 text-xs text-muted">Tải lên tối đa 9 hình ảnh. Kích thước khuyến nghị: 800×800px.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="rounded-xl border border-line bg-white p-6 shadow-sm">
+            <div class="flex items-center justify-between gap-5">
+              <div>
+                <h2 class="text-lg font-bold">2. Bán hàng &amp; Kho</h2>
+                <p id="modeHint" class="mt-1 text-sm text-muted">Mỗi tổ hợp biến thể sẽ có một SKU riêng.</p>
+              </div>
+              <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-line bg-soft px-4 py-3">
+                <span class="text-sm font-semibold">Sản phẩm có biến thể</span>
+                <input id="variantToggle" class="peer sr-only" type="checkbox" checked onchange="toggleVariantMode()" />
+                <span class="relative h-6 w-11 rounded-full bg-[#c7b7b2] transition peer-checked:bg-accent after:absolute after:left-1 after:top-1 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition peer-checked:after:translate-x-5"></span>
+                <span id="variantState" class="text-xs font-bold text-accent">Bật</span>
+              </label>
+            </div>
+
+            <div id="defaultSkuSection" class="mt-6 hidden rounded-lg border border-line bg-[#fbf9f9] p-5">
+              <div class="mb-4 rounded-lg bg-blue-50 px-4 py-3 text-sm text-blue-800">Sản phẩm không có biến thể sẽ sử dụng một SKU mặc định.</div>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                  <label class="mb-2 block text-sm font-semibold">Mã SKU tự động</label>
+                  <input id="defaultSku" readonly class="h-11 w-full rounded-lg border border-line bg-[#efeded] px-4 text-sm font-semibold text-muted" value="TTS-AUDIO-TECHZONE-PRO-STD-001" />
+                </div>
+                <label class="text-sm font-semibold">Giá bán<input id="defaultPrice" type="number" min="0" class="mt-2 h-11 w-full rounded-lg border border-line px-3 text-right font-normal" value="1500000" /></label>
+                <label class="text-sm font-semibold">Giá gốc<input id="defaultOriginalPrice" type="number" min="0" class="mt-2 h-11 w-full rounded-lg border border-line px-3 text-right font-normal" value="1890000" /></label>
+                <label class="text-sm font-semibold">Số lượng tồn kho<input id="defaultStock" type="number" min="0" class="mt-2 h-11 w-full rounded-lg border border-line px-3 text-right font-normal" value="50" /></label>
+              </div>
+            </div>
+          </section>
+
+          <section id="variantConfig" class="rounded-xl border border-line bg-white p-6 shadow-sm">
+            <div class="mb-5 flex items-center justify-between">
+              <div>
+                <h2 class="text-lg font-bold">3. Cấu hình biến thể</h2>
+                <p class="mt-1 text-xs text-muted">Tối đa 4 thuộc tính biến thể cho mỗi sản phẩm.</p>
+              </div>
+              <button id="addAttributeButton" type="button" class="flex h-10 items-center gap-2 rounded-lg border border-primary px-4 text-sm font-semibold text-primary">
+                <span class="text-lg">+</span> Thêm thuộc tính
+              </button>
+            </div>
+            <div id="attributesContainer" class="overflow-hidden rounded-lg border border-line bg-[#fbf9f9]"></div>
+          </section>
+        </div>
+
+        <aside class="sticky top-6 col-span-3 self-start">
+          <section id="setupSummaryCard" class="setup-summary-card z-20 w-full overflow-hidden rounded-xl border border-line bg-white shadow-lg">
+            <div class="h-1 bg-primary"></div>
+            <div class="p-6">
+              <div class="flex items-center gap-2">
+                <svg class="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 18l5-5 4 4 7-9"/><path d="M15 8h5v5"/></svg>
+                <h2 class="text-lg font-bold">Tóm tắt thiết lập</h2>
+              </div>
+              <dl class="mt-4 divide-y divide-[#eee5e2] text-sm">
+                <div class="flex items-center justify-between py-3"><dt class="text-muted">Số biến thể:</dt><dd id="previewVariantCount" class="font-bold">9</dd></div>
+                <div class="flex items-center justify-between py-3"><dt class="text-muted">Tổng tồn kho:</dt><dd id="previewStock" class="font-bold text-accent">135</dd></div>
+                <div class="py-3"><dt class="text-muted">Khoảng giá:</dt><dd id="previewPrice" class="mt-2 text-right font-bold">1.500.000₫ - 2.190.000₫</dd></div>
+                <div class="py-3"><dt class="text-muted">SKU đầu tiên:</dt><dd id="previewSku" class="mt-2 break-all text-right font-mono text-xs font-semibold">TTS-AUDIO-TECHZONE-BLK-STD-001</dd></div>
+              </dl>
+              <p id="previewRule" class="mt-3 flex items-start gap-2 border-t border-line pt-4 text-xs leading-4 text-muted"><svg class="mt-0.5 h-4 w-4 shrink-0 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><span>Mỗi tổ hợp Màu sắc / Phiên bản được tạo một SKU riêng.</span></p>
+            </div>
+          </section>
+        </aside>
+      </div>
+
+      <section id="skuTableSection" class="mt-5 rounded-xl border border-line bg-white shadow-sm">
+        <div class="flex items-center justify-between border-b border-line px-6 py-5">
+          <div><h2 class="text-lg font-bold">4. Bảng SKU theo biến thể</h2><p id="combinationHint" class="mt-1 text-xs text-muted"></p></div>
+          <span id="duplicateStatus" class="rounded-lg bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">Không phát hiện SKU trùng</span>
+        </div>
+        <div class="grid grid-cols-[1fr_1fr_160px_auto] items-end gap-3 border-b border-line bg-soft px-6 py-4">
+          <label class="text-xs font-semibold text-muted">Giá bán áp dụng chung<input id="bulkPrice" type="number" min="0" class="mt-1.5 h-10 w-full rounded-lg border border-line bg-white px-3 text-right text-sm font-normal text-ink" placeholder="Nhập giá bán" /></label>
+          <label class="text-xs font-semibold text-muted">Giá gốc áp dụng chung<input id="bulkOriginalPrice" type="number" min="0" class="mt-1.5 h-10 w-full rounded-lg border border-line bg-white px-3 text-right text-sm font-normal text-ink" placeholder="Nhập giá gốc" /></label>
+          <label class="text-xs font-semibold text-muted">Tồn kho<input id="bulkStock" type="number" min="0" class="mt-1.5 h-10 w-full rounded-lg border border-line bg-white px-3 text-right text-sm font-normal text-ink" placeholder="Số lượng" /></label>
+          <button id="applyBulkButton" type="button" class="h-10 rounded-lg bg-primary px-5 text-sm font-semibold text-white">Áp dụng cho tất cả</button>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 border-b border-line px-6 py-4">
+          <div class="relative min-w-[260px] flex-1"><input id="skuSearch" class="h-10 w-full rounded-lg border border-line px-3 pr-9 text-sm" placeholder="Tìm theo biến thể hoặc mã SKU" /><svg class="absolute right-3 top-2.5 h-5 w-5 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></div>
+          <select id="statusFilter" class="h-10 rounded-lg border border-line bg-white px-3 text-sm"><option value="ALL">Tất cả trạng thái</option><option value="ACTIVE">Đang bán</option><option value="OUT_OF_STOCK">Hết hàng</option><option value="HIDDEN">Đã ẩn</option></select>
+          <button id="clearFilterButton" type="button" class="h-10 rounded-lg border border-line px-4 text-sm font-semibold text-muted">Xóa bộ lọc</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[1400px] table-fixed border-collapse text-left text-sm">
+            <colgroup><col class="w-[300px]"/><col/><col class="w-[150px]"/><col class="w-[150px]"/><col class="w-[110px]"/><col class="w-[120px]"/><col class="w-[120px]"/></colgroup>
+            <thead class="bg-[#fbf9f9] text-xs text-muted"><tr><th class="px-5 py-3">Biến thể</th><th class="px-5 py-3">Mã SKU tự động</th><th class="px-5 py-3 text-right">Giá bán</th><th class="px-5 py-3 text-right">Giá gốc</th><th class="px-5 py-3 text-right">Tồn kho</th><th class="px-5 py-3">Trạng thái</th><th class="px-5 py-3 text-center">Thao tác</th></tr></thead>
+            <tbody id="skuTableBody" class="divide-y divide-[#eee5e2]"></tbody>
+          </table>
+        </div>
+        <div id="skuTableFooter" class="border-t border-line px-6 py-4 text-xs text-muted"></div>
+      </section>
+    </div>
+  </main>
+
+  <div id="savedProductsModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/35 p-5">
+    <section class="max-h-[82vh] w-full max-w-3xl overflow-hidden rounded-xl bg-white shadow-2xl">
+      <div class="flex items-center justify-between border-b border-line px-6 py-4"><div><h2 class="text-xl font-bold">Sản phẩm đã lưu</h2><p class="mt-1 text-xs text-muted">Dữ liệu demo được lưu trong trình duyệt này.</p></div><button id="closeSavedProductsButton" type="button" aria-label="Đóng" class="grid h-9 w-9 place-items-center rounded-lg hover:bg-soft"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+      <div class="border-b border-line p-4"><input id="savedProductSearch" class="h-10 w-full rounded-lg border border-line px-3 text-sm" placeholder="Lọc theo tên sản phẩm, danh mục hoặc SKU" /></div>
+      <div id="savedProductsList" class="max-h-[58vh] overflow-y-auto p-4"></div>
+    </section>
+  </div>
+  <div id="valueModal" class="fixed inset-0 z-[55] hidden items-center justify-center bg-black/35 p-5">
+    <section role="dialog" aria-modal="true" aria-labelledby="valueModalTitle" class="w-full max-w-md overflow-hidden rounded-xl border border-line bg-white shadow-2xl">
+      <div class="h-1 bg-primary"></div>
+      <div class="p-6">
+        <div class="flex items-start justify-between gap-4">
+          <div><h2 id="valueModalTitle" class="text-xl font-bold">Thêm giá trị biến thể</h2><p id="valueModalHint" class="mt-1 text-sm text-muted">Nhập giá trị mới cho thuộc tính.</p></div>
+          <button id="closeValueModalButton" type="button" aria-label="Đóng" class="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-muted hover:bg-soft hover:text-primary"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        </div>
+        <label class="mt-5 block text-sm font-semibold">Giá trị mới <span class="text-primary">*</span><input id="newAttributeValue" class="mt-2 h-11 w-full rounded-lg border border-line bg-[#fbf9f9] px-3 font-normal outline-none focus:border-accent focus:ring-2 focus:ring-accent/10" placeholder="Ví dụ: Xanh navy" autocomplete="off" /></label>
+        <p id="valueModalError" class="mt-2 hidden text-xs font-medium text-primary"></p>
+        <div class="mt-6 flex justify-end gap-3"><button id="cancelValueButton" type="button" class="h-10 rounded-lg border border-line px-5 text-sm font-semibold text-primary hover:bg-soft">Hủy</button><button id="confirmValueButton" type="button" class="h-10 rounded-lg bg-primary px-5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(180,35,24,0.18)] hover:bg-[#961f16]">Thêm giá trị</button></div>
+      </div>
+    </section>
+  </div>
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-[60] space-y-2"></div>
+
+  <script>
+    const STORAGE_KEY = 'tts_ui_flow_seller_products_v1';
+    const DEFAULT_IMAGE = '/images/products/headphones.png';
+    const moneyFormatter = new Intl.NumberFormat('vi-VN');
+    let editingProductId = null;
+    let pendingAttributeIndex = null;
+    let images = [{ src: DEFAULT_IMAGE, name: 'Ảnh mẫu' }];
+    let variantImages = {};
+    let attributes = [
+      { name: 'Màu sắc', values: ['Đen', 'Trắng', 'Bạc'] },
+      { name: 'Phiên bản', values: ['Tiêu chuẩn', 'Cao cấp', 'Giới hạn'] }
+    ];
+    let skuRows = [];
+
+    const $ = (id) => document.getElementById(id);
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
+    const normalizeCode = (value) => String(value || '')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd')
+      .toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    const compactCode = (value, fallback = 'STD') => {
+      const words = normalizeCode(value).split('-').filter(Boolean);
+      return (words.slice(0, 3).join('-') || fallback).slice(0, 24);
+    };
+    const formatMoney = (value) => `${moneyFormatter.format(Number(value) || 0)}₫`;
+    const getProducts = () => {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
+    };
+    const setProducts = (products) => localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast-enter max-w-sm rounded-lg px-4 py-3 text-sm font-semibold text-white shadow-lg ${type === 'error' ? 'bg-primary' : 'bg-emerald-700'}`;
+      toast.textContent = message;
+      $('toastContainer').appendChild(toast);
+      setTimeout(() => toast.remove(), 2600);
+    }
+
+    function openValueModal(attributeIndex) {
+      pendingAttributeIndex = attributeIndex;
+      $('valueModalHint').textContent = `Thêm giá trị cho thuộc tính “${attributes[attributeIndex].name}”.`;
+      $('newAttributeValue').value = '';
+      $('valueModalError').classList.add('hidden');
+      $('valueModal').classList.remove('hidden');
+      $('valueModal').classList.add('flex');
+      setTimeout(() => $('newAttributeValue').focus(), 0);
+    }
+
+    function closeValueModal() {
+      pendingAttributeIndex = null;
+      $('valueModal').classList.add('hidden');
+      $('valueModal').classList.remove('flex');
+    }
+
+    function confirmNewAttributeValue() {
+      const value = $('newAttributeValue').value.trim();
+      const error = $('valueModalError');
+      if (!value) { error.textContent = 'Vui lòng nhập giá trị biến thể.'; error.classList.remove('hidden'); return $('newAttributeValue').focus(); }
+      if (attributes[pendingAttributeIndex].values.some((item) => item.toLowerCase() === value.toLowerCase())) { error.textContent = 'Giá trị này đã tồn tại.'; error.classList.remove('hidden'); return $('newAttributeValue').focus(); }
+      attributes[pendingAttributeIndex].values.push(value);
+      renderAttributes(); closeValueModal(); showToast(`Đã thêm giá trị “${value}”.`);
+    }
+
+    function makeSku(variantName, index) {
+      const category = $('productCategory').value || 'GENERAL';
+      const product = compactCode($('productName').value, 'PRODUCT');
+      const variant = compactCode(variantName, 'STD');
+      return `TTS-${category}-${product}-${variant}-${String(index + 1).padStart(3, '0')}`;
+    }
+
+    function combinations(source) {
+      if (!source.length || source.some((attribute) => !attribute.values.length)) return [];
+      return source.reduce((result, attribute) => result.flatMap((items) => attribute.values.map((value) => [...items, value])), [[]]);
+    }
+
+    function rebuildSkuRows() {
+      const previous = new Map(skuRows.map((row) => [row.variantName, row]));
+      skuRows = combinations(attributes).map((values, index) => {
+        const variantName = values.join(' / ');
+        const old = previous.get(variantName);
+        return {
+          id: old?.id || `SKU-${Date.now()}-${index}`,
+          variantName,
+          skuCode: makeSku(variantName, index),
+          price: old?.price ?? (1500000 + (index % 3) * 195000),
+          originalPrice: old?.originalPrice ?? (1890000 + (index % 3) * 300000),
+          stock: old?.stock ?? (index === 8 ? 0 : 15),
+          hidden: old?.hidden || false,
+          imageUrl: values.map((value, valueIndex) => variantImages[`${valueIndex}:${value}`]).find(Boolean) || old?.imageUrl || images[0]?.src || DEFAULT_IMAGE
+        };
+      });
+      renderSkuRows();
+    }
+
+    function renderAttributes() {
+      $('attributesContainer').innerHTML = attributes.length ? attributes.map((attribute, attributeIndex) => `
+        <div class="grid grid-cols-[160px_minmax(0,1fr)_40px] items-start gap-4 ${attributeIndex < attributes.length - 1 ? 'border-b border-line' : ''} p-4">
+          <div><label class="mb-1.5 block text-xs font-semibold text-muted">Tên thuộc tính ${attributeIndex + 1}</label><input data-attribute-name="${attributeIndex}" class="h-10 w-full rounded-lg border border-line bg-white px-3 text-sm font-semibold" value="${escapeHtml(attribute.name)}" /></div>
+          <div><label class="mb-1.5 block text-xs font-semibold text-muted">Giá trị thuộc tính</label><div class="flex min-h-10 flex-wrap items-center gap-2">
+            ${attribute.values.map((value, valueIndex) => { const imageKey = `${attributeIndex}:${value}`; return `<span class="inline-flex items-center gap-1 rounded-full border border-line bg-white py-1.5 pl-2 pr-2 text-sm"><label title="Thêm ảnh cho ${escapeHtml(value)}" class="grid h-7 w-7 cursor-pointer place-items-center overflow-hidden rounded-full border border-line bg-soft text-primary">${variantImages[imageKey] ? `<img class="h-full w-full object-cover" src="${escapeHtml(variantImages[imageKey])}" alt="Biến thể ${escapeHtml(value)}"/>` : '<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v14H4zM8 13l2-2 3 3 2-2 3 3M17 7v4M15 9h4"/></svg>'}<input class="hidden" type="file" accept="image/*" data-variant-image data-variant-attribute="${attributeIndex}" data-variant-value="${encodeURIComponent(value)}" /></label><span class="px-1">${escapeHtml(value)}</span><button type="button" data-remove-value="${attributeIndex}:${valueIndex}" aria-label="Xóa ${escapeHtml(value)}" class="grid h-5 w-5 place-items-center rounded-full hover:bg-red-50 hover:text-primary"><svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button></span>` }).join('')}
+            <button type="button" data-add-value="${attributeIndex}" class="rounded-full border border-dashed border-accent px-3 py-2 text-sm font-medium text-accent">+ Thêm giá trị</button>
+          </div><p class="mt-2 text-xs text-muted">Nếu một SKU có nhiều ảnh biến thể, hệ thống ưu tiên ảnh của thuộc tính nằm trên.</p></div>
+          <button type="button" data-remove-attribute="${attributeIndex}" aria-label="Xóa thuộc tính ${escapeHtml(attribute.name)}" class="mt-6 grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-red-50 hover:text-primary"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13"/></svg></button>
+        </div>`).join('') : '<p class="p-5 text-sm text-muted">Chưa có thuộc tính. Chọn “Thêm thuộc tính” để bắt đầu.</p>';
+      rebuildSkuRows();
+    }
+
+    function renderSkuRows() {
+      const keyword = $('skuSearch').value.trim().toLowerCase();
+      const status = $('statusFilter').value;
+      const visibleRows = skuRows.filter((row) => {
+        const rowStatus = row.hidden ? 'HIDDEN' : Number(row.stock) === 0 ? 'OUT_OF_STOCK' : 'ACTIVE';
+        return (!keyword || `${row.variantName} ${row.skuCode}`.toLowerCase().includes(keyword)) && (status === 'ALL' || status === rowStatus);
+      });
+      $('skuTableBody').innerHTML = visibleRows.length ? visibleRows.map((row) => {
+        const rowStatus = row.hidden ? 'Đã ẩn' : Number(row.stock) === 0 ? 'Hết hàng' : 'Đang bán';
+        const badge = row.hidden ? 'bg-slate-100 text-slate-600' : Number(row.stock) === 0 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-50 text-emerald-700';
+        return `<tr class="${Number(row.stock) === 0 && !row.hidden ? 'bg-amber-50/40' : ''}">
+          <td class="px-5 py-4"><div class="flex min-w-0 items-center gap-3"><img class="h-9 w-9 shrink-0 rounded-md border border-line object-cover" src="${escapeHtml(row.imageUrl || images[0]?.src || DEFAULT_IMAGE)}" alt=""/><span class="truncate font-semibold" title="${escapeHtml(row.variantName)}">${escapeHtml(row.variantName)}</span></div></td><td class="px-5 py-4"><span class="block truncate font-mono text-xs" title="${escapeHtml(row.skuCode)}">${escapeHtml(row.skuCode)}</span></td>
+          <td class="px-5 py-4"><input data-row-field="${row.id}:price" type="number" min="0" class="h-9 w-32 rounded border border-line px-2 text-right" value="${row.price}" /></td>
+          <td class="px-5 py-4"><input data-row-field="${row.id}:originalPrice" type="number" min="0" class="h-9 w-32 rounded border border-line px-2 text-right" value="${row.originalPrice}" /></td>
+          <td class="px-5 py-4"><input data-row-field="${row.id}:stock" type="number" min="0" class="h-9 w-20 rounded border ${Number(row.stock) === 0 ? 'border-amber-400' : 'border-line'} px-2 text-right" value="${row.stock}" /></td>
+          <td class="whitespace-nowrap px-5 py-4"><span class="rounded-full px-2.5 py-1 text-xs font-semibold ${badge}">${rowStatus}</span></td>
+          <td class="whitespace-nowrap px-5 py-4 text-center"><button type="button" data-toggle-row="${row.id}" class="font-semibold text-muted hover:text-primary">${row.hidden ? 'Hiện' : 'Ẩn'}</button><span class="px-2 text-line">·</span><button type="button" data-delete-row="${row.id}" class="font-semibold text-primary">Xóa</button></td>
+        </tr>`;
+      }).join('') : '<tr><td colspan="7" class="px-6 py-10 text-center text-muted">Không tìm thấy SKU phù hợp.</td></tr>';
+      $('skuTableFooter').textContent = `Đang hiển thị ${visibleRows.length}/${skuRows.length} tổ hợp.`;
+      $('combinationHint').textContent = `${skuRows.length} tổ hợp được tạo tự động từ ${attributes.length} thuộc tính.`;
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const enabled = $('variantToggle').checked;
+      const rows = enabled ? skuRows : [{ skuCode: $('defaultSku').value, price: $('defaultPrice').value, stock: $('defaultStock').value, hidden: false }];
+      const activeRows = rows.filter((row) => !row.hidden);
+      const prices = activeRows.map((row) => Number(row.price) || 0);
+      $('previewVariantCount').textContent = rows.length;
+      $('previewStock').textContent = activeRows.reduce((total, row) => total + (Number(row.stock) || 0), 0);
+      $('previewPrice').textContent = prices.length ? `${formatMoney(Math.min(...prices))}${prices.length > 1 ? ` - ${formatMoney(Math.max(...prices))}` : ''}` : '—';
+      $('previewSku').textContent = rows[0]?.skuCode || '—';
+      $('previewRule').textContent = enabled ? `Mỗi tổ hợp ${attributes.map((item) => item.name).join(' / ')} được tạo một SKU riêng.` : 'Sản phẩm không có biến thể chỉ sử dụng một SKU mặc định.';
+      const duplicate = new Set(skuRows.map((row) => row.skuCode)).size !== skuRows.length;
+      $('duplicateStatus').textContent = duplicate ? 'Phát hiện SKU trùng' : 'Không phát hiện SKU trùng';
+      $('duplicateStatus').className = `rounded-lg px-3 py-2 text-xs font-semibold ${duplicate ? 'bg-red-50 text-primary' : 'bg-emerald-50 text-emerald-700'}`;
+    }
+
+    function updateGeneratedSku() {
+      $('defaultSku').value = makeSku('STD', 0);
+      skuRows.forEach((row, index) => { row.skuCode = makeSku(row.variantName, index); });
+      renderSkuRows();
+    }
+
+    function toggleVariantMode() {
+      const enabled = $('variantToggle').checked;
+      $('defaultSkuSection').classList.toggle('hidden', enabled);
+      $('variantConfig').classList.toggle('hidden', !enabled);
+      $('skuTableSection').classList.toggle('hidden', !enabled);
+      $('modeHint').textContent = enabled ? 'Mỗi tổ hợp biến thể sẽ có một SKU riêng.' : 'Sản phẩm sẽ sử dụng một SKU mặc định.';
+      $('variantState').textContent = enabled ? 'Bật' : 'Tắt';
+      updateSummary();
+    }
+
+    function renderImages() {
+      const cards = images.map((image, index) => `<div class="group relative aspect-square overflow-hidden rounded-lg border-2 ${index === 0 ? 'border-accent' : 'border-line'} bg-[#efeded]"><img class="h-full w-full object-cover" src="${escapeHtml(image.src)}" alt="${escapeHtml(image.name)}"/><div class="absolute inset-x-0 bottom-0 flex items-center justify-center gap-2 bg-black/65 px-2 py-1.5 text-[10px] text-white">${index === 0 ? '<span class="font-semibold">Ảnh chính</span>' : `<button type="button" data-main-image="${index}" class="font-semibold">Đặt làm chính</button>`}<button type="button" data-remove-image="${index}" class="font-semibold text-red-200">Xóa</button></div></div>`).join('');
+      const addCard = images.length < 9 ? '<button id="addImageButton" type="button" class="grid aspect-square place-items-center rounded-lg border border-dashed border-line text-muted hover:border-accent hover:text-accent"><span class="flex flex-col items-center gap-2"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v14H4zM8 13l2-2 3 3 2-2 3 3M17 7v4M15 9h4"/></svg><span class="text-xs">Thêm ảnh</span></span></button>' : '';
+      $('imageGallery').innerHTML = cards + addCard;
+    }
+
+    function resizeImage(file) {
+      return new Promise((resolve, reject) => {
+        if (!file.type.startsWith('image/')) return reject(new Error('Tệp không phải hình ảnh'));
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('Không thể đọc ảnh'));
+        reader.onload = () => {
+          const image = new Image();
+          image.onerror = () => reject(new Error('Ảnh không hợp lệ'));
+          image.onload = () => {
+            const scale = Math.min(1, 800 / Math.max(image.width, image.height));
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.round(image.width * scale); canvas.height = Math.round(image.height * scale);
+            canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+            resolve({ src: canvas.toDataURL('image/jpeg', .78), name: file.name });
+          };
+          image.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function addImages(files) {
+      const available = 9 - images.length;
+      if (!available) return showToast('Đã đạt giới hạn 9 ảnh.', 'error');
+      try {
+        const selected = [...files].slice(0, available);
+        const processed = await Promise.all(selected.map(resizeImage));
+        images.push(...processed); renderImages();
+        if (files.length > available) showToast(`Chỉ thêm ${available} ảnh do giới hạn 9 ảnh.`, 'error');
+      } catch (error) { showToast(error.message, 'error'); }
+      $('productImageInput').value = '';
+    }
+
+    function collectProduct() {
+      const enabled = $('variantToggle').checked;
+      const defaultRow = { id: 'SKU-DEFAULT', variantName: 'Mặc định', skuCode: $('defaultSku').value, price: Number($('defaultPrice').value), originalPrice: Number($('defaultOriginalPrice').value), stock: Number($('defaultStock').value), hidden: false };
+      return { id: editingProductId || `PRODUCT-${Date.now()}`, name: $('productName').value.trim(), category: $('productCategory').value, categoryLabel: $('productCategory').selectedOptions[0].textContent, description: $('productDescription').value.trim(), hasVariants: enabled, attributes: enabled ? attributes : [], variantImages: enabled ? variantImages : {}, skus: enabled ? skuRows : [defaultRow], images, updatedAt: new Date().toISOString() };
+    }
+
+    function saveProduct() {
+      const product = collectProduct();
+      if (!product.name) { $('productName').focus(); return showToast('Vui lòng nhập tên sản phẩm.', 'error'); }
+      if (!product.images.length) return showToast('Vui lòng thêm ít nhất một ảnh.', 'error');
+      if (!product.skus.length) return showToast('Sản phẩm cần có ít nhất một SKU.', 'error');
+      if (product.skus.some((sku) => Number(sku.price) <= 0 || Number(sku.stock) < 0)) return showToast('Giá bán và tồn kho chưa hợp lệ.', 'error');
+      const products = getProducts();
+      const index = products.findIndex((item) => item.id === product.id);
+      if (index >= 0) products[index] = product; else products.unshift(product);
+      try { setProducts(products); editingProductId = product.id; showToast(index >= 0 ? 'Đã cập nhật sản phẩm.' : 'Đã lưu sản phẩm mới.'); }
+      catch { showToast('Không đủ dung lượng lưu. Hãy giảm số lượng hoặc kích thước ảnh.', 'error'); }
+    }
+
+    function resetForm(ask = true) {
+      if (ask && !confirm('Hủy các thay đổi hiện tại và tạo lại biểu mẫu?')) return;
+      editingProductId = null; images = [{ src: DEFAULT_IMAGE, name: 'Ảnh mẫu' }]; variantImages = {};
+      attributes = [{ name: 'Màu sắc', values: ['Đen', 'Trắng', 'Bạc'] }, { name: 'Phiên bản', values: ['Tiêu chuẩn', 'Cao cấp', 'Giới hạn'] }];
+      $('productName').value = ''; $('productDescription').value = ''; $('productCategory').selectedIndex = 0;
+      $('variantToggle').checked = true; $('defaultPrice').value = 1500000; $('defaultOriginalPrice').value = 1890000; $('defaultStock').value = 50;
+      renderImages(); renderAttributes(); toggleVariantMode(); updateGeneratedSku(); $('productName').focus();
+    }
+
+    function loadProduct(productId) {
+      const product = getProducts().find((item) => item.id === productId); if (!product) return;
+      editingProductId = product.id; $('productName').value = product.name; $('productDescription').value = product.description || '';
+      const option = [...$('productCategory').options].find((item) => item.value === product.category); if (option) $('productCategory').value = product.category;
+      images = product.images?.length ? product.images : [{ src: DEFAULT_IMAGE, name: 'Ảnh mẫu' }];
+      $('variantToggle').checked = product.hasVariants; attributes = product.attributes?.length ? product.attributes : [{ name: 'Phân loại', values: ['Mặc định'] }]; skuRows = product.skus || [];
+      variantImages = product.variantImages || Object.fromEntries((product.skus || []).filter((sku) => sku.imageUrl).map((sku) => [`0:${String(sku.variantName || '').split(' / ')[0]}`, sku.imageUrl]));
+      if (!product.hasVariants && product.skus?.[0]) { $('defaultPrice').value = product.skus[0].price; $('defaultOriginalPrice').value = product.skus[0].originalPrice; $('defaultStock').value = product.skus[0].stock; }
+      renderImages(); renderAttributes(); skuRows = product.hasVariants ? product.skus : skuRows; renderSkuRows(); toggleVariantMode(); closeSavedProducts(); showToast('Đã mở sản phẩm để chỉnh sửa.'); window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderSavedProducts() {
+      const keyword = $('savedProductSearch').value.trim().toLowerCase();
+      const products = getProducts().filter((product) => `${product.name} ${product.categoryLabel} ${product.skus?.map((sku) => sku.skuCode).join(' ')}`.toLowerCase().includes(keyword));
+      $('savedProductsList').innerHTML = products.length ? products.map((product) => `<article class="mb-3 flex items-center gap-4 rounded-lg border border-line p-4"><img class="h-14 w-14 rounded-lg object-cover" src="${escapeHtml(product.images?.[0]?.src || DEFAULT_IMAGE)}" alt=""/><div class="min-w-0 flex-1"><h3 class="truncate font-bold">${escapeHtml(product.name)}</h3><p class="mt-1 truncate text-xs text-muted">${escapeHtml(product.categoryLabel)} · ${product.skus?.length || 0} SKU</p><p class="mt-1 truncate font-mono text-[11px] text-muted">${escapeHtml(product.skus?.[0]?.skuCode || '')}</p></div><button type="button" data-edit-product="${product.id}" class="rounded-lg border border-line px-3 py-2 text-sm font-semibold text-primary">Sửa</button><button type="button" data-delete-product="${product.id}" class="rounded-lg bg-red-50 px-3 py-2 text-sm font-semibold text-primary">Xóa</button></article>`).join('') : '<p class="py-10 text-center text-sm text-muted">Chưa có sản phẩm phù hợp.</p>';
+    }
+
+    function openSavedProducts() { renderSavedProducts(); $('savedProductsModal').classList.remove('hidden'); $('savedProductsModal').classList.add('flex'); }
+    function closeSavedProducts() { $('savedProductsModal').classList.add('hidden'); $('savedProductsModal').classList.remove('flex'); }
+
+    $('addAttributeButton').addEventListener('click', () => { if (attributes.length >= 4) return showToast('Chỉ được tạo tối đa 4 thuộc tính biến thể.', 'error'); attributes.push({ name: `Thuộc tính ${attributes.length + 1}`, values: ['Mặc định'] }); renderAttributes(); });
+    $('attributesContainer').addEventListener('click', (event) => {
+      const add = event.target.closest('[data-add-value]'); const removeValue = event.target.closest('[data-remove-value]'); const removeAttribute = event.target.closest('[data-remove-attribute]');
+      if (add) openValueModal(Number(add.dataset.addValue));
+      if (removeValue) { const [attributeIndex, valueIndex] = removeValue.dataset.removeValue.split(':').map(Number); if (attributes[attributeIndex].values.length <= 1) return showToast('Mỗi thuộc tính cần ít nhất một giá trị.', 'error'); attributes[attributeIndex].values.splice(valueIndex, 1); renderAttributes(); }
+      if (removeAttribute) { if (attributes.length <= 1) return showToast('Sản phẩm biến thể cần ít nhất một thuộc tính.', 'error'); attributes.splice(Number(removeAttribute.dataset.removeAttribute), 1); renderAttributes(); }
+    });
+    $('attributesContainer').addEventListener('change', (event) => {
+      if (event.target.matches('[data-attribute-name]')) { attributes[Number(event.target.dataset.attributeName)].name = event.target.value.trim() || 'Phân loại'; renderAttributes(); }
+      if (event.target.matches('[data-variant-image]') && event.target.files?.[0]) {
+        const value = decodeURIComponent(event.target.dataset.variantValue);
+        const imageKey = `${event.target.dataset.variantAttribute}:${value}`;
+        resizeImage(event.target.files[0]).then((image) => { variantImages[imageKey] = image.src; renderAttributes(); }).catch((imageError) => showToast(imageError.message, 'error'));
+      }
+    });
+    $('skuTableBody').addEventListener('input', (event) => { if (!event.target.dataset.rowField) return; const [id, field] = event.target.dataset.rowField.split(':'); const row = skuRows.find((item) => item.id === id); if (row) { row[field] = Math.max(0, Number(event.target.value)); updateSummary(); } });
+    $('skuTableBody').addEventListener('change', (event) => { if (event.target.dataset.rowField?.endsWith(':stock')) renderSkuRows(); });
+    $('skuTableBody').addEventListener('click', (event) => { const toggle = event.target.closest('[data-toggle-row]'); const remove = event.target.closest('[data-delete-row]'); if (toggle) { const row = skuRows.find((item) => item.id === toggle.dataset.toggleRow); row.hidden = !row.hidden; renderSkuRows(); } if (remove && confirm('Xóa tổ hợp SKU này?')) { skuRows = skuRows.filter((item) => item.id !== remove.dataset.deleteRow); renderSkuRows(); } });
+    $('applyBulkButton').addEventListener('click', () => { const price = $('bulkPrice').value; const originalPrice = $('bulkOriginalPrice').value; const stock = $('bulkStock').value; if (price === '' && originalPrice === '' && stock === '') return showToast('Hãy nhập ít nhất một giá trị áp dụng chung.', 'error'); skuRows.forEach((row) => { if (price !== '') row.price = Math.max(0, Number(price)); if (originalPrice !== '') row.originalPrice = Math.max(0, Number(originalPrice)); if (stock !== '') row.stock = Math.max(0, Number(stock)); }); renderSkuRows(); showToast('Đã áp dụng cho tất cả SKU.'); });
+    $('skuSearch').addEventListener('input', renderSkuRows); $('statusFilter').addEventListener('change', renderSkuRows);
+    $('clearFilterButton').addEventListener('click', () => { $('skuSearch').value = ''; $('statusFilter').value = 'ALL'; renderSkuRows(); });
+    $('imageGallery').addEventListener('click', (event) => { if (event.target.closest('#addImageButton')) $('productImageInput').click(); const remove = event.target.closest('[data-remove-image]'); const main = event.target.closest('[data-main-image]'); if (remove) { images.splice(Number(remove.dataset.removeImage), 1); renderImages(); } if (main) { const [image] = images.splice(Number(main.dataset.mainImage), 1); images.unshift(image); renderImages(); } });
+    $('productImageInput').addEventListener('change', (event) => addImages(event.target.files));
+    $('productName').addEventListener('input', updateGeneratedSku); $('productCategory').addEventListener('change', updateGeneratedSku);
+    ['defaultPrice', 'defaultOriginalPrice', 'defaultStock'].forEach((id) => $(id).addEventListener('input', updateSummary));
+    $('saveButton').addEventListener('click', saveProduct); $('cancelButton').addEventListener('click', () => resetForm(true)); $('newProductButton').addEventListener('click', () => resetForm(true));
+    $('savedProductsButton').addEventListener('click', openSavedProducts); $('closeSavedProductsButton').addEventListener('click', closeSavedProducts); $('savedProductSearch').addEventListener('input', renderSavedProducts);
+    $('confirmValueButton').addEventListener('click', confirmNewAttributeValue); $('cancelValueButton').addEventListener('click', closeValueModal); $('closeValueModalButton').addEventListener('click', closeValueModal);
+    $('newAttributeValue').addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); confirmNewAttributeValue(); } });
+    $('valueModal').addEventListener('click', (event) => { if (event.target === $('valueModal')) closeValueModal(); });
+    $('savedProductsModal').addEventListener('click', (event) => { if (event.target === $('savedProductsModal')) closeSavedProducts(); const edit = event.target.closest('[data-edit-product]'); const remove = event.target.closest('[data-delete-product]'); if (edit) loadProduct(edit.dataset.editProduct); if (remove && confirm('Xóa sản phẩm đã lưu này?')) { setProducts(getProducts().filter((product) => product.id !== remove.dataset.deleteProduct)); if (editingProductId === remove.dataset.deleteProduct) editingProductId = null; renderSavedProducts(); showToast('Đã xóa sản phẩm.'); } });
+    $('goShoppingButton').addEventListener('click', () => showToast('Liên kết này sẽ mở trang mua sắm khi tích hợp vào React.'));
+    $('logoutButton').addEventListener('click', () => { if (confirm('Bạn muốn đăng xuất khỏi bản prototype?')) showToast('Đã mô phỏng đăng xuất.'); });
+    document.querySelectorAll('nav a').forEach((link) => link.addEventListener('click', (event) => { event.preventDefault(); showToast(`Điều hướng ${link.textContent.trim()} sẽ hoạt động khi tích hợp route React.`); }));
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') { closeValueModal(); closeSavedProducts(); } });
+    const updateSummaryScrollEffect = () => $('setupSummaryCard').classList.toggle('is-scrolled', window.scrollY > 80);
+    window.addEventListener('scroll', updateSummaryScrollEffect, { passive: true });
+    updateSummaryScrollEffect();
+
+    renderImages(); renderAttributes(); toggleVariantMode(); updateGeneratedSku();
+  </script>
+</body>
+</html>

@@ -90,7 +90,7 @@ export default function SellerProductsPage() {
             <div className="flex items-start justify-between gap-4 border-b border-[#e3beb6] bg-[#fbf9f9] px-5 py-4">
               <div>
                 <h2 className="text-xl font-bold text-[#1b1c1c]">Chi tiết sản phẩm</h2>
-                <p className="mt-1 text-xs text-[#8f7069]">SKU: TT-{String(selectedProduct.id).padStart(3, '0')}</p>
+                <p className="mt-1 break-all text-xs text-[#8f7069]">SKU: {selectedProduct.skuCode}</p>
               </div>
               <button type="button" onClick={() => setSelectedProduct(null)} className="rounded-full p-1.5 text-[#5b403b] transition hover:bg-[#efeded] hover:text-[#b22204]" aria-label="Đóng">
                 <SellerIcon name="close" className="text-[20px]" />

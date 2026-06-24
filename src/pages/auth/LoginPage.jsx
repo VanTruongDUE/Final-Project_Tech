@@ -26,6 +26,7 @@ export default function LoginPage() {
   const [formData, setFormData] = useState(defaultCredentials)
   const [errorMessage, setErrorMessage] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     if (location.state?.prefillEmail) {
@@ -64,12 +65,13 @@ export default function LoginPage() {
     setErrorMessage('')
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     setErrorMessage('')
+    setIsSubmitting(true)
 
     try {
-      const user = login(formData.email, formData.password)
+      const user = await login(formData.email, formData.password)
       const fromLocation = location.state?.from
 
       if (fromLocation?.pathname) {
@@ -83,6 +85,8 @@ export default function LoginPage() {
       navigate(resolveRoleHome(user.role), { replace: true })
     } catch (error) {
       setErrorMessage(error.message)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -177,9 +181,10 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#ee4d2d] text-sm font-semibold text-white transition hover:bg-[#b22204]"
+            disabled={isSubmitting}
+            className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#ee4d2d] text-sm font-semibold text-white transition hover:bg-[#b22204] disabled:cursor-not-allowed disabled:opacity-70"
           >
-            Đăng nhập
+            {isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
             <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
               arrow_forward
             </span>

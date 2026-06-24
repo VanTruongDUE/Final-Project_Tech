@@ -36,7 +36,8 @@ export default function CartItem({ item, product, onQuantityChange, onRemove, on
                 {product.name}
               </Link>
               <p className="mt-2 text-sm text-[#5b403b]">{product.storeName}</p>
-              <p className="mt-1 text-[12px] text-[#8f7069]">Phân loại: Mặc định</p>
+              <p className="mt-1 text-[12px] text-[#8f7069]">Phân loại: {item.variantName || product.variantName || 'Mặc định'}</p>
+              <p className="mt-1 break-all text-[12px] text-[#8f7069]">SKU: {item.skuCode || product.skuCode}</p>
               <div className="mt-2 flex flex-wrap items-center gap-3 text-sm">
                 <span className="font-semibold text-[#d0011b]">{formatCurrency(product.price)}</span>
                 {product.originalPrice > product.price ? (

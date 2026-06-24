@@ -13,7 +13,142 @@ export const PRODUCT_CATEGORIES = [
   'Thể thao',
 ]
 
-export const mockProducts = [
+const PRODUCT_IMAGE_ASSETS = {
+  audio: '/images/products/headphones.png',
+  fashion: '/images/products/sneaker.png',
+  home: '/images/products/air-fryer.png',
+  watch: '/images/products/smart-watch.png',
+  lipTint: '/images/products/lip-tint.png',
+  skincare: '/images/products/serum.png',
+  stationery: '/images/products/stationery.png',
+}
+
+const getProductDemoImage = ({ category, slug }) => {
+  if (slug.includes('dong-ho') || slug.includes('watch')) {
+    return PRODUCT_IMAGE_ASSETS.watch
+  }
+
+  if (slug.includes('son') || slug.includes('lip') || slug.includes('blush')) {
+    return PRODUCT_IMAGE_ASSETS.lipTint
+  }
+
+  const imageByCategory = {
+    'Thời trang': PRODUCT_IMAGE_ASSETS.fashion,
+    'Điện tử': PRODUCT_IMAGE_ASSETS.audio,
+    'Gia dụng': PRODUCT_IMAGE_ASSETS.home,
+    'Mỹ phẩm': PRODUCT_IMAGE_ASSETS.skincare,
+    'Sách - Văn phòng phẩm': PRODUCT_IMAGE_ASSETS.stationery,
+    'Thể thao': PRODUCT_IMAGE_ASSETS.fashion,
+  }
+
+  return imageByCategory[category] || PRODUCT_IMAGE_ASSETS.audio
+}
+
+const CATEGORY_SKU_CODES = {
+  'Thời trang': 'FASH',
+  'Điện tử': 'ELEC',
+  'Gia dụng': 'HOME',
+  'Mỹ phẩm': 'BEA',
+  'Sách - Văn phòng phẩm': 'BOOK',
+  'Thể thao': 'SPORT',
+  'Điện thoại & Phụ kiện': 'PHONE',
+  'Thiết bị âm thanh': 'AUDIO',
+  'Máy tính & Laptop': 'COMP',
+  'Thiết bị đeo thông minh': 'WEAR',
+}
+
+const FEATURED_SKU_CODES = {
+  3: 'NXD-ELEC-SONICAIR-X5-BLK-001',
+  6: 'GMD-HOME-AIRFRYER-6L-STD-001',
+  13: 'SPH-ELEC-WATCH-S2-BLK-001',
+  16: 'CMS-BEA-LIPTINT-SUNSET-STD-001',
+}
+
+const normalizeSkuSegment = (value) =>
+  String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/gi, 'D')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+
+const buildStoreCode = (storeName) => {
+  const storeCode = String(storeName || 'TechToShop')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .split(/\s+/)
+    .map(normalizeSkuSegment)
+    .filter(Boolean)
+    .map((word) => word[0])
+    .join('')
+    .slice(0, 4)
+
+  return storeCode || 'TTS'
+}
+
+const buildProductCode = (slug) =>
+  String(slug || 'product')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/gi, 'D')
+    .toUpperCase()
+    .split(/[^A-Z0-9]+/)
+    .filter(Boolean)
+    .slice(0, 4)
+    .join('-')
+
+const buildCategoryCode = (category) => {
+  const mappedCode = CATEGORY_SKU_CODES[category]
+
+  if (mappedCode) {
+    return mappedCode
+  }
+
+  const fallbackCode = String(category || '')
+    .split(/\s+/)
+    .map(normalizeSkuSegment)
+    .filter(Boolean)
+    .map((word) => word[0])
+    .join('')
+    .slice(0, 5)
+
+  return fallbackCode || 'MISC'
+}
+
+const buildSkuSequence = (id) => {
+  const normalizedId = normalizeSkuSegment(id)
+  const numericSequence = normalizedId.replace(/[^0-9]/g, '')
+
+  return (numericSequence || normalizedId || '1').padStart(3, '0')
+}
+
+export const buildDefaultSkuCode = (product) =>
+  [
+    buildStoreCode(product.storeName),
+    buildCategoryCode(product.category),
+    buildProductCode(product.slug || product.name) || 'PRODUCT',
+    'STD',
+    buildSkuSequence(product.id),
+  ].join('-')
+
+export const buildDefaultSkuId = (id) => `SKU${buildSkuSequence(id)}`
+
+export const generateSkuCode = ({ storeCode, storeName, category, productName, existingSkuCodes = [] }) => {
+  const normalizedStoreCode = normalizeSkuSegment(storeCode) || buildStoreCode(storeName)
+  const productCode = buildProductCode(productName) || 'PRODUCT'
+  const prefix = [normalizedStoreCode, buildCategoryCode(category), productCode, 'STD'].join('-')
+  const usedSkuCodes = new Set(existingSkuCodes.map((skuCode) => String(skuCode || '').toUpperCase()))
+  let sequence = 1
+  let skuCode = `${prefix}-${String(sequence).padStart(3, '0')}`
+
+  while (usedSkuCodes.has(skuCode)) {
+    sequence += 1
+    skuCode = `${prefix}-${String(sequence).padStart(3, '0')}`
+  }
+
+  return skuCode
+}
+
+const mockProductSeeds = [
   {
     id: 1,
     name: 'Áo khoác bomber TechTonic Urban',
@@ -23,7 +158,7 @@ export const mockProducts = [
     price: 690000,
     originalPrice: 890000,
     discountPercent: 22,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Bomber',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thời trang',
     storeId: 'STORE-FASHION-01',
     storeName: 'Urban Outfit Hub',
@@ -43,7 +178,7 @@ export const mockProducts = [
     price: 820000,
     originalPrice: 1050000,
     discountPercent: 22,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Sneaker',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thời trang',
     storeId: 'STORE-FASHION-02',
     storeName: 'Step Zone',
@@ -63,7 +198,7 @@ export const mockProducts = [
     price: 1590000,
     originalPrice: 1990000,
     discountPercent: 20,
-    imageUrl: 'https://placehold.co/600x600/dbe4e2/1b1c1c?text=Audio',
+    imageUrl: '/images/products/headphones.png',
     category: 'Điện tử',
     storeId: 'STORE-ELEC-01',
     storeName: 'NextGen Digital',
@@ -83,7 +218,7 @@ export const mockProducts = [
     price: 1290000,
     originalPrice: 1490000,
     discountPercent: 13,
-    imageUrl: 'https://placehold.co/600x600/e3e2e2/1b1c1c?text=Keyboard',
+    imageUrl: '/images/products/headphones.png',
     category: 'Điện tử',
     storeId: 'STORE-ELEC-02',
     storeName: 'Gear Station',
@@ -103,7 +238,7 @@ export const mockProducts = [
     price: 540000,
     originalPrice: 690000,
     discountPercent: 22,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Blender',
+    imageUrl: '/images/products/headphones.png',
     category: 'Gia dụng',
     storeId: 'STORE-HOME-01',
     storeName: 'Nhà Xinh Store',
@@ -123,7 +258,7 @@ export const mockProducts = [
     price: 1890000,
     originalPrice: 2490000,
     discountPercent: 24,
-    imageUrl: 'https://placehold.co/600x600/fff1ec/1b1c1c?text=Air+Fryer',
+    imageUrl: '/images/products/headphones.png',
     category: 'Gia dụng',
     storeId: 'STORE-HOME-02',
     storeName: 'Gia Đình Modern',
@@ -143,7 +278,7 @@ export const mockProducts = [
     price: 420000,
     originalPrice: 560000,
     discountPercent: 25,
-    imageUrl: 'https://placehold.co/600x600/fff1ec/1b1c1c?text=Serum',
+    imageUrl: '/images/products/headphones.png',
     category: 'Mỹ phẩm',
     storeId: 'STORE-BEAUTY-01',
     storeName: 'Beauty Harbor',
@@ -163,7 +298,7 @@ export const mockProducts = [
     price: 295000,
     originalPrice: 360000,
     discountPercent: 18,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Sun+Care',
+    imageUrl: '/images/products/headphones.png',
     category: 'Mỹ phẩm',
     storeId: 'STORE-BEAUTY-02',
     storeName: 'Luna Care',
@@ -183,7 +318,7 @@ export const mockProducts = [
     price: 149000,
     originalPrice: 199000,
     discountPercent: 25,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Planner',
+    imageUrl: '/images/products/headphones.png',
     category: 'Sách - Văn phòng phẩm',
     storeId: 'STORE-BOOK-01',
     storeName: 'Paper Nest',
@@ -203,7 +338,7 @@ export const mockProducts = [
     price: 118000,
     originalPrice: 145000,
     discountPercent: 19,
-    imageUrl: 'https://placehold.co/600x600/e3e2e2/1b1c1c?text=Book',
+    imageUrl: '/images/products/headphones.png',
     category: 'Sách - Văn phòng phẩm',
     storeId: 'STORE-BOOK-02',
     storeName: 'Book Horizon',
@@ -223,7 +358,7 @@ export const mockProducts = [
     price: 350000,
     originalPrice: 450000,
     discountPercent: 22,
-    imageUrl: 'https://placehold.co/600x600/dbe4e2/1b1c1c?text=Yoga',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thể thao',
     storeId: 'STORE-SPORT-01',
     storeName: 'Active Life',
@@ -243,7 +378,7 @@ export const mockProducts = [
     price: 265000,
     originalPrice: 320000,
     discountPercent: 17,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Bottle',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thể thao',
     storeId: 'STORE-SPORT-02',
     storeName: 'Outdoor Lab',
@@ -263,7 +398,7 @@ export const mockProducts = [
     price: 2190000,
     originalPrice: 2790000,
     discountPercent: 22,
-    imageUrl: 'https://placehold.co/600x600/dbe4e2/1b1c1c?text=Watch',
+    imageUrl: '/images/products/headphones.png',
     category: 'Điện tử',
     storeId: 'STORE-ELEC-03',
     storeName: 'TechSphere',
@@ -283,7 +418,7 @@ export const mockProducts = [
     price: 470000,
     originalPrice: 620000,
     discountPercent: 24,
-    imageUrl: 'https://placehold.co/600x600/fff1ec/1b1c1c?text=Hair+Dryer',
+    imageUrl: '/images/products/headphones.png',
     category: 'Gia dụng',
     storeId: 'STORE-HOME-03',
     storeName: 'Home Breeze',
@@ -303,7 +438,7 @@ export const mockProducts = [
     price: 199000,
     originalPrice: 260000,
     discountPercent: 23,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=T-Shirt',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thời trang',
     storeId: 'STORE-FASHION-03',
     storeName: 'Mono Wear',
@@ -323,7 +458,7 @@ export const mockProducts = [
     price: 225000,
     originalPrice: 299000,
     discountPercent: 25,
-    imageUrl: 'https://placehold.co/600x600/fff1ec/1b1c1c?text=Lip+Tint',
+    imageUrl: '/images/products/headphones.png',
     category: 'Mỹ phẩm',
     storeId: 'STORE-BEAUTY-03',
     storeName: 'Color Muse',
@@ -343,7 +478,7 @@ export const mockProducts = [
     price: 585000,
     originalPrice: 760000,
     discountPercent: 23,
-    imageUrl: 'https://placehold.co/600x600/e3e2e2/1b1c1c?text=Backpack',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thời trang',
     storeId: 'STORE-FASHION-04',
     storeName: 'Carry City',
@@ -363,7 +498,7 @@ export const mockProducts = [
     price: 315000,
     originalPrice: 399000,
     discountPercent: 21,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Desk+Lamp',
+    imageUrl: '/images/products/headphones.png',
     category: 'Sách - Văn phòng phẩm',
     storeId: 'STORE-BOOK-03',
     storeName: 'Study Corner',
@@ -383,7 +518,7 @@ export const mockProducts = [
     price: 129000,
     originalPrice: 169000,
     discountPercent: 24,
-    imageUrl: 'https://placehold.co/600x600/dbe4e2/1b1c1c?text=Jump+Rope',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thể thao',
     storeId: 'STORE-SPORT-03',
     storeName: 'Fit Factory',
@@ -403,7 +538,7 @@ export const mockProducts = [
     price: 455000,
     originalPrice: 590000,
     discountPercent: 23,
-    imageUrl: 'https://placehold.co/600x600/e3e2e2/1b1c1c?text=Speaker',
+    imageUrl: '/images/products/headphones.png',
     category: 'Điện tử',
     storeId: 'STORE-ELEC-04',
     storeName: 'Wave Audio',
@@ -423,7 +558,7 @@ export const mockProducts = [
     price: 289000,
     originalPrice: 369000,
     discountPercent: 22,
-    imageUrl: 'https://placehold.co/600x600/e3e2e2/1b1c1c?text=Mouse',
+    imageUrl: '/images/products/headphones.png',
     category: 'Điện tử',
     storeId: 'STORE-ELEC-05',
     storeName: 'Office Tech Hub',
@@ -443,7 +578,7 @@ export const mockProducts = [
     price: 690000,
     originalPrice: 850000,
     discountPercent: 19,
-    imageUrl: 'https://placehold.co/600x600/dbe4e2/1b1c1c?text=Power+Bank',
+    imageUrl: '/images/products/headphones.png',
     category: 'Điện tử',
     storeId: 'STORE-ELEC-06',
     storeName: 'Charge Plus',
@@ -463,7 +598,7 @@ export const mockProducts = [
     price: 245000,
     originalPrice: 320000,
     discountPercent: 23,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Mini+Fan',
+    imageUrl: '/images/products/headphones.png',
     category: 'Gia dụng',
     storeId: 'STORE-HOME-04',
     storeName: 'Living Corner',
@@ -483,7 +618,7 @@ export const mockProducts = [
     price: 329000,
     originalPrice: 420000,
     discountPercent: 22,
-    imageUrl: 'https://placehold.co/600x600/fff1ec/1b1c1c?text=Lunch+Box',
+    imageUrl: '/images/products/headphones.png',
     category: 'Gia dụng',
     storeId: 'STORE-HOME-05',
     storeName: 'Bếp Nhà Việt',
@@ -503,7 +638,7 @@ export const mockProducts = [
     price: 359000,
     originalPrice: 459000,
     discountPercent: 22,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Shirt',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thời trang',
     storeId: 'STORE-FASHION-05',
     storeName: 'Formal Daily',
@@ -523,7 +658,7 @@ export const mockProducts = [
     price: 179000,
     originalPrice: 229000,
     discountPercent: 22,
-    imageUrl: 'https://placehold.co/600x600/e3e2e2/1b1c1c?text=Tote+Bag',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thời trang',
     storeId: 'STORE-FASHION-06',
     storeName: 'Canvas Mood',
@@ -543,7 +678,7 @@ export const mockProducts = [
     price: 395000,
     originalPrice: 510000,
     discountPercent: 23,
-    imageUrl: 'https://placehold.co/600x600/fff1ec/1b1c1c?text=Cushion',
+    imageUrl: '/images/products/headphones.png',
     category: 'Mỹ phẩm',
     storeId: 'STORE-BEAUTY-04',
     storeName: 'Pure Skin Lab',
@@ -563,7 +698,7 @@ export const mockProducts = [
     price: 189000,
     originalPrice: 245000,
     discountPercent: 23,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Cleanser',
+    imageUrl: '/images/products/headphones.png',
     category: 'Mỹ phẩm',
     storeId: 'STORE-BEAUTY-05',
     storeName: 'Skin Habit',
@@ -583,7 +718,7 @@ export const mockProducts = [
     price: 99000,
     originalPrice: 129000,
     discountPercent: 23,
-    imageUrl: 'https://placehold.co/600x600/e3e2e2/1b1c1c?text=Highlighter',
+    imageUrl: '/images/products/headphones.png',
     category: 'Sách - Văn phòng phẩm',
     storeId: 'STORE-BOOK-04',
     storeName: 'Stationery Lab',
@@ -603,7 +738,7 @@ export const mockProducts = [
     price: 315000,
     originalPrice: 399000,
     discountPercent: 21,
-    imageUrl: 'https://placehold.co/600x600/dbe4e2/1b1c1c?text=Laptop+Stand',
+    imageUrl: '/images/products/headphones.png',
     category: 'Sách - Văn phòng phẩm',
     storeId: 'STORE-BOOK-05',
     storeName: 'Desk Setup VN',
@@ -623,7 +758,7 @@ export const mockProducts = [
     price: 269000,
     originalPrice: 339000,
     discountPercent: 21,
-    imageUrl: 'https://placehold.co/600x600/dbe4e2/1b1c1c?text=Football',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thể thao',
     storeId: 'STORE-SPORT-04',
     storeName: 'Sport Nation',
@@ -643,7 +778,7 @@ export const mockProducts = [
     price: 149000,
     originalPrice: 199000,
     discountPercent: 25,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Gym+Gloves',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thể thao',
     storeId: 'STORE-SPORT-05',
     storeName: 'Power Fit',
@@ -662,7 +797,7 @@ export const mockProducts = [
     price: 1290000,
     originalPrice: 1590000,
     discountPercent: 19,
-    imageUrl: 'https://placehold.co/600x600/dbe4e2/1b1c1c?text=Headphone',
+    imageUrl: '/images/products/headphones.png',
     category: 'Điện tử',
     storeId: 'STORE-ELEC-07',
     storeName: 'Sonic House',
@@ -681,7 +816,7 @@ export const mockProducts = [
     price: 699000,
     originalPrice: 890000,
     discountPercent: 21,
-    imageUrl: 'https://placehold.co/600x600/e3e2e2/1b1c1c?text=Webcam',
+    imageUrl: '/images/products/headphones.png',
     category: 'Điện tử',
     storeId: 'STORE-ELEC-08',
     storeName: 'Meeting Gear',
@@ -700,7 +835,7 @@ export const mockProducts = [
     price: 219000,
     originalPrice: 289000,
     discountPercent: 24,
-    imageUrl: 'https://placehold.co/600x600/fff1ec/1b1c1c?text=Night+Lamp',
+    imageUrl: '/images/products/headphones.png',
     category: 'Gia dụng',
     storeId: 'STORE-HOME-06',
     storeName: 'Cozy Living',
@@ -719,7 +854,7 @@ export const mockProducts = [
     price: 399000,
     originalPrice: 499000,
     discountPercent: 20,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Humidifier',
+    imageUrl: '/images/products/headphones.png',
     category: 'Gia dụng',
     storeId: 'STORE-HOME-07',
     storeName: 'Fresh Home',
@@ -738,7 +873,7 @@ export const mockProducts = [
     price: 355000,
     originalPrice: 445000,
     discountPercent: 20,
-    imageUrl: 'https://placehold.co/600x600/fff1ec/1b1c1c?text=Moisturizer',
+    imageUrl: '/images/products/headphones.png',
     category: 'Mỹ phẩm',
     storeId: 'STORE-BEAUTY-06',
     storeName: 'Derma Daily',
@@ -757,7 +892,7 @@ export const mockProducts = [
     price: 189000,
     originalPrice: 239000,
     discountPercent: 21,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Micellar',
+    imageUrl: '/images/products/headphones.png',
     category: 'Mỹ phẩm',
     storeId: 'STORE-BEAUTY-07',
     storeName: 'Clean Skin House',
@@ -776,7 +911,7 @@ export const mockProducts = [
     price: 69000,
     originalPrice: 89000,
     discountPercent: 22,
-    imageUrl: 'https://placehold.co/600x600/e3e2e2/1b1c1c?text=Notebook',
+    imageUrl: '/images/products/headphones.png',
     category: 'Sách - Văn phòng phẩm',
     storeId: 'STORE-BOOK-06',
     storeName: 'Note & Study',
@@ -795,7 +930,7 @@ export const mockProducts = [
     price: 49000,
     originalPrice: 65000,
     discountPercent: 25,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Sticky+Note',
+    imageUrl: '/images/products/headphones.png',
     category: 'Sách - Văn phòng phẩm',
     storeId: 'STORE-BOOK-07',
     storeName: 'Paper Mood',
@@ -814,7 +949,7 @@ export const mockProducts = [
     price: 329000,
     originalPrice: 429000,
     discountPercent: 23,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Polo',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thời trang',
     storeId: 'STORE-FASHION-07',
     storeName: 'Classic Daily',
@@ -833,7 +968,7 @@ export const mockProducts = [
     price: 459000,
     originalPrice: 589000,
     discountPercent: 22,
-    imageUrl: 'https://placehold.co/600x600/e3e2e2/1b1c1c?text=Jeans',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thời trang',
     storeId: 'STORE-FASHION-08',
     storeName: 'Denim Story',
@@ -852,7 +987,7 @@ export const mockProducts = [
     price: 249000,
     originalPrice: 319000,
     discountPercent: 22,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Belt',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thời trang',
     storeId: 'STORE-FASHION-09',
     storeName: 'Gentleman Hub',
@@ -871,7 +1006,7 @@ export const mockProducts = [
     price: 129000,
     originalPrice: 169000,
     discountPercent: 24,
-    imageUrl: 'https://placehold.co/600x600/e3e2e2/1b1c1c?text=Phone+Case',
+    imageUrl: '/images/products/headphones.png',
     category: 'Điện tử',
     storeId: 'STORE-ELEC-09',
     storeName: 'Case Factory',
@@ -890,7 +1025,7 @@ export const mockProducts = [
     price: 99000,
     originalPrice: 129000,
     discountPercent: 23,
-    imageUrl: 'https://placehold.co/600x600/dbe4e2/1b1c1c?text=Cable',
+    imageUrl: '/images/products/headphones.png',
     category: 'Điện tử',
     storeId: 'STORE-ELEC-10',
     storeName: 'Wire Lab',
@@ -909,7 +1044,7 @@ export const mockProducts = [
     price: 579000,
     originalPrice: 729000,
     discountPercent: 21,
-    imageUrl: 'https://placehold.co/600x600/fff1ec/1b1c1c?text=Cooker',
+    imageUrl: '/images/products/headphones.png',
     category: 'Gia dụng',
     storeId: 'STORE-HOME-08',
     storeName: 'Kitchen Quick',
@@ -928,7 +1063,7 @@ export const mockProducts = [
     price: 169000,
     originalPrice: 219000,
     discountPercent: 23,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Food+Box',
+    imageUrl: '/images/products/headphones.png',
     category: 'Gia dụng',
     storeId: 'STORE-HOME-09',
     storeName: 'Daily Kitchen',
@@ -947,7 +1082,7 @@ export const mockProducts = [
     price: 99000,
     originalPrice: 129000,
     discountPercent: 23,
-    imageUrl: 'https://placehold.co/600x600/fff1ec/1b1c1c?text=Lip+Care',
+    imageUrl: '/images/products/headphones.png',
     category: 'Mỹ phẩm',
     storeId: 'STORE-BEAUTY-08',
     storeName: 'Berry Beauty',
@@ -966,7 +1101,7 @@ export const mockProducts = [
     price: 79000,
     originalPrice: 99000,
     discountPercent: 20,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Mask',
+    imageUrl: '/images/products/headphones.png',
     category: 'Mỹ phẩm',
     storeId: 'STORE-BEAUTY-09',
     storeName: 'Glow Lab',
@@ -985,7 +1120,7 @@ export const mockProducts = [
     price: 39000,
     originalPrice: 49000,
     discountPercent: 20,
-    imageUrl: 'https://placehold.co/600x600/e3e2e2/1b1c1c?text=Pen',
+    imageUrl: '/images/products/headphones.png',
     category: 'Sách - Văn phòng phẩm',
     storeId: 'STORE-BOOK-08',
     storeName: 'Write Fine',
@@ -1004,7 +1139,7 @@ export const mockProducts = [
     price: 259000,
     originalPrice: 329000,
     discountPercent: 21,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Rack',
+    imageUrl: '/images/products/headphones.png',
     category: 'Sách - Văn phòng phẩm',
     storeId: 'STORE-BOOK-09',
     storeName: 'Desk Study',
@@ -1023,7 +1158,7 @@ export const mockProducts = [
     price: 219000,
     originalPrice: 279000,
     discountPercent: 22,
-    imageUrl: 'https://placehold.co/600x600/dbe4e2/1b1c1c?text=Resistance+Band',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thể thao',
     storeId: 'STORE-SPORT-06',
     storeName: 'Home Workout',
@@ -1042,7 +1177,7 @@ export const mockProducts = [
     price: 89000,
     originalPrice: 119000,
     discountPercent: 25,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Towel',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thể thao',
     storeId: 'STORE-SPORT-07',
     storeName: 'Move Better',
@@ -1061,7 +1196,7 @@ export const mockProducts = [
     price: 489000,
     originalPrice: 619000,
     discountPercent: 21,
-    imageUrl: 'https://placehold.co/600x600/e3e2e2/1b1c1c?text=Hoodie',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thời trang',
     storeId: 'STORE-FASHION-10',
     storeName: 'Street Layer',
@@ -1080,7 +1215,7 @@ export const mockProducts = [
     price: 529000,
     originalPrice: 669000,
     discountPercent: 21,
-    imageUrl: 'https://placehold.co/600x600/fff1ec/1b1c1c?text=Skirt',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thời trang',
     storeId: 'STORE-FASHION-11',
     storeName: 'Soft Chic',
@@ -1099,7 +1234,7 @@ export const mockProducts = [
     price: 1490000,
     originalPrice: 1790000,
     discountPercent: 17,
-    imageUrl: 'https://placehold.co/600x600/dbe4e2/1b1c1c?text=Soundbar',
+    imageUrl: '/images/products/headphones.png',
     category: 'Điện tử',
     storeId: 'STORE-ELEC-11',
     storeName: 'Home Audio Pro',
@@ -1118,7 +1253,7 @@ export const mockProducts = [
     price: 189000,
     originalPrice: 249000,
     discountPercent: 24,
-    imageUrl: 'https://placehold.co/600x600/e3e2e2/1b1c1c?text=Clock',
+    imageUrl: '/images/products/headphones.png',
     category: 'Điện tử',
     storeId: 'STORE-ELEC-12',
     storeName: 'Smart Desk',
@@ -1137,7 +1272,7 @@ export const mockProducts = [
     price: 1690000,
     originalPrice: 2090000,
     discountPercent: 19,
-    imageUrl: 'https://placehold.co/600x600/fff1ec/1b1c1c?text=Coffee+Maker',
+    imageUrl: '/images/products/headphones.png',
     category: 'Gia dụng',
     storeId: 'STORE-HOME-10',
     storeName: 'Morning Brew',
@@ -1156,7 +1291,7 @@ export const mockProducts = [
     price: 249000,
     originalPrice: 319000,
     discountPercent: 22,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Scale',
+    imageUrl: '/images/products/headphones.png',
     category: 'Gia dụng',
     storeId: 'STORE-HOME-11',
     storeName: 'Cook Measure',
@@ -1175,7 +1310,7 @@ export const mockProducts = [
     price: 275000,
     originalPrice: 349000,
     discountPercent: 21,
-    imageUrl: 'https://placehold.co/600x600/fff1ec/1b1c1c?text=Body+Mist',
+    imageUrl: '/images/products/headphones.png',
     category: 'Mỹ phẩm',
     storeId: 'STORE-BEAUTY-10',
     storeName: 'Bloom Scent',
@@ -1194,7 +1329,7 @@ export const mockProducts = [
     price: 129000,
     originalPrice: 169000,
     discountPercent: 24,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Brow',
+    imageUrl: '/images/products/headphones.png',
     category: 'Mỹ phẩm',
     storeId: 'STORE-BEAUTY-11',
     storeName: 'Makeup Point',
@@ -1213,7 +1348,7 @@ export const mockProducts = [
     price: 59000,
     originalPrice: 79000,
     discountPercent: 25,
-    imageUrl: 'https://placehold.co/600x600/e3e2e2/1b1c1c?text=Clip',
+    imageUrl: '/images/products/headphones.png',
     category: 'Sách - Văn phòng phẩm',
     storeId: 'STORE-BOOK-10',
     storeName: 'Office Corner',
@@ -1232,7 +1367,7 @@ export const mockProducts = [
     price: 139000,
     originalPrice: 179000,
     discountPercent: 22,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Planner+Board',
+    imageUrl: '/images/products/headphones.png',
     category: 'Sách - Văn phòng phẩm',
     storeId: 'STORE-BOOK-11',
     storeName: 'Plan Better',
@@ -1251,7 +1386,7 @@ export const mockProducts = [
     price: 159000,
     originalPrice: 209000,
     discountPercent: 24,
-    imageUrl: 'https://placehold.co/600x600/dbe4e2/1b1c1c?text=Massage+Roller',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thể thao',
     storeId: 'STORE-SPORT-08',
     storeName: 'Recovery Lab',
@@ -1270,7 +1405,7 @@ export const mockProducts = [
     price: 279000,
     originalPrice: 349000,
     discountPercent: 20,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Dumbbell',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thể thao',
     storeId: 'STORE-SPORT-09',
     storeName: 'Fit Basics',
@@ -1289,7 +1424,7 @@ export const mockProducts = [
     price: 149000,
     originalPrice: 199000,
     discountPercent: 25,
-    imageUrl: 'https://placehold.co/600x600/e3e2e2/1b1c1c?text=Cap',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thời trang',
     storeId: 'STORE-FASHION-12',
     storeName: 'Cap & Go',
@@ -1308,7 +1443,7 @@ export const mockProducts = [
     price: 289000,
     originalPrice: 359000,
     discountPercent: 19,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Wallet',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thời trang',
     storeId: 'STORE-FASHION-13',
     storeName: 'Pocket Style',
@@ -1327,7 +1462,7 @@ export const mockProducts = [
     price: 89000,
     originalPrice: 119000,
     discountPercent: 25,
-    imageUrl: 'https://placehold.co/600x600/e3e2e2/1b1c1c?text=Phone+Stand',
+    imageUrl: '/images/products/headphones.png',
     category: 'Điện tử',
     storeId: 'STORE-ELEC-13',
     storeName: 'Desk Gadget',
@@ -1346,7 +1481,7 @@ export const mockProducts = [
     price: 259000,
     originalPrice: 329000,
     discountPercent: 21,
-    imageUrl: 'https://placehold.co/600x600/dbe4e2/1b1c1c?text=Power+Strip',
+    imageUrl: '/images/products/headphones.png',
     category: 'Điện tử',
     storeId: 'STORE-ELEC-14',
     storeName: 'Safe Electric',
@@ -1365,7 +1500,7 @@ export const mockProducts = [
     price: 459000,
     originalPrice: 579000,
     discountPercent: 21,
-    imageUrl: 'https://placehold.co/600x600/fff1ec/1b1c1c?text=Kettle',
+    imageUrl: '/images/products/headphones.png',
     category: 'Gia dụng',
     storeId: 'STORE-HOME-12',
     storeName: 'Heat Home',
@@ -1384,7 +1519,7 @@ export const mockProducts = [
     price: 339000,
     originalPrice: 429000,
     discountPercent: 21,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Pan',
+    imageUrl: '/images/products/headphones.png',
     category: 'Gia dụng',
     storeId: 'STORE-HOME-13',
     storeName: 'Cook Everyday',
@@ -1403,7 +1538,7 @@ export const mockProducts = [
     price: 149000,
     originalPrice: 199000,
     discountPercent: 25,
-    imageUrl: 'https://placehold.co/600x600/fff1ec/1b1c1c?text=Blush',
+    imageUrl: '/images/products/headphones.png',
     category: 'Mỹ phẩm',
     storeId: 'STORE-BEAUTY-12',
     storeName: 'Rosy House',
@@ -1422,7 +1557,7 @@ export const mockProducts = [
     price: 269000,
     originalPrice: 339000,
     discountPercent: 21,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Palette',
+    imageUrl: '/images/products/headphones.png',
     category: 'Mỹ phẩm',
     storeId: 'STORE-BEAUTY-13',
     storeName: 'Daily Makeup',
@@ -1441,7 +1576,7 @@ export const mockProducts = [
     price: 29000,
     originalPrice: 39000,
     discountPercent: 26,
-    imageUrl: 'https://placehold.co/600x600/e3e2e2/1b1c1c?text=Pencil',
+    imageUrl: '/images/products/headphones.png',
     category: 'Sách - Văn phòng phẩm',
     storeId: 'STORE-BOOK-12',
     storeName: 'Campus Tools',
@@ -1460,7 +1595,7 @@ export const mockProducts = [
     price: 79000,
     originalPrice: 99000,
     discountPercent: 20,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Pencil+Case',
+    imageUrl: '/images/products/headphones.png',
     category: 'Sách - Văn phòng phẩm',
     storeId: 'STORE-BOOK-13',
     storeName: 'School Time',
@@ -1479,7 +1614,7 @@ export const mockProducts = [
     price: 179000,
     originalPrice: 229000,
     discountPercent: 22,
-    imageUrl: 'https://placehold.co/600x600/dbe4e2/1b1c1c?text=Knee+Support',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thể thao',
     storeId: 'STORE-SPORT-10',
     storeName: 'Sport Care',
@@ -1498,7 +1633,7 @@ export const mockProducts = [
     price: 139000,
     originalPrice: 179000,
     discountPercent: 22,
-    imageUrl: 'https://placehold.co/600x600/f5f3f3/1b1c1c?text=Run+Bag',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thể thao',
     storeId: 'STORE-SPORT-11',
     storeName: 'Runner Hub',
@@ -1517,7 +1652,7 @@ export const mockProducts = [
     price: 429000,
     originalPrice: 539000,
     discountPercent: 20,
-    imageUrl: 'https://placehold.co/600x600/fff1ec/1b1c1c?text=Cardigan',
+    imageUrl: '/images/products/headphones.png',
     category: 'Thời trang',
     storeId: 'STORE-FASHION-14',
     storeName: 'Soft Layer',
@@ -1536,7 +1671,7 @@ export const mockProducts = [
     price: 359000,
     originalPrice: 459000,
     discountPercent: 22,
-    imageUrl: 'https://placehold.co/600x600/dbe4e2/1b1c1c?text=Earbuds',
+    imageUrl: '/images/products/headphones.png',
     category: 'Điện tử',
     storeId: 'STORE-ELEC-15',
     storeName: 'Lite Audio',
@@ -1555,7 +1690,7 @@ export const mockProducts = [
     price: 629000,
     originalPrice: 789000,
     discountPercent: 20,
-    imageUrl: 'https://placehold.co/600x600/fff1ec/1b1c1c?text=Steamer',
+    imageUrl: '/images/products/headphones.png',
     category: 'Gia dụng',
     storeId: 'STORE-HOME-14',
     storeName: 'Travel Home',
@@ -1567,3 +1702,11 @@ export const mockProducts = [
     status: PRODUCT_STATUSES.ACTIVE,
   },
 ]
+
+export const mockProducts = mockProductSeeds.map((product) => ({
+  ...product,
+  imageUrl: getProductDemoImage(product),
+  skuId: buildDefaultSkuId(product.id),
+  skuCode: FEATURED_SKU_CODES[product.id] || buildDefaultSkuCode(product),
+  variantName: 'Mặc định',
+}))

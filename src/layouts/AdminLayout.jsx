@@ -47,6 +47,14 @@ export default function AdminLayout() {
         </div>
 
         <div className="flex items-center gap-4">
+          <NavLink
+            to="/"
+            end
+            className="hidden items-center gap-2 rounded border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-200 transition hover:border-white hover:text-white md:flex"
+          >
+            <AdminIcon name="storefront" className="text-[18px]" />
+            Về sàn
+          </NavLink>
           <button type="button" className="text-slate-300 transition hover:text-white" aria-label="Thông báo">
             <AdminIcon name="notifications" />
           </button>
@@ -90,6 +98,14 @@ export default function AdminLayout() {
           </nav>
 
           <div className="mt-auto px-2">
+            <NavLink
+              to="/"
+              end
+              className="mb-2 flex w-full items-center gap-3 rounded p-2 text-left text-xs font-medium text-slate-400 transition hover:bg-slate-800 hover:text-white"
+            >
+              <AdminIcon name="storefront" className="text-[20px]" />
+              Về sàn
+            </NavLink>
             <button
               type="button"
               onClick={handleLogout}
@@ -102,6 +118,16 @@ export default function AdminLayout() {
         </aside>
 
         <div className="w-full border-b border-slate-200 bg-white px-4 py-3 md:hidden">
+          <div className="mb-3 flex justify-end">
+            <NavLink
+              to="/"
+              end
+              className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700"
+            >
+              <AdminIcon name="storefront" className="text-[16px]" />
+              Về sàn
+            </NavLink>
+          </div>
           <div className="flex gap-2 overflow-x-auto pb-1">
             {navItems.map((item) => (
               item.disabled ? (

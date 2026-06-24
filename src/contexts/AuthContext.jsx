@@ -5,8 +5,8 @@ import { AuthContext } from './auth-context'
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser())
 
-  const login = (email, password) => {
-    const user = authService.login(email, password)
+  const login = async (email, password) => {
+    const user = await authService.login(email, password)
     setCurrentUser(user)
     return user
   }

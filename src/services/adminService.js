@@ -461,6 +461,16 @@ const adminOrderTimeline = [
   { status: 'COMPLETED', label: 'Hoàn thành', icon: 'task_alt' },
 ]
 
+const adminOrderStatusTransitions = {
+  PENDING: ['CONFIRMED', 'CANCELLED'],
+  CONFIRMED: ['PROCESSING', 'CANCELLED'],
+  PROCESSING: ['PACKING', 'CANCELLED'],
+  PACKING: ['SHIPPING', 'CANCELLED'],
+  SHIPPING: ['COMPLETED', 'CANCELLED'],
+  COMPLETED: [],
+  CANCELLED: [],
+}
+
 function buildAdminOrderDetail(order) {
   const itemNames = order.summary.split(',').map((item) => item.trim()).filter(Boolean)
   const items = itemNames.map((name, index) => {
@@ -1088,6 +1098,9 @@ export const adminService = {
         totalCount: orders.length,
         allCount: adminOrders.length,
         stores,
+        latestOrderedAt: adminOrders.reduce((latest, order) => (
+          new Date(order.orderedAt) > new Date(latest) ? order.orderedAt : latest
+        ), adminOrders[0]?.orderedAt || new Date().toISOString()),
       },
     }
   },
@@ -1124,6 +1137,16 @@ export const adminService = {
     }
 
     const storedStatuses = getStoredOrderStatuses()
+    const currentStatus = storedStatuses[orderId] || order.status
+    const allowedStatuses = adminOrderStatusTransitions[currentStatus] || []
+
+    if (!allowedStatuses.includes(status)) {
+      return {
+        success: false,
+        message: `Không thể chuyển đơn hàng từ ${currentStatus} sang ${status}.`,
+      }
+    }
+
     storedStatuses[orderId] = status
     setStoredOrderStatuses(storedStatuses)
 

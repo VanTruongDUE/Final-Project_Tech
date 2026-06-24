@@ -37,6 +37,60 @@ function formatChartDate(label) {
   return `${label}/${new Date().getFullYear()}`
 }
 
+function escapeCsvCell(value) {
+  return `"${String(value ?? '').replace(/"/g, '""')}"`
+}
+
+function encodeUtf16Le(value) {
+  const encodedValue = new Uint8Array(2 + value.length * 2)
+  encodedValue[0] = 0xFF
+  encodedValue[1] = 0xFE
+
+  for (let index = 0; index < value.length; index += 1) {
+    const characterCode = value.charCodeAt(index)
+    encodedValue[2 + index * 2] = characterCode & 0xFF
+    encodedValue[3 + index * 2] = characterCode >> 8
+  }
+
+  return encodedValue
+}
+
+function downloadRevenueExcelReport({ storeName, rangeLabel, rows, totalRevenue, orderCount, averageOrderValue }) {
+  const summaryRows = [
+    ['BÁO CÁO DOANH THU'],
+    ['Gian hàng', storeName],
+    ['Kỳ báo cáo', rangeLabel],
+    ['Tổng doanh thu (VNĐ)', Math.round(totalRevenue)],
+    ['Đơn hàng thành công', orderCount],
+    ['Giá trị trung bình đơn (VNĐ)', Math.round(averageOrderValue)],
+    [],
+    ['STT', 'Mã SKU', 'Sản phẩm', 'Biến thể', 'Số lượng bán', 'Đơn giá (VNĐ)', 'Tổng doanh thu (VNĐ)'],
+    ...rows.map((row) => [
+      row.rank,
+      row.sku,
+      row.name,
+      row.variantName || 'Mặc định',
+      row.quantitySold,
+      Math.round(row.unitPrice),
+      Math.round(row.totalRevenue),
+    ]),
+  ]
+  const spreadsheetContent = summaryRows
+    .map((row) => row.map(escapeCsvCell).join('\t'))
+    .join('\r\n')
+  const blob = new Blob([encodeUtf16Le(spreadsheetContent)], { type: 'text/tab-separated-values;charset=utf-16le' })
+  const downloadUrl = URL.createObjectURL(blob)
+  const downloadLink = document.createElement('a')
+  const exportedDate = new Date().toISOString().slice(0, 10)
+
+  downloadLink.href = downloadUrl
+  downloadLink.download = `bao-cao-doanh-thu-${exportedDate}.csv`
+  document.body.appendChild(downloadLink)
+  downloadLink.click()
+  downloadLink.remove()
+  window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 0)
+}
+
 function RevenueCard({ card }) {
   return (
     <div className="group relative flex min-h-[176px] flex-col justify-between overflow-hidden rounded-xl border border-[#e3e2e2] bg-white p-6 shadow-sm transition-shadow hover:shadow-md lg:min-h-[188px]">
@@ -68,6 +122,7 @@ export default function SellerRevenuePage() {
   const [range, setRange] = useState('30d')
   const [chartType, setChartType] = useState('line')
   const [hoveredChartPoint, setHoveredChartPoint] = useState(null)
+  const [exportMessage, setExportMessage] = useState('')
   const revenueResponse = sellerService.getSellerRevenueReport(currentUser, { keyword, range })
 
   const chartMeta = useMemo(() => {
@@ -117,6 +172,18 @@ export default function SellerRevenuePage() {
   const pieGradient = buildPieGradient(chart)
   const totalChartRevenue = chart.reduce((sum, point) => sum + point.value, 0)
 
+  const handleExportExcel = () => {
+    downloadRevenueExcelReport({
+      storeName: revenueResponse.data.store.storeName,
+      rangeLabel: selectedRangeLabel,
+      rows,
+      totalRevenue: revenueResponse.meta.totalRevenue,
+      orderCount: revenueResponse.meta.orderCount,
+      averageOrderValue: revenueResponse.meta.averageOrderValue,
+    })
+    setExportMessage(`Đã xuất ${rows.length} dòng doanh thu.`)
+  }
+
   return (
     <section className="min-h-screen overflow-x-hidden bg-[#f5f3f3]">
       <header className="sticky top-0 z-30 flex flex-col gap-4 border-b border-[#e3e2e2] bg-white/90 px-4 py-4 shadow-sm backdrop-blur-md md:flex-row md:items-center md:justify-between md:px-10">
@@ -124,7 +191,7 @@ export default function SellerRevenuePage() {
           <h1 className="text-[28px] font-semibold tracking-tight text-[#1b1c1c] md:text-[32px]">Báo cáo doanh thu</h1>
           <p className="mt-1 text-sm text-[#5b403b]">Tổng quan hiệu suất bán hàng của bạn.</p>
         </div>
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-wrap items-center justify-end gap-4">
           <div className="relative">
             <select
               value={range}
@@ -141,12 +208,13 @@ export default function SellerRevenuePage() {
           </div>
           <button
             type="button"
-            onClick={() => window.alert('Xuất Excel hiện đang ở chế độ mock UI Seller.')}
+            onClick={handleExportExcel}
             className="flex h-10 items-center gap-2 rounded-lg bg-[#ee4d2d] px-4 text-xs font-medium text-white shadow-sm transition hover:bg-[#d73211]"
           >
             <SellerIcon name="download" className="text-[20px]" />
             Xuất Excel
           </button>
+          {exportMessage ? <p className="basis-full text-right text-xs font-medium text-[#15803D]" role="status">{exportMessage}</p> : null}
         </div>
       </header>
 
@@ -299,13 +367,13 @@ export default function SellerRevenuePage() {
 
         <section className="mb-8 flex flex-col overflow-hidden rounded-xl border border-[#e3e2e2] bg-white shadow-sm">
           <div className="flex flex-col gap-4 border-b border-[#e3e2e2] bg-[#fbf9f9] p-6 md:flex-row md:items-center md:justify-between">
-            <h2 className="text-[20px] font-semibold text-[#1b1c1c]">Chi tiết doanh thu theo sản phẩm</h2>
+            <h2 className="text-[20px] font-semibold text-[#1b1c1c]">Chi tiết doanh thu theo SKU / biến thể</h2>
             <div className="relative w-full md:w-64">
               <input
                 type="search"
                 value={keyword}
                 onChange={(event) => setKeyword(event.target.value)}
-                placeholder="Tìm kiếm sản phẩm..."
+                placeholder="Tìm sản phẩm, biến thể, SKU..."
                 className="h-10 w-full rounded-lg border border-[#e3e2e2] bg-[#fbf9f9] py-2 pl-10 pr-4 text-sm text-[#1b1c1c] outline-none transition focus:border-transparent focus:ring-2 focus:ring-[#b22204]"
               />
               <SellerIcon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-[#5b403b]" />
@@ -334,7 +402,8 @@ export default function SellerRevenuePage() {
                         </div>
                         <div>
                           <p className="font-medium text-[#1b1c1c] transition-colors group-hover:text-[#b22204]">{row.name}</p>
-                          <p className="mt-1 text-xs font-medium text-[#5b403b]">Mã SP: {row.sku}</p>
+                          <p className="mt-1 text-xs font-semibold text-[#8f3a28]">Biến thể: {row.variantName || 'Mặc định'}</p>
+                          <p className="mt-0.5 break-all text-xs font-medium text-[#5b403b]">SKU: {row.sku}</p>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right font-medium">{row.quantitySold}</td>
@@ -354,7 +423,7 @@ export default function SellerRevenuePage() {
           </div>
 
           <div className="flex items-center justify-between border-t border-[#e3e2e2] bg-[#fbf9f9] p-4">
-            <p className="text-xs font-medium text-[#5b403b]">Hiển thị 1 - {rows.length} trong số {totalCount} sản phẩm</p>
+            <p className="text-xs font-medium text-[#5b403b]">Hiển thị 1 - {rows.length} trong số {totalCount} SKU</p>
             <div className="flex items-center gap-1">
               <button type="button" disabled className="flex h-8 w-8 items-center justify-center rounded-md border border-[#e3e2e2] text-[#5b403b] disabled:opacity-50">
                 <SellerIcon name="chevron_left" className="text-[20px]" />

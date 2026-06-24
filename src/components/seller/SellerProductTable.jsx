@@ -42,7 +42,7 @@ export default function SellerProductTable({ products, totalCount, onViewProduct
                 </td>
                 <td className="p-4 align-middle">
                   <div className="text-sm font-semibold text-[#1b1c1c]">{product.name}</div>
-                  <div className="mt-0.5 text-xs text-[#8f7069]">SKU: TT-{String(product.id).padStart(3, '0')}</div>
+                  <div className="mt-0.5 break-all text-xs text-[#8f7069]">SKU: {product.skuCode || 'Chưa có SKU'}</div>
                 </td>
                 <td className="p-4 align-middle text-sm text-[#1b1c1c]">{product.category}</td>
                 <td className="p-4 text-right align-middle text-sm font-semibold text-[#b22204]">{formatCurrency(product.price)}</td>

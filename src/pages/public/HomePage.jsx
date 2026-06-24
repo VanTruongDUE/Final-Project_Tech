@@ -22,6 +22,25 @@ const categoryItems = [
   { label: 'Xem thêm', icon: 'more_horiz', categoryMatch: '' },
 ]
 
+const categoryStyles = [
+  { color: '#2563eb', backgroundColor: '#eff6ff', borderColor: '#bfdbfe' },
+  { color: '#4f46e5', backgroundColor: '#eef2ff', borderColor: '#c7d2fe' },
+  { color: '#e11d48', backgroundColor: '#fff1f2', borderColor: '#fecdd3' },
+  { color: '#b45309', backgroundColor: '#fffbeb', borderColor: '#fde68a' },
+  { color: '#7c3aed', backgroundColor: '#f5f3ff', borderColor: '#ddd6fe' },
+  { color: '#0f766e', backgroundColor: '#f0fdfa', borderColor: '#99f6e4' },
+  { color: '#dc2626', backgroundColor: '#fef2f2', borderColor: '#fecaca' },
+  { color: '#ea580c', backgroundColor: '#fff7ed', borderColor: '#fed7aa' },
+  { color: '#db2777', backgroundColor: '#fdf2f8', borderColor: '#fbcfe8' },
+  { color: '#0891b2', backgroundColor: '#ecfeff', borderColor: '#a5f3fc' },
+  { color: '#0284c7', backgroundColor: '#f0f9ff', borderColor: '#bae6fd' },
+  { color: '#16a34a', backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' },
+  { color: '#c026d3', backgroundColor: '#fdf4ff', borderColor: '#f5d0fe' },
+  { color: '#d97706', backgroundColor: '#fffbeb', borderColor: '#fde68a' },
+  { color: '#9333ea', backgroundColor: '#faf5ff', borderColor: '#e9d5ff' },
+  { color: '#475569', backgroundColor: '#f8fafc', borderColor: '#cbd5e1' },
+]
+
 const topSearchSoldLabels = ['177k+', '171k+', '148k+', '139k+', '133k+', '119k+']
 
 const saleCampaigns = [
@@ -128,10 +147,11 @@ export default function HomePage() {
     }, {}),
   ).slice(0, 3)
 
-  const featuredCategoryLinks = categoryItems.map((item) => {
+  const featuredCategoryLinks = categoryItems.map((item, index) => {
     const matchedCategory = categories.find((category) => category === item.categoryMatch) || ''
     return {
       ...item,
+      ...categoryStyles[index],
       category: matchedCategory,
     }
   })
@@ -186,7 +206,7 @@ export default function HomePage() {
                 return (
                   <div key={campaign.badge} className="relative min-h-[320px] w-full shrink-0 md:h-full">
                     <img
-                      src={campaignProduct?.imageUrl || 'https://placehold.co/900x520/e3e2e2/1b1c1c?text=TechToShop'}
+                      src={campaignProduct?.imageUrl || '/images/products/headphones.png'}
                       alt={campaign.badge}
                       className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
@@ -307,7 +327,14 @@ export default function HomePage() {
                 to={item.category ? `/products?category=${encodeURIComponent(item.category)}` : '/products'}
                 className="group flex flex-col items-center gap-3"
               >
-                <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[#e3e2e2] bg-white text-[24px] shadow-sm transition-all duration-300 group-hover:border-[#ee4d2d] group-hover:shadow-md md:h-[68px] md:w-[68px] md:text-[28px]">
+                <div
+                  className="flex h-14 w-14 items-center justify-center rounded-full border text-[24px] shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-md md:h-[68px] md:w-[68px] md:text-[28px]"
+                  style={{
+                    color: item.color,
+                    backgroundColor: item.backgroundColor,
+                    borderColor: item.borderColor,
+                  }}
+                >
                   <span className="material-symbols-outlined text-[28px]" aria-hidden="true">
                     {item.icon}
                   </span>

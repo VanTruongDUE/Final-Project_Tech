@@ -1,5 +1,6 @@
 import { mockUsers } from '../mocks/users.mock'
 import { ROLES } from '../utils/roles'
+import { apiRequest, tokenStorage } from './apiClient'
 
 const AUTH_STORAGE_KEY = 'techtonic-commerce-user'
 const REGISTERED_USERS_KEY = 'techtonic_registered_users'
@@ -8,6 +9,7 @@ const PASSWORD_OVERRIDES_KEY = 'techtonic_password_overrides'
 const VALID_ROLES = Object.values(ROLES)
 const DEMO_RESET_OTP = '123456'
 const OTP_EXPIRES_IN_MS = 10 * 60 * 1000
+const USE_API = import.meta.env.VITE_DATA_SOURCE === 'api'
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -127,22 +129,43 @@ const createResetRequest = (email) => {
 const validateRequiredField = (value) => typeof value === 'string' && value.trim().length > 0
 
 export const authService = {
-  login(email, password) {
-    const normalizedEmail = normalizeEmail(email)
-    const matchedUser = buildLoginUsers().find(
-      (user) => user.email === normalizedEmail && user.password === password,
-    )
+  async login(loginId, password) {
+    if (!USE_API) {
+      const normalizedEmail = normalizeEmail(loginId)
+      const matchedUser = buildLoginUsers().find(
+        (user) => user.email === normalizedEmail && user.password === password,
+      )
 
-    if (!matchedUser) {
-      throw new Error('Email hoặc mật khẩu không đúng.')
+      if (!matchedUser) {
+        throw new Error('Email hoặc mật khẩu không đúng.')
+      }
+
+      const safeUser = sanitizeUser(matchedUser)
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(safeUser))
+      return safeUser
     }
 
-    const safeUser = sanitizeUser(matchedUser)
-    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(safeUser))
-    return safeUser
+    const result = await apiRequest('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ login_id: loginId.trim(), password }),
+    })
+
+    const roles = Array.isArray(result.data?.roles) ? result.data.roles : []
+    const user = {
+      id: result.data?.user_id,
+      fullName: result.data?.full_name,
+      email: result.data?.email,
+      phone: result.data?.phone || '',
+      role: roles[0] || ROLES.CUSTOMER,
+      roles,
+    }
+
+    tokenStorage.save(result.tokens || {})
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user))
+    return user
   },
 
-  registerUser({ fullName, email, password, confirmPassword }) {
+  async registerUser({ fullName, email, phone, password, confirmPassword }) {
     if (!validateRequiredField(fullName)) {
       throw new Error('Vui lòng nhập họ và tên.')
     }
@@ -157,6 +180,10 @@ export const authService = {
       throw new Error('Email không đúng định dạng.')
     }
 
+    if (!validateRequiredField(phone)) {
+      throw new Error('Vui lòng nhập số điện thoại.')
+    }
+
     if (!validateRequiredField(password)) {
       throw new Error('Vui lòng nhập mật khẩu.')
     }
@@ -169,25 +196,42 @@ export const authService = {
       throw new Error('Mật khẩu xác nhận không khớp.')
     }
 
-    if (findLoginUserByEmail(normalizedEmail)) {
-      throw new Error('Email này đã được sử dụng.')
+    if (!USE_API) {
+      if (findLoginUserByEmail(normalizedEmail)) {
+        throw new Error('Email này đã được sử dụng.')
+      }
+
+      const newUser = {
+        id: `CUSTOMER-LOCAL-${Date.now()}`,
+        fullName: fullName.trim(),
+        email: normalizedEmail,
+        password,
+        role: ROLES.CUSTOMER,
+        createdAt: new Date().toISOString(),
+      }
+
+      saveRegisteredUsers([...getRegisteredUsers(), newUser])
+
+      return {
+        success: true,
+        message: 'Đăng ký tài khoản thành công.',
+        data: sanitizeUser(newUser),
+      }
     }
 
-    const newUser = {
-      id: `CUSTOMER-LOCAL-${Date.now()}`,
-      fullName: fullName.trim(),
-      email: normalizedEmail,
-      password,
-      role: ROLES.CUSTOMER,
-      createdAt: new Date().toISOString(),
-    }
-
-    saveRegisteredUsers([...getRegisteredUsers(), newUser])
+    const result = await apiRequest('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        full_name: fullName.trim(),
+        email: normalizedEmail,
+        phone: phone.trim(),
+        password,
+      }),
+    })
 
     return {
       success: true,
-      message: 'Đăng ký tài khoản thành công.',
-      data: sanitizeUser(newUser),
+      message: result.message || 'Đăng ký tài khoản thành công.',
     }
   },
 
@@ -402,6 +446,7 @@ export const authService = {
 
   logout() {
     localStorage.removeItem(AUTH_STORAGE_KEY)
+    tokenStorage.clear()
   },
 
   getStorageKey() {

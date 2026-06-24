@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import SellerIcon from '../../components/seller/SellerIcon'
 import { useAuth } from '../../contexts/useAuth'
 import { PRODUCT_STATUSES } from '../../mocks/products.mock'
@@ -28,9 +28,39 @@ function FieldLabel({ htmlFor, children, required = false }) {
   )
 }
 
+function createCombinations(attributes) {
+  if (!attributes.length || attributes.some((attribute) => !attribute.values.length)) return []
+  return attributes.reduce(
+    (result, attribute) => result.flatMap((values) => attribute.values.map((value) => [...values, value])),
+    [[]],
+  )
+}
+
+function normalizeProductAttributes(product) {
+  if (Array.isArray(product.attributes) && product.attributes.length) {
+    return product.attributes.map((attribute, index) => ({
+      ...attribute,
+      id: attribute.id || `attribute-${index + 1}`,
+      values: Array.isArray(attribute.values) ? attribute.values : [],
+    }))
+  }
+
+  if (Array.isArray(product.skus) && product.skus.length) {
+    return [{
+      id: 'legacy-variant',
+      name: 'Biến thể',
+      values: product.skus.map((sku) => sku.variantName).filter(Boolean),
+    }]
+  }
+
+  return []
+}
+
 export default function SellerProductEditPage() {
   const { productId } = useParams()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const selectedSku = searchParams.get('sku') || ''
   const { currentUser } = useAuth()
   const productResponse = useMemo(() => sellerService.getSellerProductById(currentUser, productId), [currentUser, productId])
   const [error, setError] = useState('')
@@ -39,15 +69,55 @@ export default function SellerProductEditPage() {
 
     return {
       name: product.name || '',
-      sku: `TT-${String(product.id || '').padStart(3, '0')}`,
+      sku: product.skuCode || '',
       description: product.description || '',
       category: product.category || '',
       price: String(product.price || ''),
       stockQuantity: String(product.stockQuantity ?? ''),
       status: product.status || PRODUCT_STATUSES.ACTIVE,
-      imageUrl: product.imageUrl || 'https://placehold.co/600x600/fff1ec/1b1c1c?text=Product',
+      imageUrl: product.imageUrl || '/images/products/headphones.png',
     }
   })
+  const [attributes, setAttributes] = useState(() => normalizeProductAttributes(productResponse.data || {}))
+  const [variantData, setVariantData] = useState(() => Object.fromEntries(
+    (productResponse.data?.skus || []).map((sku) => [sku.variantName, { ...sku }]),
+  ))
+  const [variantImages, setVariantImages] = useState(() => productResponse.data?.variantImages || {})
+  const [attributeDrafts, setAttributeDrafts] = useState({})
+  const hasVariants = attributes.length > 0
+  const variantCombinations = useMemo(() => createCombinations(attributes), [attributes])
+  const variantNames = variantCombinations.map((values) => values.join(' / '))
+  const variantPreviewResponse = sellerService.previewSellerProductVariantSkus(currentUser, {
+    name: form.name,
+    category: form.category,
+    skus: variantNames.map((variantName) => ({ variantName, price: form.price, stockQuantity: form.stockQuantity })),
+  })
+  const variantPreviews = variantPreviewResponse.data || []
+  const variantRows = variantCombinations.map((values, index) => {
+    const variantName = values.join(' / ')
+    const storedVariant = variantData[variantName] || {}
+    const variantImage = values
+      .map((value, valueIndex) => variantImages[`${attributes[valueIndex]?.id}:${value}`])
+      .find(Boolean)
+
+    return {
+      skuId: storedVariant.skuId || variantPreviews[index]?.skuId || `SKU-EDIT-${index + 1}`,
+      skuCode: storedVariant.skuCode || variantPreviews[index]?.skuCode || '',
+      variantName,
+      price: Number(storedVariant.price ?? form.price),
+      originalPrice: Number(storedVariant.originalPrice ?? storedVariant.price ?? form.price),
+      stockQuantity: Number(storedVariant.stockQuantity ?? form.stockQuantity),
+      status: storedVariant.status || PRODUCT_STATUSES.ACTIVE,
+      imageUrl: variantImage || storedVariant.imageUrl || form.imageUrl,
+    }
+  })
+
+  useEffect(() => {
+    if (!selectedSku || !variantRows.length) return
+
+    const selectedRow = document.querySelector('[data-selected-sku-row="true"]')
+    selectedRow?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [selectedSku, variantRows.length])
 
   const updateField = (field, value) => {
     setForm((currentForm) => ({
@@ -57,10 +127,60 @@ export default function SellerProductEditPage() {
     setError('')
   }
 
+  const updateVariant = (variantName, field, value) => {
+    setVariantData((current) => ({
+      ...current,
+      [variantName]: { ...current[variantName], [field]: value },
+    }))
+  }
+
+  const addAttribute = () => {
+    if (attributes.length >= 4) return setError('Chỉ được tạo tối đa 4 thuộc tính biến thể.')
+    setAttributes((current) => [
+      ...current,
+      { id: `attribute-${Date.now()}`, name: `Thuộc tính ${current.length + 1}`, values: ['Mặc định'] },
+    ])
+  }
+
+  const addAttributeValue = (attributeId) => {
+    const value = String(attributeDrafts[attributeId] || '').trim()
+    const attribute = attributes.find((item) => item.id === attributeId)
+    if (!value) return setError('Vui lòng nhập giá trị biến thể.')
+    if (attribute?.values.some((item) => item.toLocaleLowerCase('vi') === value.toLocaleLowerCase('vi'))) {
+      return setError('Giá trị biến thể đã tồn tại.')
+    }
+    setAttributes((current) => current.map((item) => (
+      item.id === attributeId ? { ...item, values: [...item.values, value] } : item
+    )))
+    setAttributeDrafts((current) => ({ ...current, [attributeId]: '' }))
+    setError('')
+  }
+
+  const addVariantImage = (attributeId, value, file) => {
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => setVariantImages((current) => ({
+      ...current,
+      [`${attributeId}:${value}`]: String(reader.result || ''),
+    }))
+    reader.readAsDataURL(file)
+  }
+
   const handleSubmit = (event) => {
     event.preventDefault()
 
-    const response = sellerService.updateSellerProduct(currentUser, productId, form)
+    const payload = hasVariants
+      ? {
+          ...form,
+          attributes,
+          variantImages,
+          skus: variantRows,
+          price: Math.min(...variantRows.map((sku) => sku.price)),
+          originalPrice: Math.min(...variantRows.map((sku) => sku.originalPrice)),
+          stockQuantity: variantRows.reduce((total, sku) => total + sku.stockQuantity, 0),
+        }
+      : form
+    const response = sellerService.updateSellerProduct(currentUser, productId, payload)
 
     if (!response.success) {
       setError(response.message || 'Không thể cập nhật sản phẩm.')
@@ -105,8 +225,8 @@ export default function SellerProductEditPage() {
         </Link>
       </header>
 
-      <form onSubmit={handleSubmit} id="seller-product-edit-form" className="mx-auto grid w-full max-w-[1200px] grid-cols-1 gap-6 p-4 md:p-6 lg:grid-cols-3">
-        <div className="lg:col-span-3">
+      <form onSubmit={handleSubmit} id="seller-product-edit-form" className="mx-auto grid w-full max-w-[1600px] grid-cols-1 items-start gap-5 p-4 md:p-6 lg:grid-cols-4">
+        <div className="lg:col-span-4">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h1 className="text-2xl font-bold text-[#1b1c1c] md:text-[32px]">Chỉnh sửa sản phẩm</h1>
@@ -122,8 +242,8 @@ export default function SellerProductEditPage() {
           {error ? <div className="mt-4 rounded-lg border border-[#ba1a1a]/25 bg-[#ffdad6] px-4 py-3 text-sm font-medium text-[#93000a]">{error}</div> : null}
         </div>
 
-        <div className="flex flex-col gap-6 lg:col-span-2">
-          <section className="rounded-xl border border-[#e3e2e2] bg-white p-6 shadow-sm">
+        <div className="contents">
+          <section className="order-1 rounded-xl border border-[#e3e2e2] bg-white p-6 shadow-sm lg:col-span-3 lg:col-start-1 lg:row-start-2">
             <h2 className="mb-4 border-b border-[#e3e2e2] pb-3 text-xl font-semibold text-[#1b1c1c]">Thông tin cơ bản</h2>
             <div className="space-y-4">
               <div>
@@ -142,12 +262,12 @@ export default function SellerProductEditPage() {
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <FieldLabel htmlFor="edit-sku" required>
-                    Mã SKU
+                    {hasVariants ? 'SKU đại diện' : 'Mã SKU'}
                   </FieldLabel>
                   <input
                     id="edit-sku"
                     value={form.sku}
-                    onChange={(event) => updateField('sku', event.target.value)}
+                    readOnly
                     className="h-11 w-full rounded-lg border border-[#e3beb6] bg-[#fbf9f9] px-4 text-sm text-[#1b1c1c] outline-none focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
                     required
                   />
@@ -178,7 +298,7 @@ export default function SellerProductEditPage() {
             </div>
           </section>
 
-          <section className="rounded-xl border border-[#e3e2e2] bg-white p-6 shadow-sm">
+          <section className={`order-3 rounded-xl border border-[#e3e2e2] bg-white p-6 shadow-sm lg:col-span-3 lg:col-start-1 ${hasVariants ? 'lg:row-start-4' : 'lg:row-start-3'}`}>
             <h2 className="mb-4 border-b border-[#e3e2e2] pb-3 text-xl font-semibold text-[#1b1c1c]">Mô tả chi tiết</h2>
             <textarea
               rows="7"
@@ -189,7 +309,7 @@ export default function SellerProductEditPage() {
           </section>
         </div>
 
-        <div className="flex flex-col gap-6">
+        <div className={`order-4 flex flex-col gap-5 lg:col-start-4 lg:row-start-2 ${hasVariants ? 'lg:row-span-3' : 'lg:row-span-2'}`}>
           <section className="rounded-xl border border-[#e3e2e2] bg-white p-6 shadow-sm">
             <h2 className="mb-4 border-b border-[#e3e2e2] pb-3 text-xl font-semibold text-[#1b1c1c]">Trạng thái</h2>
             <div className="relative">
@@ -220,8 +340,9 @@ export default function SellerProductEditPage() {
                     id="edit-price"
                     type="number"
                     min="0"
-                    value={form.price}
+                    value={hasVariants && variantRows.length ? Math.min(...variantRows.map((sku) => sku.price)) : form.price}
                     onChange={(event) => updateField('price', event.target.value)}
+                    readOnly={hasVariants}
                     className="h-11 w-full rounded-lg border border-[#e3beb6] bg-[#fbf9f9] px-4 pr-10 text-right text-lg font-bold text-[#b22204] outline-none focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
                     required
                   />
@@ -237,11 +358,13 @@ export default function SellerProductEditPage() {
                   id="edit-stock"
                   type="number"
                   min="0"
-                  value={form.stockQuantity}
+                  value={hasVariants ? variantRows.reduce((total, sku) => total + sku.stockQuantity, 0) : form.stockQuantity}
                   onChange={(event) => updateField('stockQuantity', event.target.value)}
+                  readOnly={hasVariants}
                   className="h-11 w-full rounded-lg border border-[#e3beb6] bg-[#fbf9f9] px-4 text-sm text-[#1b1c1c] outline-none focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
-                  required
-                />
+                    required
+                  />
+                  {hasVariants ? <p className="mt-2 text-xs text-[#8f7069]">Tự động tính từ toàn bộ SKU biến thể bên dưới.</p> : null}
               </div>
             </div>
           </section>
@@ -254,10 +377,120 @@ export default function SellerProductEditPage() {
             <p className="mt-3 text-xs leading-5 text-[#5b403b]">Gợi ý: hình ảnh vuông (1:1), nền sáng, độ phân giải tối thiểu 800x800px.</p>
           </section>
         </div>
+
+        {hasVariants ? (
+          <section className="order-2 rounded-xl border border-[#e3e2e2] bg-white p-6 shadow-sm lg:col-span-3 lg:col-start-1 lg:row-start-3">
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-[#e3e2e2] pb-4">
+              <div>
+                <h2 className="text-xl font-semibold text-[#1b1c1c]">Biến thể & SKU</h2>
+                <p className="mt-1 text-xs text-[#5b403b]">Chỉnh thuộc tính, ảnh, giá và tồn kho riêng cho từng tổ hợp SKU.</p>
+              </div>
+              <button type="button" onClick={addAttribute} className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#b22204] px-4 text-sm font-bold text-[#b22204] hover:bg-[#fff7f5]">
+                <SellerIcon name="add" className="text-[18px]" />
+                Thêm thuộc tính
+              </button>
+            </div>
+
+            <div className="overflow-hidden rounded-lg border border-[#e3beb6] bg-[#fbf9f9]">
+              {attributes.map((attribute, attributeIndex) => (
+                <div key={attribute.id} className={`grid gap-4 p-4 md:grid-cols-[170px_minmax(0,1fr)_40px] ${attributeIndex < attributes.length - 1 ? 'border-b border-[#e3beb6]' : ''}`}>
+                  <div>
+                    <FieldLabel htmlFor={`edit-attribute-${attribute.id}`}>Tên thuộc tính {attributeIndex + 1}</FieldLabel>
+                    <input
+                      id={`edit-attribute-${attribute.id}`}
+                      value={attribute.name}
+                      onChange={(event) => setAttributes((current) => current.map((item) => (
+                        item.id === attribute.id ? { ...item, name: event.target.value } : item
+                      )))}
+                      className="h-10 w-full rounded-lg border border-[#e3beb6] bg-white px-3 text-sm font-semibold outline-none focus:border-[#ee4d2d]"
+                    />
+                  </div>
+
+                  <div>
+                    <p className="mb-2 text-xs font-bold text-[#1b1c1c]">Giá trị thuộc tính · có thể đổi ảnh</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {attribute.values.map((value) => {
+                        const imageKey = `${attribute.id}:${value}`
+                        return (
+                          <span key={value} className="inline-flex items-center gap-1 rounded-full border border-[#e3beb6] bg-white py-1.5 pl-2 pr-2 text-sm">
+                            <label title={`Đổi ảnh cho ${value}`} className="grid h-7 w-7 cursor-pointer place-items-center overflow-hidden rounded-full border border-[#e3beb6] bg-[#fff7f5] text-[#b22204]">
+                              {variantImages[imageKey]
+                                ? <img src={variantImages[imageKey]} alt={`Biến thể ${value}`} className="h-full w-full object-cover" />
+                                : <SellerIcon name="add_photo_alternate" className="text-[15px]" />}
+                              <input type="file" accept="image/*" className="hidden" onChange={(event) => { addVariantImage(attribute.id, value, event.target.files?.[0]); event.target.value = '' }} />
+                            </label>
+                            <span className="px-1">{value}</span>
+                            <button
+                              type="button"
+                              disabled={attribute.values.length === 1}
+                              onClick={() => setAttributes((current) => current.map((item) => (
+                                item.id === attribute.id
+                                  ? { ...item, values: item.values.filter((entry) => entry !== value) }
+                                  : item
+                              )))}
+                              aria-label={`Xóa ${value}`}
+                              className="grid h-5 w-5 place-items-center rounded-full hover:bg-red-50 hover:text-[#b22204] disabled:opacity-30"
+                            >
+                              <SellerIcon name="close" className="text-[14px]" />
+                            </button>
+                          </span>
+                        )
+                      })}
+                      <input
+                        value={attributeDrafts[attribute.id] || ''}
+                        onChange={(event) => setAttributeDrafts((current) => ({ ...current, [attribute.id]: event.target.value }))}
+                        onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); addAttributeValue(attribute.id) } }}
+                        placeholder="Giá trị mới"
+                        className="h-9 w-32 rounded-full border border-dashed border-[#e3beb6] bg-white px-3 text-sm outline-none focus:border-[#ee4d2d]"
+                      />
+                      <button type="button" onClick={() => addAttributeValue(attribute.id)} className="h-9 rounded-full border border-dashed border-[#ee4d2d] px-3 text-sm font-bold text-[#ee4d2d]">Thêm</button>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={attributes.length === 1}
+                    onClick={() => setAttributes((current) => current.filter((item) => item.id !== attribute.id))}
+                    aria-label={`Xóa thuộc tính ${attribute.name}`}
+                    className="mt-6 grid h-9 w-9 place-items-center rounded-lg text-[#5b403b] hover:bg-red-50 hover:text-[#b22204] disabled:opacity-30"
+                  >
+                    <SellerIcon name="delete" className="text-[18px]" />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 overflow-x-auto rounded-lg border border-[#e3beb6]">
+              <table className="w-full min-w-[1180px] table-fixed text-left text-sm">
+                <colgroup><col className="w-[280px]" /><col /><col className="w-[145px]" /><col className="w-[145px]" /><col className="w-[110px]" /><col className="w-[150px]" /></colgroup>
+                <thead className="bg-[#fbf9f9] text-xs text-[#5b403b]">
+                  <tr><th className="px-4 py-3">Biến thể</th><th className="px-4 py-3">Mã SKU</th><th className="px-4 py-3 text-right">Giá bán</th><th className="px-4 py-3 text-right">Giá gốc</th><th className="px-4 py-3 text-right">Tồn kho</th><th className="px-4 py-3">Trạng thái</th></tr>
+                </thead>
+                <tbody className="divide-y divide-[#eee5e2]">
+                  {variantRows.map((sku) => {
+                    const isSelectedSku = selectedSku && (String(sku.skuId) === selectedSku || String(sku.skuCode) === selectedSku)
+
+                    return (
+                    <tr key={sku.variantName} data-selected-sku-row={isSelectedSku ? 'true' : undefined} className={isSelectedSku ? 'bg-[#fff1ec] ring-1 ring-inset ring-[#ee4d2d]/30' : ''}>
+                      <td className="px-4 py-3"><div className="flex min-w-0 items-center gap-3"><img src={sku.imageUrl || form.imageUrl} alt="" className="h-9 w-9 shrink-0 rounded-md border border-[#e3beb6] object-cover" /><span className="truncate font-semibold" title={sku.variantName}>{sku.variantName}</span></div></td>
+                      <td className="px-4 py-3"><span className="block truncate font-mono text-xs" title={sku.skuCode}>{sku.skuCode}</span></td>
+                      <td className="px-4 py-3"><input type="number" min="0" value={variantData[sku.variantName]?.price ?? sku.price} onChange={(event) => updateVariant(sku.variantName, 'price', event.target.value)} className="h-9 w-28 rounded border border-[#e3beb6] px-2 text-right" /></td>
+                      <td className="px-4 py-3"><input type="number" min="0" value={variantData[sku.variantName]?.originalPrice ?? sku.originalPrice} onChange={(event) => updateVariant(sku.variantName, 'originalPrice', event.target.value)} className="h-9 w-28 rounded border border-[#e3beb6] px-2 text-right" /></td>
+                      <td className="px-4 py-3"><input type="number" min="0" value={variantData[sku.variantName]?.stockQuantity ?? sku.stockQuantity} onChange={(event) => updateVariant(sku.variantName, 'stockQuantity', event.target.value)} className="h-9 w-20 rounded border border-[#e3beb6] px-2 text-right" /></td>
+                      <td className="px-4 py-3"><select value={variantData[sku.variantName]?.status ?? sku.status} onChange={(event) => updateVariant(sku.variantName, 'status', event.target.value)} className="h-9 w-full rounded border border-[#e3beb6] bg-white px-2 text-xs font-semibold"><option value={PRODUCT_STATUSES.ACTIVE}>Đang bán</option><option value={PRODUCT_STATUSES.HIDDEN}>Đã ẩn</option><option value={PRODUCT_STATUSES.OUT_OF_STOCK}>Hết hàng</option></select></td>
+                    </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-3 text-xs text-[#5b403b]">{variantRows.length} SKU · Tổng tồn kho {variantRows.reduce((total, sku) => total + sku.stockQuantity, 0)}</p>
+          </section>
+        ) : null}
       </form>
 
       <div className="fixed bottom-0 right-0 z-30 w-full border-t border-[#e3e2e2] bg-white p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] md:w-[calc(100%-280px)]">
-        <div className="mx-auto flex max-w-[1200px] justify-end gap-3">
+        <div className="mx-auto flex max-w-[1600px] justify-end gap-3">
           <Link to="/seller/products" className="inline-flex h-10 items-center rounded-lg border border-[#e3beb6] px-5 text-sm font-bold text-[#1b1c1c] transition hover:bg-[#f5f3f3]">
             Hủy
           </Link>

@@ -118,8 +118,12 @@ export default function ProductDetailPage() {
 
     const buyNowItem = {
       productId: product.id,
+      skuId: product.skuId,
+      skuCode: product.skuCode,
+      variantName: product.variantName,
       productName: product.name,
       imageUrl: product.imageUrl,
+      storeId: product.storeId,
       storeName: product.storeName,
       location: product.location,
       price: product.price,
@@ -248,6 +252,7 @@ export default function ProductDetailPage() {
             <div className="text-sm leading-7 text-[#5b403b]">
               <p>{product.description}</p>
               <ul className="mt-4 list-disc space-y-2 pl-5">
+                <li>Mã SKU: {product.skuCode}</li>
                 <li>Sản phẩm thuộc danh mục {product.category}, phù hợp cho nhu cầu mua sắm hằng ngày.</li>
                 <li>Được bán bởi {product.storeName}, giao từ {product.location}.</li>
                 <li>Tình trạng hiện tại: {isOutOfStock ? 'Tạm hết hàng' : 'Đang mở bán'}.</li>

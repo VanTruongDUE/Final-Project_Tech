@@ -50,6 +50,7 @@ export default function RegisterPage() {
       const result = await authService.registerUser({
         fullName: formData.fullName,
         email: formData.email,
+        phone: formData.phone,
         password: formData.password,
         confirmPassword: formData.confirmPassword,
       })

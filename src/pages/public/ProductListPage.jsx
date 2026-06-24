@@ -47,7 +47,10 @@ export default function ProductListPage() {
 
   const keyword = searchParams.get('keyword') || ''
   const selectedCategories = useMemo(
-    () => new URLSearchParams(searchParamsKey).getAll('category').filter(Boolean),
+    () => {
+      const selectedCategory = new URLSearchParams(searchParamsKey).get('category')
+      return selectedCategory ? [selectedCategory] : []
+    },
     [searchParamsKey],
   )
   const sort = searchParams.get('sort') || ''
@@ -71,17 +74,9 @@ export default function ProductListPage() {
     setSearchParams(nextParams, { replace: true })
   }
 
-  const toggleCategory = (nextCategory) => {
+  const selectCategory = (nextCategory) => {
     const nextParams = new URLSearchParams(searchParams)
-    const currentCategories = searchParams.getAll('category').filter(Boolean)
-
-    nextParams.delete('category')
-
-    const nextCategories = currentCategories.includes(nextCategory)
-      ? currentCategories.filter((item) => item !== nextCategory)
-      : [...currentCategories, nextCategory]
-
-    nextCategories.forEach((item) => nextParams.append('category', item))
+    nextParams.set('category', nextCategory)
     nextParams.delete('page')
 
     setSearchParams(nextParams, { replace: true })
@@ -239,10 +234,11 @@ export default function ProductListPage() {
             <div className="space-y-2">
               <label className="flex cursor-pointer items-center gap-2">
                 <input
-                  type="checkbox"
+                  type="radio"
+                  name="desktop-category"
                   checked={!selectedCategories.length}
                   onChange={clearCategoryFilter}
-                  className="h-4 w-4 rounded border-[#8f7069] text-[#ee4d2d] focus:ring-[#ee4d2d]"
+                  className="h-4 w-4 rounded-full border-[#8f7069] text-[#ee4d2d] focus:ring-[#ee4d2d]"
                 />
                 <span className={`text-sm transition ${!selectedCategories.length ? 'text-[#ee4d2d]' : 'text-[#5b403b]'}`}>
                   Tất cả
@@ -251,10 +247,11 @@ export default function ProductListPage() {
               {categories.map((item) => (
                 <label key={item} className="flex cursor-pointer items-center gap-2">
                   <input
-                    type="checkbox"
+                    type="radio"
+                    name="desktop-category"
                     checked={selectedCategories.includes(item)}
-                    onChange={() => toggleCategory(item)}
-                    className="h-4 w-4 rounded border-[#8f7069] text-[#ee4d2d] focus:ring-[#ee4d2d]"
+                    onChange={() => selectCategory(item)}
+                    className="h-4 w-4 rounded-full border-[#8f7069] text-[#ee4d2d] focus:ring-[#ee4d2d]"
                   />
                   <span className={`text-sm transition ${selectedCategories.includes(item) ? 'text-[#ee4d2d]' : 'text-[#5b403b]'}`}>
                     {item}
@@ -391,7 +388,7 @@ export default function ProductListPage() {
                   <button
                     key={item}
                     type="button"
-                    onClick={() => toggleCategory(item)}
+                    onClick={() => selectCategory(item)}
                     className={`rounded-full px-3 py-2 text-sm ${
                       selectedCategories.includes(item)
                         ? 'bg-[#ee4d2d] text-white'

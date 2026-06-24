@@ -7,6 +7,7 @@ const navItems = [
   { to: '/seller/orders', label: 'Đơn hàng', icon: 'shopping_bag' },
   { to: '/seller/products', label: 'Sản phẩm', icon: 'inventory_2' },
   { to: '/seller/inventory', label: 'Kho hàng', icon: 'warehouse' },
+  { to: '/seller/promotions', label: 'Khuyến mãi', icon: 'campaign' },
   { to: '/seller/revenue', label: 'Báo cáo', icon: 'analytics' },
   { to: '/seller/messages', label: 'Tin nhắn', icon: 'chat' },
   { to: '/seller/settings', label: 'Cài đặt', icon: 'settings' },

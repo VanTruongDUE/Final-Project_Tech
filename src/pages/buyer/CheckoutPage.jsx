@@ -18,6 +18,11 @@ const normalizeBuyNowItem = (buyNowItem) => {
   return [
     {
       productId: buyNowItem.productId,
+      skuId: buyNowItem.skuId || buyNowItem.skuCode,
+      skuCode: buyNowItem.skuCode,
+      variantName: buyNowItem.variantName || 'Mặc định',
+      price: buyNowItem.price,
+      storeId: buyNowItem.storeId,
       product: {
         id: buyNowItem.productId,
         name: buyNowItem.productName,
@@ -26,6 +31,10 @@ const normalizeBuyNowItem = (buyNowItem) => {
         location: buyNowItem.location,
         price: buyNowItem.price,
         originalPrice: buyNowItem.originalPrice,
+        skuId: buyNowItem.skuId || buyNowItem.skuCode,
+        skuCode: buyNowItem.skuCode,
+        variantName: buyNowItem.variantName || 'Mặc định',
+        storeId: buyNowItem.storeId,
       },
       quantity: buyNowItem.quantity || 1,
       selected: true,
@@ -51,6 +60,11 @@ const normalizeCheckoutItems = (items) => {
 
       return {
         productId,
+        skuId: item.skuId || product?.skuId || item.skuCode || product?.skuCode,
+        skuCode: item.skuCode || product?.skuCode || '',
+        variantName: item.variantName || product?.variantName || 'Mặc định',
+        price: Number(item.price ?? product?.price) || 0,
+        storeId: item.storeId || product?.storeId || '',
         product,
         quantity: Math.max(1, Number(item.quantity) || 1),
         selected: item.selected !== false,
@@ -130,6 +144,11 @@ export default function CheckoutPage() {
 
           return {
             productId: product.id,
+            skuId: item.skuId || product.skuId,
+            skuCode: item.skuCode || product.skuCode,
+            variantName: item.variantName || product.variantName || 'Mặc định',
+            price: item.price ?? product.price,
+            storeId: item.storeId || product.storeId,
             product,
             quantity: item.quantity,
             selected: item.selected !== false,
@@ -253,9 +272,15 @@ export default function CheckoutPage() {
       .filter((item) => item.product && item.productId)
       .map((item) => ({
         productId: item.productId,
+        skuId: item.skuId || item.skuCode || item.product.skuId,
+        skuCode: item.skuCode || item.product.skuCode,
+        productName: item.product.name,
+        variantName: item.variantName || item.product.variantName || 'Mặc định',
+        unitPrice: item.price ?? item.product.price ?? 0,
+        storeId: item.storeId || item.product.storeId,
         product: item.product,
         quantity: item.quantity,
-        price: item.product.price ?? 0,
+        price: item.price ?? item.product.price ?? 0,
       }))
 
     if (!normalizedItems.length) {

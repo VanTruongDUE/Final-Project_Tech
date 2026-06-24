@@ -40,6 +40,9 @@ export default function OrderItemList({ items, renderExtra }) {
                         {product?.name || 'Sản phẩm không còn khả dụng'}
                       </h3>
                       <p className="mt-1 text-sm text-[#5b403b]">Phân loại: {product?.category || 'Sản phẩm mua sắm'}</p>
+                      <p className="mt-1 break-all text-xs text-[#8f7069]">
+                        {item.variantName || product?.variantName || 'Mặc định'} · SKU: {item.skuCode || product?.skuCode}
+                      </p>
                       <p className="mt-1 text-xs text-[#8f7069]">{product?.storeName || 'TechToShop Mall'}</p>
                     </div>
 

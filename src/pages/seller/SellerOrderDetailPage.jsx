@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import SellerConfirmDialog from '../../components/seller/SellerConfirmDialog'
 import SellerIcon from '../../components/seller/SellerIcon'
 import { useAuth } from '../../contexts/useAuth'
 import { sellerService } from '../../services/sellerService'
@@ -32,23 +33,27 @@ export default function SellerOrderDetailPage() {
   const navigate = useNavigate()
   const { currentUser } = useAuth()
   const [, setVersion] = useState(0)
+  const [pendingAction, setPendingAction] = useState(null)
+  const [actionError, setActionError] = useState('')
   const decodedOrderId = decodeURIComponent(orderId)
   const orderResponse = sellerService.getSellerOrderById(currentUser, decodedOrderId)
 
-  const handleStatusChange = (nextStatus, label) => {
-    const confirmed = window.confirm(`${label} cho đơn ${decodedOrderId}?`)
+  const handleStatusChange = (action) => {
+    setActionError('')
+    setPendingAction(action)
+  }
 
-    if (!confirmed) {
-      return
-    }
-
-    const response = sellerService.updateSellerOrderStatus(currentUser, decodedOrderId, nextStatus)
+  const confirmStatusChange = () => {
+    if (!pendingAction) return
+    const response = sellerService.updateSellerOrderStatus(currentUser, decodedOrderId, pendingAction.nextStatus)
 
     if (!response.success) {
-      window.alert(response.message || 'Không thể cập nhật trạng thái đơn hàng.')
+      setActionError(response.message || 'Không thể cập nhật trạng thái đơn hàng.')
       return
     }
 
+    setPendingAction(null)
+    setActionError('')
     setVersion((currentVersion) => currentVersion + 1)
   }
 
@@ -214,7 +219,7 @@ export default function SellerOrderDetailPage() {
                     <button
                       key={action.nextStatus}
                       type="button"
-                      onClick={() => handleStatusChange(action.nextStatus, action.label)}
+                      onClick={() => handleStatusChange(action)}
                       className={`flex h-10 w-full items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold transition ${
                         action.nextStatus === 'CANCELLED'
                           ? 'border border-[#ba1a1a] bg-white text-[#ba1a1a] hover:bg-[#ffdad6]'
@@ -285,6 +290,18 @@ export default function SellerOrderDetailPage() {
           </div>
         </div>
       </div>
+
+      <SellerConfirmDialog
+        open={Boolean(pendingAction)}
+        title={pendingAction?.label || 'Cập nhật trạng thái đơn hàng'}
+        description={`Bạn có chắc muốn thực hiện thao tác này cho đơn ${decodedOrderId}? Trạng thái mới sẽ được ghi vào lịch sử đơn hàng.`}
+        confirmLabel={pendingAction?.label || 'Xác nhận'}
+        icon={pendingAction?.icon || 'help'}
+        danger={pendingAction?.nextStatus === 'CANCELLED'}
+        error={actionError}
+        onCancel={() => { setPendingAction(null); setActionError('') }}
+        onConfirm={confirmStatusChange}
+      />
     </section>
   )
 }

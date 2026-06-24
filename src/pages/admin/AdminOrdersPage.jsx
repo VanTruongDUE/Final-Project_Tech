@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import AdminIcon from '../../components/admin/AdminIcon'
 import { adminService } from '../../services/adminService'
+
+const ITEMS_PER_PAGE = 8
 
 const orderStatusOptions = [
   { value: 'all', label: 'Tất cả' },
@@ -53,6 +55,72 @@ function PaymentBadge({ status }) {
 
 function formatCurrency(value) {
   return new Intl.NumberFormat('vi-VN').format(value) + 'đ'
+}
+
+function escapeCsvCell(value) {
+  return `"${String(value ?? '').replace(/"/g, '""')}"`
+}
+
+function encodeUtf16Le(value) {
+  const bytes = new Uint8Array(2 + value.length * 2)
+  bytes[0] = 0xFF
+  bytes[1] = 0xFE
+  for (let index = 0; index < value.length; index += 1) {
+    const characterCode = value.charCodeAt(index)
+    bytes[2 + index * 2] = characterCode & 0xFF
+    bytes[3 + index * 2] = characterCode >> 8
+  }
+  return bytes
+}
+
+function exportOrdersCsv(orders) {
+  const rows = [
+    ['Mã đơn', 'Khách hàng', 'Cửa hàng', 'Sản phẩm', 'Ngày đặt', 'Tổng tiền (VNĐ)', 'Thanh toán', 'Trạng thái'],
+    ...orders.map((order) => [
+      order.id,
+      order.customerName,
+      order.storeName,
+      order.summary,
+      order.orderedAtLabel,
+      order.total,
+      paymentStatusMeta[order.paymentStatus]?.label || order.paymentStatus,
+      orderStatusMeta[order.status]?.label || order.status,
+    ]),
+  ]
+  const content = rows.map((row) => row.map(escapeCsvCell).join('\t')).join('\r\n')
+  const blob = new Blob([encodeUtf16Le(content)], { type: 'text/tab-separated-values;charset=utf-16le' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `don-hang-toan-san-${new Date().toISOString().slice(0, 10)}.csv`
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 0)
+}
+
+function AdminConfirmDialog({ action, error, onClose, onConfirm }) {
+  if (!action) return null
+
+  const isCancel = action.nextStatus === 'CANCELLED'
+  const nextStatusLabel = orderStatusMeta[action.nextStatus]?.label || action.nextStatus
+
+  return (
+    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-[#1b1c1c]/45 p-4 backdrop-blur-[2px]" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
+      <section role="dialog" aria-modal="true" className="w-full max-w-md overflow-hidden rounded-xl border border-[#e3beb6] bg-white shadow-2xl">
+        <div className={`h-1 ${isCancel ? 'bg-[#ba1a1a]' : 'bg-[#b22204]'}`} />
+        <div className="p-6">
+          <div className="flex items-start gap-4">
+            <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-full ${isCancel ? 'bg-[#ffdad6] text-[#ba1a1a]' : 'bg-[#ffdad3] text-[#b22204]'}`}><AdminIcon name={isCancel ? 'cancel' : 'published_with_changes'} className="text-[24px]" /></span>
+            <div className="min-w-0 flex-1"><h2 className="text-xl font-bold text-[#1b1c1c]">{isCancel ? 'Hủy đơn hàng?' : 'Cập nhật trạng thái?'}</h2><p className="mt-2 text-sm leading-6 text-[#5b403b]">Đơn #{action.order.id} sẽ chuyển sang trạng thái <strong>{nextStatusLabel}</strong>.</p></div>
+            <button type="button" onClick={onClose} aria-label="Đóng" className="grid h-8 w-8 place-items-center rounded-lg text-[#8f7069] hover:bg-[#f5f3f3]"><AdminIcon name="close" className="text-[18px]" /></button>
+          </div>
+          {error ? <p className="mt-4 rounded-lg bg-[#ffdad6] px-3 py-2 text-sm font-medium text-[#93000a]">{error}</p> : null}
+          <div className="mt-6 flex justify-end gap-3"><button type="button" onClick={onClose} className="h-10 rounded-lg border border-[#e3beb6] px-5 text-sm font-bold text-[#5b403b]">Quay lại</button><button type="button" onClick={onConfirm} className={`h-10 rounded-lg px-5 text-sm font-bold text-white ${isCancel ? 'bg-[#ba1a1a] hover:bg-[#93000a]' : 'bg-[#b22204] hover:bg-[#d63c1e]'}`}>{isCancel ? 'Hủy đơn' : 'Cập nhật'}</button></div>
+        </div>
+      </section>
+    </div>
+  )
 }
 
 function OrderDetailModal({ order, onClose, onNextStatus, onCancelOrder }) {
@@ -274,18 +342,30 @@ export default function AdminOrdersPage() {
   const [store, setStore] = useState('all')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  const [quickRange, setQuickRange] = useState('7d')
+  const [page, setPage] = useState(1)
   const [selectedOrderId, setSelectedOrderId] = useState('')
+  const [pendingAction, setPendingAction] = useState(null)
+  const [actionError, setActionError] = useState('')
+  const [exportMessage, setExportMessage] = useState('')
   const [, setRefreshKey] = useState(0)
 
   const statsResponse = adminService.getAdminOrderStats()
   const ordersResponse = adminService.getAdminOrders({ keyword, status, paymentStatus, store, dateFrom, dateTo })
   const stats = statsResponse.success ? statsResponse.data : { pending: 0, shipping: 0, completed: 0, cancelled: 0 }
-  const orders = ordersResponse.success ? ordersResponse.data : []
+  const filteredOrders = ordersResponse.success ? ordersResponse.data : []
   const stores = ordersResponse.meta?.stores || []
   const totalCount = ordersResponse.meta?.totalCount || 0
   const allCount = ordersResponse.meta?.allCount || 0
   const selectedOrderResponse = selectedOrderId ? adminService.getAdminOrderById(selectedOrderId) : null
   const selectedOrder = selectedOrderResponse?.success ? selectedOrderResponse.data : null
+  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / ITEMS_PER_PAGE))
+  const safePage = Math.min(page, totalPages)
+  const orders = filteredOrders.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE)
+
+  useEffect(() => {
+    setPage(1)
+  }, [keyword, status, paymentStatus, store, dateFrom, dateTo])
 
   const handleNextStatus = (order) => {
     const nextStatusByCurrent = {
@@ -297,18 +377,43 @@ export default function AdminOrdersPage() {
     }
     const nextStatus = nextStatusByCurrent[order.status]
 
-    if (!nextStatus) {
-      window.alert(`${order.id} hiện không có bước cập nhật tiếp theo trong chế độ mock Admin.`)
-      return
-    }
-
-    adminService.updateAdminOrderStatus(order.id, nextStatus)
-    setRefreshKey((current) => current + 1)
+    if (!nextStatus) return
+    setPendingAction({ order, nextStatus })
+    setActionError('')
   }
 
   const handleCancelOrder = (order) => {
-    adminService.updateAdminOrderStatus(order.id, 'CANCELLED')
+    setPendingAction({ order, nextStatus: 'CANCELLED' })
+    setActionError('')
+  }
+
+  const confirmOrderStatus = () => {
+    if (!pendingAction) return
+    const response = adminService.updateAdminOrderStatus(pendingAction.order.id, pendingAction.nextStatus)
+    if (!response.success) return setActionError(response.message)
+    setPendingAction(null)
+    setActionError('')
     setRefreshKey((current) => current + 1)
+  }
+
+  const applyQuickRange = (value) => {
+    setQuickRange(value)
+    if (value === 'all') {
+      setDateFrom('')
+      setDateTo('')
+      return
+    }
+
+    const latestDate = new Date(ordersResponse.meta?.latestOrderedAt || new Date())
+    const startDate = new Date(latestDate)
+    startDate.setDate(latestDate.getDate() - (value === '30d' ? 29 : 6))
+    setDateFrom(startDate.toISOString().slice(0, 10))
+    setDateTo(latestDate.toISOString().slice(0, 10))
+  }
+
+  const handleExport = () => {
+    exportOrdersCsv(filteredOrders)
+    setExportMessage(`Đã xuất ${filteredOrders.length} đơn hàng.`)
   }
 
   const kpiCards = [
@@ -333,20 +438,26 @@ export default function AdminOrdersPage() {
           <p className="mt-1 text-sm text-[#5b403b]">Theo dõi và xử lý đơn hàng toàn hệ thống.</p>
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="flex h-10 items-center rounded-lg border border-[#e3e2e2] bg-white px-3 shadow-sm">
-            <AdminIcon name="calendar_today" className="mr-2 text-[18px] text-[#5b403b]" />
-            <span className="text-sm text-[#1b1c1c]">7 ngày qua</span>
-            <AdminIcon name="arrow_drop_down" className="ml-2 text-[18px] text-[#5b403b]" />
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+          <div className="relative">
+            <AdminIcon name="calendar_today" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-[#5b403b]" />
+            <select value={quickRange} onChange={(event) => applyQuickRange(event.target.value)} className="h-10 appearance-none rounded-lg border border-[#e3e2e2] bg-white pl-10 pr-9 text-sm text-[#1b1c1c] shadow-sm outline-none focus:border-[#b22204]">
+              <option value="7d">7 ngày qua</option>
+              <option value="30d">30 ngày qua</option>
+              <option value="all">Tất cả thời gian</option>
+              {quickRange === 'custom' ? <option value="custom">Tùy chỉnh</option> : null}
+            </select>
+            <AdminIcon name="expand_more" className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[18px] text-[#5b403b]" />
           </div>
           <button
             type="button"
-            onClick={() => window.alert('Xuất CSV hiện đang ở chế độ mock Admin.')}
+            onClick={handleExport}
             className="flex h-10 items-center justify-center gap-2 rounded-lg border border-[#e3e2e2] bg-white px-4 text-xs font-medium text-[#1b1c1c] shadow-sm transition hover:bg-[#f5f3f3]"
           >
             <AdminIcon name="download" className="text-[18px]" />
             Xuất CSV
           </button>
+          {exportMessage ? <span role="status" className="text-xs font-medium text-[#15803D] sm:basis-full sm:text-right">{exportMessage}</span> : null}
         </div>
       </header>
 
@@ -417,13 +528,13 @@ export default function AdminOrdersPage() {
               <input
                 type="date"
                 value={dateFrom}
-                onChange={(event) => setDateFrom(event.target.value)}
+                onChange={(event) => { setDateFrom(event.target.value); setQuickRange('custom') }}
                 className="h-10 rounded-lg border border-[#e3e2e2] bg-[#fbf9f9] px-3 text-sm text-[#1b1c1c] outline-none focus:border-[#b22204]"
               />
               <input
                 type="date"
                 value={dateTo}
-                onChange={(event) => setDateTo(event.target.value)}
+                onChange={(event) => { setDateTo(event.target.value); setQuickRange('custom') }}
                 className="h-10 rounded-lg border border-[#e3e2e2] bg-[#fbf9f9] px-3 text-sm text-[#1b1c1c] outline-none focus:border-[#b22204]"
               />
             </div>
@@ -492,14 +603,16 @@ export default function AdminOrdersPage() {
                         >
                           Chi tiết
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => handleNextStatus(order)}
-                          className="rounded p-1 text-[#5b403b] transition hover:bg-[#e9e8e7] hover:text-[#b22204]"
-                          title="Cập nhật trạng thái"
-                        >
-                          <AdminIcon name="published_with_changes" className="text-[18px]" />
-                        </button>
+                        {order.status !== 'CANCELLED' && order.status !== 'COMPLETED' ? (
+                          <button
+                            type="button"
+                            onClick={() => handleNextStatus(order)}
+                            className="rounded p-1 text-[#5b403b] transition hover:bg-[#e9e8e7] hover:text-[#b22204]"
+                            title="Cập nhật trạng thái"
+                          >
+                            <AdminIcon name="published_with_changes" className="text-[18px]" />
+                          </button>
+                        ) : null}
                         {order.status !== 'CANCELLED' && order.status !== 'COMPLETED' ? (
                           <button
                             type="button"
@@ -527,23 +640,18 @@ export default function AdminOrdersPage() {
 
         <div className="flex items-center justify-between border-t border-[#e3e2e2] p-4 text-sm text-[#5b403b]">
           <span>
-            Hiển thị {orders.length ? 1 : 0}-{totalCount} của {allCount} đơn hàng
+            Hiển thị {orders.length ? (safePage - 1) * ITEMS_PER_PAGE + 1 : 0}-{(safePage - 1) * ITEMS_PER_PAGE + orders.length} của {totalCount} kết quả ({allCount} đơn toàn hệ thống)
           </span>
           <div className="flex items-center gap-2">
-            <button type="button" disabled className="flex h-8 w-8 items-center justify-center rounded border border-[#e3e2e2] text-[#8f7069] disabled:opacity-50">
+            <button type="button" onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={safePage === 1} className="flex h-8 w-8 items-center justify-center rounded border border-[#e3e2e2] text-[#8f7069] disabled:opacity-50">
               <AdminIcon name="chevron_left" className="text-[18px]" />
             </button>
-            <button type="button" className="flex h-8 w-8 items-center justify-center rounded bg-[#b22204] font-medium text-white">
-              1
-            </button>
-            <button type="button" className="flex h-8 w-8 items-center justify-center rounded border border-[#e3e2e2] text-[#1b1c1c]">
-              2
-            </button>
-            <button type="button" className="flex h-8 w-8 items-center justify-center rounded border border-[#e3e2e2] text-[#1b1c1c]">
-              3
-            </button>
-            <span className="px-1">...</span>
-            <button type="button" disabled className="flex h-8 w-8 items-center justify-center rounded border border-[#e3e2e2] text-[#8f7069] disabled:opacity-50">
+            {Array.from({ length: totalPages }, (_, index) => index + 1).map((pageNumber) => (
+              <button type="button" key={pageNumber} onClick={() => setPage(pageNumber)} className={`flex h-8 w-8 items-center justify-center rounded border text-xs font-medium ${pageNumber === safePage ? 'border-[#b22204] bg-[#b22204] text-white' : 'border-[#e3e2e2] text-[#1b1c1c]'}`}>
+                {pageNumber}
+              </button>
+            ))}
+            <button type="button" onClick={() => setPage((value) => Math.min(totalPages, value + 1))} disabled={safePage === totalPages} className="flex h-8 w-8 items-center justify-center rounded border border-[#e3e2e2] text-[#8f7069] disabled:opacity-50">
               <AdminIcon name="chevron_right" className="text-[18px]" />
             </button>
           </div>
@@ -556,6 +664,7 @@ export default function AdminOrdersPage() {
         onNextStatus={handleNextStatus}
         onCancelOrder={handleCancelOrder}
       />
+      <AdminConfirmDialog action={pendingAction} error={actionError} onClose={() => { setPendingAction(null); setActionError('') }} onConfirm={confirmOrderStatus} />
     </section>
   )
 }

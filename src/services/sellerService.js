@@ -1,4 +1,10 @@
-﻿import { mockProducts, PRODUCT_STATUSES } from '../mocks/products.mock'
+﻿import {
+  buildDefaultSkuCode,
+  buildDefaultSkuId,
+  generateSkuCode,
+  mockProducts,
+  PRODUCT_STATUSES,
+} from '../mocks/products.mock'
 
 const sellerStoreFallbackMap = {
   'seller@techtonic.vn': {
@@ -273,7 +279,8 @@ export function resolveManagedStoreIds(storeId) {
 }
 
 function getProductsByStore(storeId) {
-  const sellerStoredProducts = readSellerProducts().filter((product) => product.storeId === storeId)
+  const sellerStoredProducts = getStoredSellerProducts()
+    .filter((product) => product.storeId === storeId)
   const sellerDeletedProductIds = new Set(readSellerDeletedProductIds().map(String))
   const storedProductMap = new Map(sellerStoredProducts.map((product) => [String(product.id), product]))
 
@@ -453,6 +460,89 @@ function writeSellerPromotions(promotions) {
   window.localStorage.setItem(SELLER_PROMOTIONS_STORAGE_KEY, JSON.stringify(promotions))
 }
 
+const sellerPromotionSeeds = [
+  {
+    id: 'PROMO-DEMO-TET24',
+    name: 'Voucher Tết TechToShop',
+    code: 'TET24',
+    promotionType: 'Voucher Shop',
+    discountType: 'percentage',
+    discountValue: 15,
+    maxDiscount: 200000,
+    minOrderValue: 500000,
+    startAt: '2026-06-01T00:00',
+    endAt: '2026-07-15T23:59',
+    scope: 'all',
+    totalUsageLimit: 100,
+    perUserLimit: 1,
+    usedCount: 45,
+    status: 'ONGOING',
+    createdAt: '2026-06-01T00:00:00.000Z',
+  },
+  {
+    id: 'PROMO-DEMO-FSWE',
+    name: 'Flash Sale Cuối Tuần',
+    code: 'FSWE',
+    promotionType: 'Flash Sale',
+    discountType: 'fixed',
+    discountValue: 50000,
+    maxDiscount: 50000,
+    minOrderValue: 300000,
+    startAt: '2026-07-20T00:00',
+    endAt: '2026-07-22T23:59',
+    scope: 'all',
+    totalUsageLimit: 500,
+    perUserLimit: 1,
+    usedCount: 0,
+    status: 'UPCOMING',
+    createdAt: '2026-06-15T00:00:00.000Z',
+  },
+  {
+    id: 'PROMO-DEMO-SUMMER',
+    name: 'Combo Mùa Hè',
+    code: 'SUMMER23',
+    promotionType: 'Combo',
+    discountType: 'percentage',
+    discountValue: 10,
+    maxDiscount: 100000,
+    minOrderValue: 400000,
+    startAt: '2026-05-01T00:00',
+    endAt: '2026-05-31T23:59',
+    scope: 'all',
+    totalUsageLimit: 200,
+    perUserLimit: 1,
+    usedCount: 200,
+    status: 'FINISHED',
+    createdAt: '2026-04-20T00:00:00.000Z',
+  },
+]
+
+function getPromotionStatus(promotion) {
+  if (promotion.status === 'PAUSED') return 'PAUSED'
+
+  const now = new Date()
+  const startAt = new Date(promotion.startAt)
+  const endAt = new Date(promotion.endAt)
+
+  if (!Number.isNaN(endAt.getTime()) && endAt < now) return 'FINISHED'
+  if (!Number.isNaN(startAt.getTime()) && startAt > now) return 'UPCOMING'
+  return 'ONGOING'
+}
+
+function getStorePromotions(promotionsMap, store) {
+  if (Object.prototype.hasOwnProperty.call(promotionsMap, store.storeId)) {
+    return promotionsMap[store.storeId]
+  }
+
+  return sellerPromotionSeeds.map((promotion) => ({ ...promotion, storeId: store.storeId }))
+}
+
+function formatPromotionDiscount(promotion) {
+  return promotion.discountType === 'fixed'
+    ? `${new Intl.NumberFormat('vi-VN').format(Number(promotion.discountValue) || 0)}đ Off`
+    : `${Number(promotion.discountValue) || 0}% Off`
+}
+
 function createSlug(value) {
   return String(value || '')
     .trim()
@@ -462,6 +552,83 @@ function createSlug(value) {
     .replace(/đ/g, 'd')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
+}
+
+function normalizeSellerProductSku(product) {
+  const hasValidSkuCode = /^[A-Z0-9-]+$/.test(product?.skuCode || '')
+
+  return {
+    ...product,
+    skuId: product?.skuId || buildDefaultSkuId(product?.id),
+    skuCode: hasValidSkuCode ? product.skuCode : buildDefaultSkuCode(product || {}),
+    variantName: product?.variantName || 'Mặc định',
+  }
+}
+
+export function getStoredSellerProducts() {
+  return readSellerProducts().map(normalizeSellerProductSku)
+}
+
+function generateSellerProductSku(store, name, category) {
+  const storedProducts = readSellerProducts()
+
+  return generateSkuCode({
+    storeName: store.storeName,
+    category,
+    productName: name,
+    existingSkuCodes: [...mockProducts, ...storedProducts.map(normalizeSellerProductSku)].map(
+      (product) => product.skuCode,
+    ),
+  })
+}
+
+function normalizeVariantSkuSegment(value) {
+  return String(value || 'Mặc định')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/gi, 'D')
+    .toUpperCase()
+    .split(/[^A-Z0-9]+/)
+    .filter(Boolean)
+    .map((part) => part.slice(0, 4))
+    .join('-') || 'STD'
+}
+
+function generateSellerVariantSkus(store, name, category, requestedSkus, productId) {
+  const storedProducts = readSellerProducts()
+  const usedSkuCodes = new Set(
+    [...mockProducts, ...storedProducts].flatMap((product) => [
+      product.skuCode,
+      ...(Array.isArray(product.skus) ? product.skus.map((sku) => sku.skuCode) : []),
+    ]).filter(Boolean),
+  )
+  const defaultSku = generateSellerProductSku(store, name, category)
+  const prefix = defaultSku.replace(/-STD-\d{3}$/, '')
+
+  return requestedSkus.map((requestedSku, index) => {
+    const variantName = String(requestedSku.variantName || `Biến thể ${index + 1}`).trim()
+    const variantSegment = normalizeVariantSkuSegment(variantName)
+    let sequence = index + 1
+    let skuCode = `${prefix}-${variantSegment}-${String(sequence).padStart(3, '0')}`
+
+    while (usedSkuCodes.has(skuCode)) {
+      sequence += 1
+      skuCode = `${prefix}-${variantSegment}-${String(sequence).padStart(3, '0')}`
+    }
+
+    usedSkuCodes.add(skuCode)
+
+    return {
+      skuId: `${buildDefaultSkuId(productId)}-${String(index + 1).padStart(3, '0')}`,
+      skuCode,
+      variantName,
+      price: Number(requestedSku.price),
+      originalPrice: Number(requestedSku.originalPrice) || Number(requestedSku.price),
+      stockQuantity: Number(requestedSku.stockQuantity),
+      status: requestedSku.status === PRODUCT_STATUSES.HIDDEN ? PRODUCT_STATUSES.HIDDEN : PRODUCT_STATUSES.ACTIVE,
+      imageUrl: String(requestedSku.imageUrl || '').trim() || undefined,
+    }
+  })
 }
 
 function getSellerOrdersSource() {
@@ -520,7 +687,7 @@ function buildOrderDetail(order, store) {
       quantity,
       unitPrice,
       totalPrice: unitPrice * quantity,
-      imageUrl: product?.imageUrl || 'https://placehold.co/96x96/f5f3f3/1b1c1c?text=Item',
+      imageUrl: product?.imageUrl || '/images/products/headphones.png',
       variantLabel: product?.category || 'Sản phẩm TechToShop',
     }
   })
@@ -793,6 +960,73 @@ export const sellerService = {
     }
   },
 
+  getSellerPromotions(currentUser, { keyword = '', status = 'all' } = {}) {
+    const storeResponse = sellerService.getSellerStore(currentUser)
+
+    if (!storeResponse.success) {
+      return {
+        success: false,
+        data: [],
+        message: 'Không tìm thấy shop để tải danh sách khuyến mãi.',
+      }
+    }
+
+    const store = storeResponse.data
+    const promotionsMap = readSellerPromotions()
+    const normalizedKeyword = normalizeText(keyword)
+    const normalizedStatus = String(status || 'all').toUpperCase()
+    const allRows = getStorePromotions(promotionsMap, store)
+      .map((promotion) => ({
+        ...promotion,
+        status: getPromotionStatus(promotion),
+        discountLabel: formatPromotionDiscount(promotion),
+        usedCount: Number(promotion.usedCount) || 0,
+        totalUsageLimit: Number(promotion.totalUsageLimit) || 0,
+      }))
+      .sort((first, second) => new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime())
+    const rows = allRows.filter((promotion) => {
+      const matchesKeyword = !normalizedKeyword || normalizeText(`${promotion.name} ${promotion.code}`).includes(normalizedKeyword)
+      const matchesStatus = normalizedStatus === 'ALL' || promotion.status === normalizedStatus
+      return matchesKeyword && matchesStatus
+    })
+    const totalDiscount = allRows.reduce((total, promotion) => {
+      const estimatedDiscount = promotion.discountType === 'fixed'
+        ? promotion.discountValue
+        : promotion.maxDiscount || promotion.discountValue * 10000
+      return total + estimatedDiscount * promotion.usedCount
+    }, 0)
+
+    return {
+      success: true,
+      data: {
+        store,
+        rows,
+        stats: {
+          total: allRows.length,
+          ongoing: allRows.filter((promotion) => promotion.status === 'ONGOING').length,
+          used: allRows.reduce((total, promotion) => total + promotion.usedCount, 0),
+          totalDiscount,
+        },
+      },
+      meta: {
+        totalCount: rows.length,
+        allCount: allRows.length,
+      },
+    }
+  },
+
+  getSellerPromotionById(currentUser, promotionId) {
+    const promotionsResponse = sellerService.getSellerPromotions(currentUser)
+
+    if (!promotionsResponse.success) return promotionsResponse
+
+    const promotion = promotionsResponse.data.rows.find((item) => String(item.id) === String(promotionId))
+
+    return promotion
+      ? { success: true, data: promotion, meta: { store: promotionsResponse.data.store } }
+      : { success: false, message: 'Không tìm thấy khuyến mãi của shop hiện tại.' }
+  },
+
   createSellerPromotion(currentUser, promotionPayload = {}) {
     const storeResponse = sellerService.getSellerStore(currentUser)
 
@@ -820,7 +1054,20 @@ export const sellerService = {
 
     const store = storeResponse.data
     const promotionsMap = readSellerPromotions()
-    const storePromotions = promotionsMap[store.storeId] || []
+    const storePromotions = getStorePromotions(promotionsMap, store)
+
+    if (new Date(endAt) <= new Date(startAt)) {
+      return { success: false, message: 'Thời gian kết thúc phải sau thời gian bắt đầu.' }
+    }
+
+    if (promotionPayload.discountType !== 'fixed' && discountValue > 100) {
+      return { success: false, message: 'Mức giảm theo phần trăm không được vượt quá 100%.' }
+    }
+
+    if (storePromotions.some((promotionItem) => normalizeText(promotionItem.code) === normalizeText(code))) {
+      return { success: false, message: 'Mã khuyến mãi đã tồn tại trong shop.' }
+    }
+
     const promotion = {
       id: `PROMO-${Date.now()}`,
       storeId: store.storeId,
@@ -835,7 +1082,9 @@ export const sellerService = {
       scope: promotionPayload.scope || 'all',
       totalUsageLimit,
       perUserLimit,
-      status: 'ACTIVE',
+      usedCount: 0,
+      promotionType: 'Voucher Shop',
+      status: getPromotionStatus({ startAt, endAt }),
       createdAt: new Date().toISOString(),
     }
 
@@ -848,6 +1097,150 @@ export const sellerService = {
       success: true,
       data: promotion,
       message: 'Đã lưu khuyến mãi bằng mock/localStorage.',
+    }
+  },
+
+  updateSellerPromotion(currentUser, promotionId, promotionPayload = {}) {
+    const promotionResponse = sellerService.getSellerPromotionById(currentUser, promotionId)
+
+    if (!promotionResponse.success) return promotionResponse
+
+    const currentPromotion = promotionResponse.data
+    const store = promotionResponse.meta.store
+    const name = String(promotionPayload.name || '').trim()
+    const code = String(promotionPayload.code || '').trim().toUpperCase()
+    const discountValue = Number(promotionPayload.discountValue)
+    const totalUsageLimit = Number(promotionPayload.totalUsageLimit)
+    const startAt = String(promotionPayload.startAt || '').trim()
+    const endAt = String(promotionPayload.endAt || '').trim()
+
+    if (!name || !code || !startAt || !endAt || discountValue <= 0 || totalUsageLimit <= 0) {
+      return { success: false, message: 'Thông tin chỉnh sửa khuyến mãi chưa hợp lệ.' }
+    }
+
+    if (new Date(endAt) <= new Date(startAt)) {
+      return { success: false, message: 'Thời gian kết thúc phải sau thời gian bắt đầu.' }
+    }
+
+    if (promotionPayload.discountType !== 'fixed' && discountValue > 100) {
+      return { success: false, message: 'Mức giảm theo phần trăm không được vượt quá 100%.' }
+    }
+
+    const promotionsMap = readSellerPromotions()
+    const storePromotions = getStorePromotions(promotionsMap, store)
+
+    if (storePromotions.some((promotion) => String(promotion.id) !== String(promotionId) && normalizeText(promotion.code) === normalizeText(code))) {
+      return { success: false, message: 'Mã khuyến mãi đã tồn tại trong shop.' }
+    }
+
+    const updatedPromotion = {
+      ...currentPromotion,
+      ...promotionPayload,
+      name,
+      code,
+      discountValue,
+      totalUsageLimit,
+      maxDiscount: Number(promotionPayload.maxDiscount) || 0,
+      minOrderValue: Number(promotionPayload.minOrderValue) || 0,
+      perUserLimit: Number(promotionPayload.perUserLimit) || currentPromotion.perUserLimit,
+      startAt,
+      endAt,
+      status: currentPromotion.status === 'PAUSED' ? 'PAUSED' : getPromotionStatus({ startAt, endAt }),
+      updatedAt: new Date().toISOString(),
+    }
+
+    writeSellerPromotions({
+      ...promotionsMap,
+      [store.storeId]: storePromotions.map((promotion) => (
+        String(promotion.id) === String(promotionId) ? updatedPromotion : promotion
+      )),
+    })
+
+    return { success: true, data: updatedPromotion, message: 'Đã cập nhật khuyến mãi.' }
+  },
+
+  toggleSellerPromotionStatus(currentUser, promotionId) {
+    const promotionResponse = sellerService.getSellerPromotionById(currentUser, promotionId)
+
+    if (!promotionResponse.success) return promotionResponse
+
+    const promotion = promotionResponse.data
+
+    if (promotion.status === 'FINISHED') {
+      return { success: false, message: 'Khuyến mãi đã kết thúc nên không thể kích hoạt lại.' }
+    }
+
+    const store = promotionResponse.meta.store
+    const promotionsMap = readSellerPromotions()
+    const storePromotions = getStorePromotions(promotionsMap, store)
+    const nextStatus = promotion.status === 'PAUSED'
+      ? getPromotionStatus({ ...promotion, status: '' })
+      : 'PAUSED'
+    const updatedPromotion = { ...promotion, status: nextStatus, updatedAt: new Date().toISOString() }
+
+    writeSellerPromotions({
+      ...promotionsMap,
+      [store.storeId]: storePromotions.map((item) => (
+        String(item.id) === String(promotionId) ? updatedPromotion : item
+      )),
+    })
+
+    return { success: true, data: updatedPromotion, message: nextStatus === 'PAUSED' ? 'Đã tạm dừng khuyến mãi.' : 'Đã kích hoạt khuyến mãi.' }
+  },
+
+  deleteSellerPromotion(currentUser, promotionId) {
+    const promotionResponse = sellerService.getSellerPromotionById(currentUser, promotionId)
+
+    if (!promotionResponse.success) return promotionResponse
+
+    const store = promotionResponse.meta.store
+    const promotionsMap = readSellerPromotions()
+    const storePromotions = getStorePromotions(promotionsMap, store)
+
+    writeSellerPromotions({
+      ...promotionsMap,
+      [store.storeId]: storePromotions.filter((promotion) => String(promotion.id) !== String(promotionId)),
+    })
+
+    return { success: true, data: promotionResponse.data, message: 'Đã xóa khuyến mãi.' }
+  },
+
+  previewSellerProductSku(currentUser, productPayload = {}) {
+    const storeResponse = sellerService.getSellerStore(currentUser)
+
+    if (!storeResponse.success) {
+      return storeResponse
+    }
+
+    const name = String(productPayload.name || '').trim()
+    const category = String(productPayload.category || '').trim()
+
+    return {
+      success: true,
+      data: {
+        skuCode: name && category
+          ? generateSellerProductSku(storeResponse.data, name, category)
+          : '',
+      },
+    }
+  },
+
+  previewSellerProductVariantSkus(currentUser, productPayload = {}) {
+    const storeResponse = sellerService.getSellerStore(currentUser)
+
+    if (!storeResponse.success) {
+      return storeResponse
+    }
+
+    const name = String(productPayload.name || '').trim()
+    const category = String(productPayload.category || '').trim()
+    const requestedSkus = Array.isArray(productPayload.skus) ? productPayload.skus : []
+
+    return {
+      success: true,
+      data: name && category
+        ? generateSellerVariantSkus(storeResponse.data, name, category, requestedSkus, 'PREVIEW')
+        : [],
     }
   },
 
@@ -867,6 +1260,7 @@ export const sellerService = {
     const imageUrl = String(productPayload.imageUrl || '').trim()
     const price = Number(productPayload.price)
     const stockQuantity = Number(productPayload.stockQuantity)
+    const requestedSkus = Array.isArray(productPayload.skus) ? productPayload.skus : []
 
     if (!name || !category || !price || price <= 0 || Number.isNaN(price) || stockQuantity < 0 || Number.isNaN(stockQuantity)) {
       return {
@@ -875,19 +1269,43 @@ export const sellerService = {
       }
     }
 
+    if (requestedSkus.some((sku) => !String(sku.variantName || '').trim() || Number(sku.price) <= 0 || Number(sku.stockQuantity) < 0)) {
+      return {
+        success: false,
+        message: 'Vui lòng nhập giá bán và tồn kho hợp lệ cho tất cả biến thể.',
+      }
+    }
+
     const store = storeResponse.data
     const storedProducts = readSellerProducts()
     const createdAt = new Date().toISOString()
-    const id = `SELLER-PRODUCT-${Date.now()}`
+    let productSequence = Date.now()
+
+    while (storedProducts.some((product) => String(product.id) === `SELLER-PRODUCT-${productSequence}`)) {
+      productSequence += 1
+    }
+
+    const id = `SELLER-PRODUCT-${productSequence}`
+    const generatedSkus = requestedSkus.length
+      ? generateSellerVariantSkus(store, name, category, requestedSkus, id)
+      : []
+    const defaultSkuCode = generateSellerProductSku(store, name, category)
+    const primarySku = generatedSkus[0]
     const product = {
       id,
       name,
       slug: createSlug(name) || id.toLowerCase(),
+      skuId: primarySku?.skuId || buildDefaultSkuId(id),
+      skuCode: primarySku?.skuCode || defaultSkuCode,
+      variantName: primarySku?.variantName || 'Mặc định',
+      skus: generatedSkus.length ? generatedSkus : undefined,
+      attributes: Array.isArray(productPayload.attributes) ? productPayload.attributes : undefined,
+      variantImages: productPayload.variantImages && typeof productPayload.variantImages === 'object' ? productPayload.variantImages : undefined,
       description,
       price,
       originalPrice: Number(productPayload.originalPrice) || price,
       discountPercent: 0,
-      imageUrl: imageUrl || 'https://placehold.co/600x600/fff1ec/1b1c1c?text=New+Product',
+      imageUrl: imageUrl || '/images/products/headphones.png',
       category,
       storeId: store.storeId,
       storeName: store.storeName,
@@ -949,6 +1367,7 @@ export const sellerService = {
     const category = String(productPayload.category || '').trim()
     const price = Number(productPayload.price)
     const stockQuantity = Number(productPayload.stockQuantity)
+    const requestedSkus = Array.isArray(productPayload.skus) ? productPayload.skus : []
 
     if (!name || !category || !price || price <= 0 || Number.isNaN(price) || stockQuantity < 0 || Number.isNaN(stockQuantity)) {
       return {
@@ -957,13 +1376,53 @@ export const sellerService = {
       }
     }
 
+    if (requestedSkus.some((sku) => (
+      !String(sku.variantName || '').trim()
+      || !/^[A-Z0-9-]+$/.test(String(sku.skuCode || ''))
+      || Number(sku.price) <= 0
+      || Number(sku.stockQuantity) < 0
+    ))) {
+      return {
+        success: false,
+        message: 'Thông tin SKU biến thể không hợp lệ.',
+      }
+    }
+
+    if (new Set(requestedSkus.map((sku) => sku.skuCode)).size !== requestedSkus.length) {
+      return {
+        success: false,
+        message: 'Mã SKU biến thể không được trùng nhau.',
+      }
+    }
+
     const currentProduct = productResponse.data
+    const normalizedSkus = requestedSkus.map((sku, index) => ({
+      skuId: sku.skuId || `${buildDefaultSkuId(productId)}-${String(index + 1).padStart(3, '0')}`,
+      skuCode: String(sku.skuCode).trim().toUpperCase(),
+      variantName: String(sku.variantName).trim(),
+      price: Number(sku.price),
+      originalPrice: Number(sku.originalPrice) || Number(sku.price),
+      stockQuantity: Number(sku.stockQuantity),
+      status: Object.values(PRODUCT_STATUSES).includes(sku.status) ? sku.status : PRODUCT_STATUSES.ACTIVE,
+      imageUrl: String(sku.imageUrl || '').trim() || currentProduct.imageUrl,
+    }))
+    const primarySku = normalizedSkus[0]
     const nextProduct = {
       ...currentProduct,
       name,
       slug: createSlug(name) || currentProduct.slug,
       description: String(productPayload.description || '').trim(),
       category,
+      skuId: primarySku?.skuId || currentProduct.skuId,
+      skuCode: primarySku?.skuCode || currentProduct.skuCode,
+      variantName: primarySku?.variantName || currentProduct.variantName || 'Mặc định',
+      skus: normalizedSkus.length ? normalizedSkus : currentProduct.skus,
+      attributes: normalizedSkus.length && Array.isArray(productPayload.attributes)
+        ? productPayload.attributes
+        : currentProduct.attributes,
+      variantImages: normalizedSkus.length && productPayload.variantImages && typeof productPayload.variantImages === 'object'
+        ? productPayload.variantImages
+        : currentProduct.variantImages,
       price,
       originalPrice: Number(productPayload.originalPrice) || price,
       imageUrl: String(productPayload.imageUrl || '').trim() || currentProduct.imageUrl,
@@ -1062,24 +1521,54 @@ export const sellerService = {
     const normalizedCategory = normalizeText(category)
     const normalizedStockStatus = normalizeText(stockStatus)
     const storeProducts = getProductsByStore(store.storeId)
-    const inventoryRows = storeProducts.map((product, index) => {
-      const availableStock = Number(product.stockQuantity) || 0
-      const reservedStock = Math.min(Math.max(Math.round((Number(product.soldQuantity) || 0) * 0.04), 0), availableStock)
-      const stockState = availableStock === 0 ? 'OUT' : availableStock <= 20 ? 'LOW' : 'AVAILABLE'
+    const inventoryRows = storeProducts
+      .flatMap((product) => {
+        const productSkus = Array.isArray(product.skus) && product.skus.length
+          ? product.skus
+          : [{
+              skuId: product.skuId,
+              skuCode: product.skuCode,
+              variantName: product.variantName || 'Mặc định',
+              price: product.price,
+              stockQuantity: product.stockQuantity,
+              status: product.status,
+              imageUrl: product.imageUrl,
+            }]
 
-      return {
-        ...product,
-        availableStock,
-        reservedStock,
-        warehouseLocation: product.warehouseLocation || `Khu ${String.fromCharCode(65 + (index % 4))}-${String(index + 1).padStart(2, '0')}`,
-        stockState,
-      }
-    })
+        return productSkus.map((sku, skuIndex) => {
+          const availableStock = Number(sku.stockQuantity) || 0
+          const estimatedReservedStock = Math.round((Number(product.soldQuantity) || 0) * 0.04 / productSkus.length)
+          const reservedStock = Math.min(Math.max(estimatedReservedStock, 0), availableStock)
+          const stockState = availableStock === 0 ? 'OUT' : availableStock <= 20 ? 'LOW' : 'AVAILABLE'
+
+          return {
+            ...product,
+            id: `${product.id}::${sku.skuId || sku.skuCode || skuIndex + 1}`,
+            inventoryRowId: `${product.id}::${sku.skuId || sku.skuCode || skuIndex + 1}`,
+            productId: product.id,
+            skuId: sku.skuId || product.skuId,
+            skuCode: sku.skuCode || product.skuCode,
+            variantName: sku.variantName || product.variantName || 'Mặc định',
+            price: Number(sku.price ?? product.price),
+            imageUrl: sku.imageUrl || product.imageUrl,
+            skuStatus: sku.status || product.status,
+            hasVariants: Array.isArray(product.skus) && product.skus.length > 0,
+            availableStock,
+            stockQuantity: availableStock,
+            reservedStock,
+            stockState,
+          }
+        })
+      })
+      .map((row, index) => ({
+        ...row,
+        warehouseLocation: row.warehouseLocation || `Khu ${String.fromCharCode(65 + (index % 4))}-${String(index + 1).padStart(2, '0')}`,
+      }))
 
     const filteredRows = inventoryRows.filter((product) => {
       const matchesKeyword =
         !normalizedKeyword ||
-        [product.name, product.category, product.slug, `TT-${String(product.id).padStart(3, '0')}`]
+        [product.name, product.category, product.slug, product.skuCode, product.variantName]
           .filter(Boolean)
           .join(' ')
           .toLowerCase()
@@ -1116,7 +1605,12 @@ export const sellerService = {
     }
   },
 
-  updateSellerInventoryStock(currentUser, productId, nextStockQuantity) {
+  updateSellerInventoryStock(currentUser, productId, skuIdentifier, nextStockQuantity) {
+    if (nextStockQuantity === undefined) {
+      nextStockQuantity = skuIdentifier
+      skuIdentifier = ''
+    }
+
     const productResponse = sellerService.getSellerProductById(currentUser, productId)
 
     if (!productResponse.success) {
@@ -1134,6 +1628,50 @@ export const sellerService = {
 
     const product = productResponse.data
 
+    if (Array.isArray(product.skus) && product.skus.length && skuIdentifier) {
+      let matchedSku = false
+      const nextSkus = product.skus.map((sku) => {
+        const isSelectedSku = String(sku.skuId) === String(skuIdentifier) || String(sku.skuCode) === String(skuIdentifier)
+
+        if (!isSelectedSku) return sku
+
+        matchedSku = true
+        return {
+          ...sku,
+          stockQuantity,
+          status: stockQuantity === 0
+            ? PRODUCT_STATUSES.OUT_OF_STOCK
+            : sku.status === PRODUCT_STATUSES.HIDDEN
+              ? PRODUCT_STATUSES.HIDDEN
+              : PRODUCT_STATUSES.ACTIVE,
+        }
+      })
+
+      if (!matchedSku) {
+        return {
+          success: false,
+          message: 'Không tìm thấy SKU cần cập nhật tồn kho.',
+        }
+      }
+
+      const totalStock = nextSkus.reduce((total, sku) => total + Number(sku.stockQuantity || 0), 0)
+      const activePrices = nextSkus.map((sku) => Number(sku.price)).filter((price) => price > 0)
+      const activeOriginalPrices = nextSkus.map((sku) => Number(sku.originalPrice || sku.price)).filter((price) => price > 0)
+
+      return sellerService.updateSellerProduct(currentUser, productId, {
+        ...product,
+        skus: nextSkus,
+        price: activePrices.length ? Math.min(...activePrices) : product.price,
+        originalPrice: activeOriginalPrices.length ? Math.min(...activeOriginalPrices) : product.originalPrice,
+        stockQuantity: totalStock,
+        status: totalStock === 0
+          ? PRODUCT_STATUSES.OUT_OF_STOCK
+          : product.status === PRODUCT_STATUSES.HIDDEN
+            ? PRODUCT_STATUSES.HIDDEN
+            : PRODUCT_STATUSES.ACTIVE,
+      })
+    }
+
     return sellerService.updateSellerProduct(currentUser, productId, {
       ...product,
       stockQuantity,
@@ -1141,7 +1679,7 @@ export const sellerService = {
     })
   },
 
-  getSellerProductOrderHistory(currentUser, productId, { keyword = '', range = '30d' } = {}) {
+  getSellerProductOrderHistory(currentUser, productId, { keyword = '', range = '30d', skuCode = '' } = {}) {
     const productResponse = sellerService.getSellerProductById(currentUser, productId)
 
     if (!productResponse.success) {
@@ -1179,10 +1717,14 @@ export const sellerService = {
           : [{ productId: order.productId, productName: order.productName, quantity: 1, storeId: order.storeId }]
 
         return items
-          .filter((item) => String(item.productId) === String(productId) && item.storeId === store.storeId)
+          .filter((item) => (
+            String(item.productId) === String(productId)
+            && item.storeId === store.storeId
+            && (!skuCode || !item.skuCode || String(item.skuCode) === String(skuCode))
+          ))
           .map((item) => {
             const quantity = item.quantity || 1
-            const unitPrice = product.price || Math.round(order.totalAmount / quantity)
+            const unitPrice = item.unitPrice || item.price || product.price || Math.round(order.totalAmount / quantity)
 
             return {
               id: order.id,
@@ -1500,7 +2042,7 @@ export const sellerService = {
     const totalRevenue = completedOrders.reduce((total, order) => total + getSellerOrderRevenue(order), 0)
     const orderCount = completedOrders.length
     const averageOrderValue = orderCount ? totalRevenue / orderCount : 0
-    const productRevenueMap = completedOrders.reduce((map, order) => {
+    const skuRevenueMap = completedOrders.reduce((map, order) => {
       const orderItems = getRevenueOrderItems(order)
       const orderQuantity = orderItems.reduce((total, item) => total + item.quantity, 0) || 1
 
@@ -1509,27 +2051,47 @@ export const sellerService = {
           return
         }
 
-        const product = mockProducts.find((productItem) => String(productItem.id) === String(item.productId))
+        const product = [...getStoredSellerProducts(), ...mockProducts].find(
+          (productItem) => String(productItem.id) === String(item.productId),
+        )
+        const matchedSku = Array.isArray(product?.skus)
+          ? product.skus.find((sku) => (
+              (item.skuId && String(sku.skuId) === String(item.skuId))
+              || (item.skuCode && String(sku.skuCode) === String(item.skuCode))
+            )) || product.skus[0]
+          : null
+        const skuCode = item.skuCode || matchedSku?.skuCode || product?.skuCode || product?.sku || 'Chưa có SKU'
+        const skuId = item.skuId || matchedSku?.skuId || product?.skuId || skuCode
+        const variantName = item.variantName || matchedSku?.variantName || product?.variantName || 'Mặc định'
+        const rowKey = `${item.productId}::${skuId || skuCode}`
         const revenueShare = (order.totalAmount * item.quantity) / orderQuantity
-        const row = map.get(item.productId) || {
-          id: String(item.productId),
+        const row = map.get(rowKey) || {
+          id: rowKey,
+          productId: String(item.productId),
+          skuId,
           name: item.productName || product?.name || order.productName,
-          sku: product?.sku || `TT-${String(item.productId).padStart(3, '0')}`,
+          sku: skuCode,
+          variantName,
           quantitySold: 0,
           totalRevenue: 0,
-          imageUrl: product?.imageUrl || 'https://placehold.co/96x96/f5f3f3/1b1c1c?text=Demo',
+          imageUrl: item.imageUrl || matchedSku?.imageUrl || product?.imageUrl || '/images/products/headphones.png',
         }
 
         row.quantitySold += item.quantity
         row.totalRevenue += revenueShare
-        map.set(item.productId, row)
+        map.set(rowKey, row)
       })
 
       return map
     }, new Map())
 
-    const rows = Array.from(productRevenueMap.values())
-      .filter((row) => !normalizedKeyword || normalizeText(row.name).includes(normalizedKeyword) || normalizeText(row.sku).includes(normalizedKeyword))
+    const rows = Array.from(skuRevenueMap.values())
+      .filter((row) => (
+        !normalizedKeyword
+        || normalizeText(row.name).includes(normalizedKeyword)
+        || normalizeText(row.sku).includes(normalizedKeyword)
+        || normalizeText(row.variantName).includes(normalizedKeyword)
+      ))
       .sort((first, second) => second.totalRevenue - first.totalRevenue)
       .map((row, index) => ({
         ...row,
