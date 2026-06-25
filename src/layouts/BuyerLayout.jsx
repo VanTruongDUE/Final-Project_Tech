@@ -143,9 +143,9 @@ export default function BuyerLayout() {
   return (
     <div className="flex min-h-screen flex-col overflow-x-hidden bg-[#f5f5f5] text-[#1b1c1c]">
       <header className="sticky top-0 z-40 border-b border-[#e5e7eb] bg-white shadow-sm">
-        <div className="mx-auto flex h-[72px] max-w-[1280px] items-center justify-between gap-4 px-4 md:px-6">
+        <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between gap-4 px-4 md:px-6">
           <div className="flex items-center gap-8">
-            <Link to="/" className="text-[2rem] font-extrabold tracking-tight text-[#b22204]">
+            <Link to="/" className="text-[28px] font-extrabold tracking-tight text-[#b22204]">
               TechToShop
             </Link>
             <nav className="hidden items-center gap-6 text-sm font-medium text-[#5b403b] md:flex">
@@ -160,7 +160,7 @@ export default function BuyerLayout() {
               <input
                 type="search"
                 placeholder="Tìm kiếm sản phẩm..."
-                className="h-12 w-72 rounded-full border border-[#e5e7eb] bg-[#fbf9f9] pl-5 pr-11 text-sm outline-none transition focus:border-[#b22204] focus:ring-2 focus:ring-[#b22204]/15"
+                className="h-10 w-72 rounded-full border border-[#e5e7eb] bg-[#fbf9f9] pl-5 pr-11 text-sm outline-none transition focus:border-[#b22204] focus:ring-2 focus:ring-[#b22204]/15"
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8f7069]">
                 <SearchIcon />
@@ -191,7 +191,7 @@ export default function BuyerLayout() {
         </div>
       </header>
 
-      <main className="mx-auto grid w-full max-w-[1280px] flex-1 grid-cols-1 gap-4 px-4 py-8 md:grid-cols-12 md:px-6">
+      <main className="mx-auto grid w-full max-w-[1280px] flex-1 grid-cols-1 gap-4 px-4 py-6 md:grid-cols-12 md:px-6">
         <aside className="h-fit rounded-2xl bg-white p-4 shadow-[0_1px_20px_0_rgba(0,0,0,0.05)] md:col-span-3">
           <div className="mb-4 flex items-center gap-3 border-b border-[#e5e7eb] px-2 pb-4">
             <div className="grid h-14 w-14 place-items-center rounded-full border border-[#e5e7eb] bg-[#fff1ec] text-sm font-bold text-[#b22204]">
@@ -277,18 +277,18 @@ export default function BuyerLayout() {
       <footer className="mt-12 border-t border-[#e5e7eb] bg-white">
         <div className="mx-auto grid max-w-[1280px] gap-6 px-4 py-10 text-sm text-[#1b1c1c] md:grid-cols-3 md:px-6">
           <div>
-            <p className="text-2xl font-bold text-[#b22204]">TechToShop</p>
+            <p className="text-xl font-bold text-[#b22204]">TechToShop</p>
             <p className="mt-4 text-[#5b403b]">© 2024 TechToShop. All rights reserved.</p>
           </div>
           <div>
-            <p className="text-2xl font-semibold">Thông tin</p>
+            <p className="text-lg font-semibold">Thông tin</p>
             <div className="mt-4 space-y-2 text-[#5b403b]">
               <p>Về chúng tôi</p>
               <p>Liên hệ</p>
             </div>
           </div>
           <div>
-            <p className="text-2xl font-semibold">Pháp lý</p>
+            <p className="text-lg font-semibold">Pháp lý</p>
             <div className="mt-4 space-y-2 text-[#5b403b]">
               <p>Chính sách bảo mật</p>
               <p>Điều khoản sử dụng</p>

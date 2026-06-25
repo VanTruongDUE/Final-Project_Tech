@@ -142,7 +142,7 @@ export default function SellerOrdersPage() {
       <div className="flex w-full min-w-0 flex-col gap-6">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
-            <h1 className="mb-2 text-[24px] font-semibold leading-[1.4] text-[#1b1c1c]">Danh sách đơn hàng</h1>
+            <h1 className="mb-2 text-[28px] font-bold leading-tight text-[#1b1c1c] md:text-[32px]">Danh sách đơn hàng</h1>
             <p className="text-sm leading-5 text-[#5b403b]">Quản lý và theo dõi trạng thái tất cả đơn hàng của bạn.</p>
           </div>
           <div className="flex gap-3">

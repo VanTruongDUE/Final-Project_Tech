@@ -212,7 +212,7 @@ export default function ProductPurchasePanel({
           type="button"
           onClick={onAddToCart}
           disabled={isUnavailable}
-          className="flex h-12 items-center justify-center gap-2 border border-[#ee4d2d] bg-[#fff1ec] px-5 font-medium text-[#ee4d2d] transition hover:bg-[#ffe4db] disabled:cursor-not-allowed disabled:border-[#e8e8e8] disabled:bg-[#f5f3f3] disabled:text-[#8f7069]"
+          className="flex h-11 items-center justify-center gap-2 border border-[#ee4d2d] bg-[#fff1ec] px-5 text-sm font-medium text-[#ee4d2d] transition hover:bg-[#ffe4db] disabled:cursor-not-allowed disabled:border-[#e8e8e8] disabled:bg-[#f5f3f3] disabled:text-[#8f7069]"
         >
           <span className="material-symbols-outlined text-[20px]">add_shopping_cart</span>
           Thêm vào giỏ hàng
@@ -221,7 +221,7 @@ export default function ProductPurchasePanel({
           type="button"
           onClick={onBuyNow}
           disabled={isUnavailable}
-          className="h-12 bg-[#ee4d2d] px-5 font-medium text-white transition hover:bg-[#d64124] disabled:cursor-not-allowed disabled:bg-[#e8e8e8] disabled:text-[#8f7069]"
+          className="h-11 bg-[#ee4d2d] px-5 text-sm font-medium text-white transition hover:bg-[#d64124] disabled:cursor-not-allowed disabled:bg-[#e8e8e8] disabled:text-[#8f7069]"
         >
           Mua ngay
         </button>

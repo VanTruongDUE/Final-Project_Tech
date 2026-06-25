@@ -13,7 +13,7 @@ export default function CheckoutLayout() {
             to="/cart"
             className="inline-flex items-center gap-2 text-sm font-semibold transition hover:text-white/80"
           >
-            <span aria-hidden="true">←</span>
+            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_back</span>
             Trở về giỏ hàng
           </Link>
 

@@ -52,7 +52,7 @@ export default function ProductCard({ product, variant = 'compact' }) {
               className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white text-[#8f7069] opacity-0 shadow-sm transition duration-200 group-hover:opacity-100"
               aria-label={`Yêu thích ${product.name}`}
             >
-              ♥
+              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">favorite</span>
             </button>
           ) : null}
         </div>

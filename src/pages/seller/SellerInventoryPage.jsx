@@ -44,11 +44,11 @@ function normalizeInventorySearch(value) {
 
 function InventoryStatCard({ stat }) {
   return (
-    <article className={`rounded-xl border border-[#e3beb6]/60 bg-white p-5 shadow-sm ${stat.accentClassName || ''}`}>
+    <article className={`rounded-xl border border-[#e3beb6]/60 bg-white p-4 shadow-sm ${stat.accentClassName || ''}`}>
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-[#5b403b]">{stat.title}</p>
-          <p className="mt-8 text-[34px] font-bold leading-none text-[#111827]">{stat.value}</p>
+          <p className="mt-4 text-[30px] font-bold leading-none text-[#111827]">{stat.value}</p>
         </div>
         <span className={`grid h-12 w-12 place-items-center rounded-lg ${stat.iconClassName}`}>
           <SellerIcon name={stat.icon} className="text-[24px]" />
@@ -213,7 +213,7 @@ export default function SellerInventoryPage() {
               <SellerIcon name="chevron_right" className="text-[18px]" />
               <span className="text-[#1b1c1c]">Kho hàng</span>
             </div>
-            <h1 className="max-w-[420px] text-[34px] font-bold leading-tight tracking-tight text-[#111827] md:text-[40px]">
+            <h1 className="max-w-[420px] text-[28px] font-bold leading-tight tracking-tight text-[#111827] md:text-[32px]">
               Quản lý kho hàng
             </h1>
           </div>
@@ -221,7 +221,7 @@ export default function SellerInventoryPage() {
           <button
             type="button"
             onClick={() => openStockModal(inventoryOptions[0] || null)}
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-[#ee4d2d] px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#d73211]"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#ee4d2d] px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#d73211]"
           >
             <SellerIcon name="add_box" className="text-[22px]" />
             Nhập kho
@@ -243,7 +243,7 @@ export default function SellerInventoryPage() {
                 value={keyword}
                 onChange={(event) => setKeyword(event.target.value)}
                 placeholder="Tìm kiếm tên sản phẩm, SKU..."
-                className="h-12 w-full rounded-lg border border-[#e3beb6]/80 bg-[#fbf9f9] pl-12 pr-4 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
+                className="h-10 w-full rounded-lg border border-[#e3beb6]/80 bg-[#fbf9f9] pl-10 pr-4 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
               />
             </div>
 
@@ -251,7 +251,7 @@ export default function SellerInventoryPage() {
               <select
                 value={category}
                 onChange={(event) => setCategory(event.target.value)}
-                className="h-12 rounded-lg border border-[#e3beb6]/80 bg-white px-4 text-sm font-medium text-[#5b403b] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
+                className="h-10 rounded-lg border border-[#e3beb6]/80 bg-white px-4 text-sm font-medium text-[#5b403b] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
               >
                 <option value="all">Tất cả danh mục</option>
                 {categories.map((item) => (
@@ -264,7 +264,7 @@ export default function SellerInventoryPage() {
               <select
                 value={stockStatus}
                 onChange={(event) => setStockStatus(event.target.value)}
-                className="h-12 rounded-lg border border-[#e3beb6]/80 bg-white px-4 text-sm font-medium text-[#5b403b] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
+                className="h-10 rounded-lg border border-[#e3beb6]/80 bg-white px-4 text-sm font-medium text-[#5b403b] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
               >
                 {stockStatusOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -484,7 +484,7 @@ export default function SellerInventoryPage() {
                 <div className="rounded-lg border border-[#ee4d2d]/20 bg-[#ee4d2d]/10 px-5 py-4 text-right">
                   <p className="text-xs font-bold uppercase tracking-wide text-[#ee4d2d]">Tồn kho hiện tại</p>
                   <div className="mt-1 flex items-baseline justify-end gap-2 text-[#ee4d2d]">
-                    <span className="text-[40px] font-bold leading-none">{historyProduct.availableStock}</span>
+                    <span className="text-[30px] font-bold leading-none">{historyProduct.availableStock}</span>
                     <span className="text-sm font-semibold">sản phẩm</span>
                   </div>
                 </div>
@@ -499,13 +499,13 @@ export default function SellerInventoryPage() {
                       value={historyKeyword}
                       onChange={(event) => setHistoryKeyword(event.target.value)}
                       placeholder="Tìm mã đơn hoặc khách hàng..."
-                      className="h-12 w-full rounded-lg border border-[#e3beb6] bg-white pl-12 pr-4 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
+                      className="h-10 w-full rounded-lg border border-[#e3beb6] bg-white pl-10 pr-4 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
                     />
                   </div>
                   <select
                     value={historyRange}
                     onChange={(event) => setHistoryRange(event.target.value)}
-                    className="h-12 rounded-lg border border-[#e3beb6] bg-white px-4 text-sm font-medium text-[#5b403b] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
+                    className="h-10 rounded-lg border border-[#e3beb6] bg-white px-4 text-sm font-medium text-[#5b403b] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
                   >
                     {historyRangeOptions.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -518,7 +518,7 @@ export default function SellerInventoryPage() {
                 <button
                   type="button"
                   onClick={() => window.alert('Xuất CSV đang là thao tác mock cho demo frontend.')}
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-[#ee4d2d] bg-white px-5 text-sm font-bold text-[#ee4d2d] transition hover:bg-[#fff1ec]"
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[#ee4d2d] bg-white px-5 text-sm font-bold text-[#ee4d2d] transition hover:bg-[#fff1ec]"
                 >
                   <SellerIcon name="download" className="text-[18px]" />
                   Xuất CSV

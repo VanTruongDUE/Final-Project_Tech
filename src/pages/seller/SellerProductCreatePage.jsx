@@ -207,7 +207,7 @@ export default function SellerProductCreatePage() {
             <span>/</span>
             <span className="font-semibold text-[#1b1c1c]">Thêm mới</span>
           </nav>
-          <h1 className="text-xl font-bold tracking-tight text-[#1b1c1c]">Thêm sản phẩm mới</h1>
+          <h1 className="text-[28px] font-bold tracking-tight text-[#1b1c1c] md:text-[32px]">Thêm sản phẩm mới</h1>
         </div>
 
         <div className="flex items-center gap-3">
@@ -241,7 +241,7 @@ export default function SellerProductCreatePage() {
 
         <form id="seller-product-create-form" onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 lg:grid-cols-12">
           <div className="flex flex-col gap-4 lg:col-span-8">
-            <section className="rounded-lg border border-[#e3beb6] bg-white p-6 shadow-sm">
+            <section className="rounded-lg border border-[#e3beb6] bg-white p-5 shadow-sm">
               <h2 className="mb-6 text-base font-bold text-[#1b1c1c]">Thông tin cơ bản</h2>
               <div className="space-y-6">
                 <div>
@@ -254,7 +254,7 @@ export default function SellerProductCreatePage() {
                     value={form.name}
                     onChange={(event) => updateField('name', event.target.value)}
                     placeholder="Ví dụ: Tai nghe Bluetooth TechZone Pro v2"
-                    className="h-12 w-full rounded border border-[#e3beb6] bg-[#fbf9f9] px-3 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
+                    className="h-11 w-full rounded border border-[#e3beb6] bg-[#fbf9f9] px-3 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
                   />
                 </div>
 
@@ -272,7 +272,7 @@ export default function SellerProductCreatePage() {
               </div>
             </section>
 
-            <section className="rounded-lg border border-[#e3beb6] bg-white p-6 shadow-sm">
+            <section className="rounded-lg border border-[#e3beb6] bg-white p-5 shadow-sm">
               <div className="mb-6 flex flex-col gap-4 border-b border-[#e3beb6] pb-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-base font-bold text-[#1b1c1c]">Bán hàng & Kho</h2>
@@ -290,11 +290,11 @@ export default function SellerProductCreatePage() {
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                   <div className="md:col-span-2">
                     <FieldLabel htmlFor="product-sku">Mã SKU tự động</FieldLabel>
-                    <input id="product-sku" value={skuPreview} readOnly className="h-12 w-full rounded border border-[#e3beb6] bg-[#efeded] px-3 text-sm font-semibold text-[#5b403b]" />
+                    <input id="product-sku" value={skuPreview} readOnly className="h-11 w-full rounded border border-[#e3beb6] bg-[#efeded] px-3 text-sm font-semibold text-[#5b403b]" />
                   </div>
-                  <div><FieldLabel htmlFor="product-price" required>Giá bán (VNĐ)</FieldLabel><input id="product-price" type="number" min="0" value={form.price} onChange={(event) => updateField('price', event.target.value)} className="h-12 w-full rounded border border-[#e3beb6] bg-[#fbf9f9] px-3 text-right text-sm outline-none focus:border-[#ee4d2d]" /></div>
-                  <div><FieldLabel htmlFor="product-original-price">Giá gốc (VNĐ)</FieldLabel><input id="product-original-price" type="number" min="0" value={form.originalPrice} onChange={(event) => updateField('originalPrice', event.target.value)} className="h-12 w-full rounded border border-[#e3beb6] bg-[#fbf9f9] px-3 text-right text-sm outline-none focus:border-[#ee4d2d]" /></div>
-                  <div><FieldLabel htmlFor="product-stock" required>Số lượng tồn kho</FieldLabel><input id="product-stock" type="number" min="0" value={form.stockQuantity} onChange={(event) => updateField('stockQuantity', event.target.value)} className="h-12 w-full rounded border border-[#e3beb6] bg-[#fbf9f9] px-3 text-right text-sm outline-none focus:border-[#ee4d2d]" /></div>
+                  <div><FieldLabel htmlFor="product-price" required>Giá bán (VNĐ)</FieldLabel><input id="product-price" type="number" min="0" value={form.price} onChange={(event) => updateField('price', event.target.value)} className="h-11 w-full rounded border border-[#e3beb6] bg-[#fbf9f9] px-3 text-right text-sm outline-none focus:border-[#ee4d2d]" /></div>
+                  <div><FieldLabel htmlFor="product-original-price">Giá gốc (VNĐ)</FieldLabel><input id="product-original-price" type="number" min="0" value={form.originalPrice} onChange={(event) => updateField('originalPrice', event.target.value)} className="h-11 w-full rounded border border-[#e3beb6] bg-[#fbf9f9] px-3 text-right text-sm outline-none focus:border-[#ee4d2d]" /></div>
+                  <div><FieldLabel htmlFor="product-stock" required>Số lượng tồn kho</FieldLabel><input id="product-stock" type="number" min="0" value={form.stockQuantity} onChange={(event) => updateField('stockQuantity', event.target.value)} className="h-11 w-full rounded border border-[#e3beb6] bg-[#fbf9f9] px-3 text-right text-sm outline-none focus:border-[#ee4d2d]" /></div>
                 </div>
               ) : (
                 <div className="space-y-5">
@@ -341,7 +341,7 @@ export default function SellerProductCreatePage() {
           </div>
 
           <div className="flex flex-col gap-4 lg:col-span-4">
-            <section className="rounded-lg border border-[#e3beb6] bg-white p-6 shadow-sm">
+            <section className="rounded-lg border border-[#e3beb6] bg-white p-5 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-base font-bold text-[#1b1c1c]">Hình ảnh</h2>
                 <span className="text-xs font-medium text-[#5b403b]">1/5</span>
@@ -375,7 +375,7 @@ export default function SellerProductCreatePage() {
               </div>
             </section>
 
-            <section className="rounded-lg border border-[#e3beb6] bg-white p-6 shadow-sm">
+            <section className="rounded-lg border border-[#e3beb6] bg-white p-5 shadow-sm">
               <h2 className="mb-6 text-base font-bold text-[#1b1c1c]">Phân loại</h2>
               <div>
                 <FieldLabel htmlFor="product-category" required>
@@ -386,7 +386,7 @@ export default function SellerProductCreatePage() {
                     id="product-category"
                     value={form.category}
                     onChange={(event) => updateField('category', event.target.value)}
-                    className="h-12 w-full cursor-pointer appearance-none rounded border border-[#e3beb6] bg-[#fbf9f9] px-3 pr-10 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
+                    className="h-11 w-full cursor-pointer appearance-none rounded border border-[#e3beb6] bg-[#fbf9f9] px-3 pr-10 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
                   >
                     <option value="" disabled>
                       Chọn danh mục...

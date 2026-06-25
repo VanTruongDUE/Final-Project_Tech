@@ -29,7 +29,7 @@ export default function ShipperShipmentsPage() {
   }))
 
   return (
-    <section className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 p-4 md:p-6">
+    <section className="mx-auto flex w-full max-w-[1440px] flex-col gap-5 p-4 md:p-6">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <h2 className="text-[32px] font-bold text-[#1b1c1c]">Đơn được giao</h2>

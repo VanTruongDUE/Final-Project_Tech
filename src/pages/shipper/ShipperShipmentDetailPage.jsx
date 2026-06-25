@@ -80,7 +80,7 @@ export default function ShipperShipmentDetailPage() {
 
   if (!shipment) {
     return (
-      <section className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 p-4 md:p-6">
+      <section className="mx-auto flex w-full max-w-[1440px] flex-col gap-5 p-4 md:p-6">
         <div className="rounded-xl border border-[#e3beb6] bg-white p-6 shadow-sm">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#ffdad6] text-[#93000a]">
             <ShipperIcon name="error" className="text-[24px]" />
@@ -99,7 +99,7 @@ export default function ShipperShipmentDetailPage() {
   }
 
   return (
-    <section className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 p-4 md:p-6">
+    <section className="mx-auto flex w-full max-w-[1440px] flex-col gap-5 p-4 md:p-6">
       <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
         <div>
           <div className="mb-1 flex flex-wrap items-center gap-2">

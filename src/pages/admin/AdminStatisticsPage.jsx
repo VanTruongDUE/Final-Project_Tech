@@ -18,13 +18,13 @@ function KpiCard({ label, value, trend, icon, featured = false }) {
   return (
     <div className="relative overflow-hidden rounded-xl border border-[#e3e2e2]/60 bg-white p-4 shadow-sm">
       <div className="absolute right-0 top-0 p-4 opacity-10">
-        <AdminIcon name={icon} className="text-[64px]" filled />
+        <AdminIcon name={icon} className="text-[44px]" filled />
       </div>
       <div className="relative z-10 mb-1 flex items-center gap-1 text-xs font-medium text-[#5b403b]">
         {label}
         {featured ? <AdminIcon name="info" className="text-[14px] text-[#8f7069]" /> : null}
       </div>
-      <div className={`relative z-10 font-bold ${featured ? 'text-[32px] text-[#ee4d2d] md:text-[48px]' : 'mt-2 text-2xl text-[#1b1c1c]'}`}>{value}</div>
+      <div className={`relative z-10 font-bold ${featured ? 'text-[28px] text-[#ee4d2d] md:text-[32px]' : 'mt-2 text-2xl text-[#1b1c1c]'}`}>{value}</div>
       <div className="relative z-10 mt-2 flex items-center gap-1 text-xs">
         <span className="flex items-center rounded bg-green-50 px-1 text-green-600">
           <AdminIcon name="trending_up" className="text-[12px]" />
@@ -164,7 +164,7 @@ export default function AdminStatisticsPage() {
         <KpiCard label="Doanh thu trung bình/ngày" value={metrics.avgDailyRevenueLabel} trend="0.0%" icon="query_stats" />
         <div className="relative overflow-hidden rounded-xl border border-[#e3e2e2]/60 bg-white p-4 shadow-sm">
           <div className="absolute right-0 top-0 p-4 opacity-10">
-            <AdminIcon name="storefront" className="text-[64px]" filled />
+            <AdminIcon name="storefront" className="text-[44px]" filled />
           </div>
           <div className="relative z-10 text-xs font-medium text-[#5b403b]">Cửa hàng có doanh thu</div>
           <div className="relative z-10 mt-2 text-2xl font-bold text-[#1b1c1c]">

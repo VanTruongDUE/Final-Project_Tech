@@ -34,7 +34,7 @@ function StatCard({ title, value, icon, iconClassName }) {
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-medium text-[#5b403b]">{title}</p>
-          <p className="mt-5 text-[32px] font-bold leading-none text-[#1b1c1c]">{value}</p>
+          <p className="mt-4 text-[28px] font-bold leading-none text-[#1b1c1c]">{value}</p>
         </div>
         <span className={`grid h-10 w-10 place-items-center rounded-full ${iconClassName}`}>
           <SellerIcon name={icon} className="text-[20px]" />
@@ -182,7 +182,7 @@ export default function SellerPromotionsPage() {
       <div className="mx-auto w-full max-w-[1440px]">
         <header className="mb-7">
           <div className="mb-1 flex items-center gap-1 text-xs font-medium text-[#5b403b]"><span>Marketing</span><SellerIcon name="chevron_right" className="text-[16px]" /><span className="text-[#b22204]">Quản lý khuyến mãi</span></div>
-          <h1 className="text-[28px] font-bold tracking-tight text-[#1b1c1c] md:text-[34px]">Quản lý khuyến mãi</h1>
+          <h1 className="text-[28px] font-bold tracking-tight text-[#1b1c1c] md:text-[32px]">Quản lý khuyến mãi</h1>
         </header>
 
         <div className="mb-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">

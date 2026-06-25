@@ -48,12 +48,12 @@ const chartTypeOptions = [
 function MetricCard({ metric }) {
   if (metric.featured) {
     return (
-      <div className="relative col-span-2 overflow-hidden rounded border border-blue-800 bg-gradient-to-br from-blue-900 to-blue-700 p-3 shadow md:col-span-4 lg:col-span-1">
+      <div className="relative col-span-2 min-h-24 overflow-hidden rounded-xl border border-blue-800 bg-gradient-to-br from-blue-900 to-blue-700 p-4 shadow md:col-span-4 lg:col-span-1">
         <div className="mb-1 flex items-start justify-between">
           <span className="text-xs font-medium text-blue-100">{metric.label}</span>
           <AdminIcon name={metric.icon} className="text-[18px] text-white" />
         </div>
-        <div className="mt-1 text-xl font-semibold text-white">{metric.value}</div>
+        <div className="mt-1 text-2xl font-bold text-white">{metric.value}</div>
         <div className="mt-1 flex items-center text-xs font-medium text-blue-200">
           <AdminIcon name="arrow_upward" className="mr-1 text-[14px]" />
           {metric.trend}
@@ -63,12 +63,12 @@ function MetricCard({ metric }) {
   }
 
   return (
-    <div className="relative overflow-hidden rounded border border-slate-200 bg-white p-3 shadow-sm">
+    <div className="relative min-h-24 overflow-hidden rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="mb-1 flex items-start justify-between">
         <span className="text-xs font-medium text-slate-500">{metric.label}</span>
         <AdminIcon name={metric.icon} className={`text-[18px] ${metric.iconClassName}`} />
       </div>
-      <div className="text-xl font-semibold text-slate-900">{metric.value}</div>
+      <div className="text-2xl font-bold text-slate-900">{metric.value}</div>
       <div className="mt-1 flex items-center text-xs font-medium text-green-600">
         <AdminIcon name="trending_up" className="mr-1 text-[14px]" />
         {metric.trend}
@@ -284,16 +284,16 @@ export default function AdminDashboardPage() {
   const { metrics, revenueTrend, recentActivity, alerts, orderStatus, lastUpdated, totals } = dashboardResponse.data
 
   return (
-    <section className="mx-auto flex w-full max-w-[1600px] flex-col gap-4 p-3 md:p-4">
+    <section className="mx-auto flex w-full max-w-[1600px] flex-col gap-5 p-3 md:p-6">
       <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Tổng quan hệ thống</h1>
+          <h1 className="text-2xl font-bold text-slate-900 md:text-[32px]">Tổng quan hệ thống</h1>
           <p className="mt-1 text-sm text-slate-500">Theo dõi chỉ số toàn sàn và hoạt động mới nhất.</p>
         </div>
         <div className="text-xs text-slate-500">Cập nhật: {lastUpdated}</div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 md:grid-cols-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-5">
         {metrics.map((metric) => (
           <MetricCard key={metric.id} metric={metric} />
         ))}

@@ -13,12 +13,12 @@ const carrierOptions = [
 
 function ShippingStatCard({ stat }) {
   return (
-    <article className="relative overflow-hidden rounded-xl border border-[#e3beb6]/70 bg-white p-5 shadow-sm">
+    <article className="relative overflow-hidden rounded-xl border border-[#e3beb6]/70 bg-white p-4 shadow-sm">
       <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-[#ffdad3]/50" />
       <div className="relative z-10 flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-[#5b403b]">{stat.title}</p>
-          <p className={`mt-4 text-[40px] font-bold leading-none text-[#1b1c1c] ${stat.valueClassName || ''}`}>{stat.value}</p>
+          <p className={`mt-3 text-[30px] font-bold leading-none text-[#1b1c1c] ${stat.valueClassName || ''}`}>{stat.value}</p>
         </div>
         <span className={`grid h-11 w-11 place-items-center rounded-full ${stat.iconClassName}`}>
           <SellerIcon name={stat.icon} className="text-[24px]" />
@@ -60,13 +60,13 @@ export default function SellerShippingPage() {
       <div className="flex w-full min-w-0 flex-col gap-6 xl:pr-8">
         <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h1 className="text-[34px] font-bold leading-tight tracking-tight text-[#1b1c1c] md:text-[40px]">Quản lý vận chuyển</h1>
+            <h1 className="text-[28px] font-bold leading-tight tracking-tight text-[#1b1c1c] md:text-[32px]">Quản lý vận chuyển</h1>
             <p className="mt-2 text-sm text-[#5b403b]">Theo dõi và quản lý trạng thái các đơn hàng đang giao dịch.</p>
           </div>
           <button
             type="button"
             onClick={() => window.alert('Xuất báo cáo đang là thao tác mock cho demo frontend.')}
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-[#b22204] px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#9a1d03]"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#b22204] px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#9a1d03]"
           >
             <SellerIcon name="download" className="text-[18px]" />
             Xuất báo cáo
@@ -89,13 +89,13 @@ export default function SellerShippingPage() {
                   value={keyword}
                   onChange={(event) => setKeyword(event.target.value)}
                   placeholder="Mã đơn hàng, mã vận đơn..."
-                  className="h-12 w-full rounded-lg border border-[#e3beb6] bg-[#fbf9f9] pl-12 pr-4 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
+                  className="h-10 w-full rounded-lg border border-[#e3beb6] bg-[#fbf9f9] pl-10 pr-4 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
                 />
               </div>
               <select
                 value={carrier}
                 onChange={(event) => setCarrier(event.target.value)}
-                className="h-12 rounded-lg border border-[#e3beb6] bg-white px-4 text-sm font-medium text-[#5b403b] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
+                className="h-10 rounded-lg border border-[#e3beb6] bg-white px-4 text-sm font-medium text-[#5b403b] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15"
               >
                 {carrierOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -103,12 +103,12 @@ export default function SellerShippingPage() {
                   </option>
                 ))}
               </select>
-              <div className="flex h-12 items-center gap-2 rounded-lg border border-[#e3beb6] bg-white px-4 text-sm text-[#5b403b]">
+              <div className="flex h-10 items-center gap-2 rounded-lg border border-[#e3beb6] bg-white px-4 text-sm text-[#5b403b]">
                 <SellerIcon name="calendar_today" className="text-[19px]" />
                 01/10/2023 - 31/10/2023
               </div>
             </div>
-            <button type="button" className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-[#e3beb6] bg-[#f5f3f3] px-4 text-sm font-semibold text-[#1b1c1c] transition hover:bg-[#efeded]">
+            <button type="button" className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[#e3beb6] bg-[#f5f3f3] px-4 text-sm font-semibold text-[#1b1c1c] transition hover:bg-[#efeded]">
               <SellerIcon name="filter_list" className="text-[18px]" />
               Lọc nâng cao
             </button>

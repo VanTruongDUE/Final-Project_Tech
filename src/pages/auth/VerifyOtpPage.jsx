@@ -134,7 +134,7 @@ export default function VerifyOtpPage() {
                 setEmail(event.target.value)
                 setErrorMessage('')
               }}
-              className="h-12 w-full rounded-lg border border-[#e3beb6] bg-[#f5f3f3] px-4 text-sm outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/20"
+              className="h-11 w-full rounded-lg border border-[#e3beb6] bg-[#f5f3f3] px-4 text-sm outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/20"
               placeholder="Nhập email nhận OTP"
               required
             />
@@ -154,7 +154,7 @@ export default function VerifyOtpPage() {
                 onChange={(event) => updateDigit(index, event.target.value)}
                 onKeyDown={(event) => handleKeyDown(index, event)}
                 aria-label={`OTP số ${index + 1}`}
-                className="h-12 rounded-lg border border-[#e3beb6] bg-[#f5f3f3] text-center text-xl font-semibold outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/20 sm:h-14"
+                className="h-11 rounded-lg border border-[#e3beb6] bg-[#f5f3f3] text-center text-lg font-semibold outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/20"
                 placeholder="•"
               />
             ))}
@@ -183,7 +183,7 @@ export default function VerifyOtpPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="mt-1 h-12 rounded-lg bg-[#ee4d2d] text-base font-medium text-white transition hover:bg-[#d63c1e] disabled:cursor-not-allowed disabled:opacity-70"
+            className="mt-1 h-11 rounded-lg bg-[#ee4d2d] text-sm font-medium text-white transition hover:bg-[#d63c1e] disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isSubmitting ? 'Đang xác minh' : 'Xác nhận'}
           </button>

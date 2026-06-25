@@ -1,5 +1,6 @@
 import { mockUsers } from '../mocks/users.mock'
 import { ROLES } from '../utils/roles'
+import { resolveUserRole } from '../utils/userRoleOverrides'
 import { apiRequest, tokenStorage } from './apiClient'
 
 const AUTH_STORAGE_KEY = 'techtonic-commerce-user'
@@ -88,12 +89,17 @@ const buildLoginUsers = () => {
     (user) => user && typeof user.email === 'string' && typeof user.password === 'string',
   )
 
+  const applyRoleOverride = (user) => ({
+    ...user,
+    role: resolveUserRole(user.email, user.role),
+  })
+
   const mockUserList = mockUsers.map((user) => ({
     ...user,
     password: resolveMockUserPassword(user, passwordOverrides),
-  }))
+  })).map(applyRoleOverride)
 
-  return [...mockUserList, ...registeredList]
+  return [...mockUserList, ...registeredList.map(applyRoleOverride)]
 }
 
 const findLoginUserByEmail = (email) =>

@@ -1,6 +1,6 @@
 export default function CheckoutAddressForm({ formData, errors, onChange }) {
   const baseInputClass =
-    'h-12 rounded-lg border bg-white px-4 text-sm text-[#1b1c1c] outline-none transition placeholder:text-[#c7b7b2] focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15'
+    'h-11 rounded-lg border bg-white px-4 text-sm text-[#1b1c1c] outline-none transition placeholder:text-[#c7b7b2] focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15'
 
   return (
     <section className="rounded-lg border border-[#e3e2e2] bg-white p-6 shadow-sm">

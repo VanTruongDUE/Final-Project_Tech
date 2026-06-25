@@ -122,7 +122,7 @@ export default function LoginPage() {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Nhập email hoặc số điện thoại"
-                className="h-12 w-full rounded-lg border border-[#e3beb6] bg-white pl-10 pr-4 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/20"
+                className="h-11 w-full rounded-lg border border-[#e3beb6] bg-white pl-10 pr-4 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/20"
                 required
               />
             </div>
@@ -141,7 +141,7 @@ export default function LoginPage() {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="Nhập mật khẩu"
-                className="h-12 w-full rounded-lg border border-[#e3beb6] bg-white pl-10 pr-12 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/20"
+                className="h-11 w-full rounded-lg border border-[#e3beb6] bg-white pl-10 pr-12 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/20"
                 required
               />
               <button
@@ -182,7 +182,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#ee4d2d] text-sm font-semibold text-white transition hover:bg-[#b22204] disabled:cursor-not-allowed disabled:opacity-70"
+            className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#ee4d2d] text-sm font-semibold text-white transition hover:bg-[#b22204] disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
             <span className="material-symbols-outlined text-[18px]" aria-hidden="true">

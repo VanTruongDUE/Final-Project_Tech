@@ -70,7 +70,7 @@ export default function ForgotPasswordPage() {
                   setErrorMessage('')
                 }}
                 placeholder="VD: user@example.com hoặc 0987654321"
-                className="h-12 w-full rounded-lg border border-[#e3beb6] bg-white pl-11 pr-4 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]"
+                className="h-11 w-full rounded-lg border border-[#e3beb6] bg-white pl-11 pr-4 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]"
                 required
               />
             </div>
@@ -85,7 +85,7 @@ export default function ForgotPasswordPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#ee4d2d] text-base font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#ee4d2d] text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isSubmitting ? 'Đang gửi mã OTP' : 'Gửi mã OTP'}
             <span className="material-symbols-outlined text-[18px]" aria-hidden="true">

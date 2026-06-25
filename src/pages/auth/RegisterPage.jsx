@@ -73,7 +73,7 @@ export default function RegisterPage() {
     <div className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-[#fbf9f9] px-3 py-12">
       <main className="w-full max-w-[480px] rounded-xl border border-[#e3beb6] bg-white p-6 shadow-[0_12px_32px_rgba(0,0,0,0.1)] sm:p-12">
         <div className="mb-10 text-center">
-          <Link to="/" className="text-[40px] font-bold tracking-tight text-[#ee4d2d]">
+          <Link to="/" className="text-[32px] font-bold tracking-tight text-[#ee4d2d]">
             TechToShop
           </Link>
           <h1 className="mt-4 text-[30px] font-bold leading-tight text-[#1b1c1c] sm:text-[32px]">
@@ -93,7 +93,7 @@ export default function RegisterPage() {
               value={formData.fullName}
               onChange={handleChange}
               placeholder="Nhập họ và tên"
-              className="h-12 w-full rounded-lg border border-[#e3beb6] bg-white px-4 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]"
+              className="h-11 w-full rounded-lg border border-[#e3beb6] bg-white px-4 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]"
               required
             />
           </label>
@@ -106,7 +106,7 @@ export default function RegisterPage() {
               value={formData.email}
               onChange={handleChange}
               placeholder="Nhập địa chỉ email"
-              className="h-12 w-full rounded-lg border border-[#e3beb6] bg-white px-4 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]"
+              className="h-11 w-full rounded-lg border border-[#e3beb6] bg-white px-4 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]"
               required
             />
           </label>
@@ -119,7 +119,7 @@ export default function RegisterPage() {
               value={formData.phone}
               onChange={handleChange}
               placeholder="Nhập số điện thoại"
-              className="h-12 w-full rounded-lg border border-[#e3beb6] bg-white px-4 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]"
+              className="h-11 w-full rounded-lg border border-[#e3beb6] bg-white px-4 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]"
               required
             />
           </label>
@@ -132,7 +132,7 @@ export default function RegisterPage() {
               value={formData.password}
               onChange={handleChange}
               placeholder="Tạo mật khẩu"
-              className="h-12 w-full rounded-lg border border-[#e3beb6] bg-white px-4 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]"
+              className="h-11 w-full rounded-lg border border-[#e3beb6] bg-white px-4 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]"
               required
             />
           </label>
@@ -147,7 +147,7 @@ export default function RegisterPage() {
               value={formData.confirmPassword}
               onChange={handleChange}
               placeholder="Nhập lại mật khẩu"
-              className="h-12 w-full rounded-lg border border-[#e3beb6] bg-white px-4 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]"
+              className="h-11 w-full rounded-lg border border-[#e3beb6] bg-white px-4 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]"
               required
             />
           </label>
@@ -178,7 +178,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="mt-4 flex h-12 w-full items-center justify-center rounded-lg bg-[#ee4d2d] px-4 text-sm font-bold text-white transition hover:bg-[#d63c1e] disabled:cursor-not-allowed disabled:opacity-70"
+            className="mt-4 flex h-11 w-full items-center justify-center rounded-lg bg-[#ee4d2d] px-4 text-sm font-bold text-white transition hover:bg-[#d63c1e] disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isSubmitting ? 'Đang đăng ký...' : 'Đăng ký'}
           </button>

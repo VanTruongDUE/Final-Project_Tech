@@ -24,7 +24,6 @@ import BuyerMessagesPage from '../pages/buyer/BuyerMessagesPage'
 import BuyerConversationPage from '../pages/buyer/BuyerConversationPage'
 import BuyerAddressPage from '../pages/buyer/BuyerAddressPage'
 import BuyerBankPage from '../pages/buyer/BuyerBankPage'
-import BuyerNotificationsPage from '../pages/buyer/BuyerNotificationsPage'
 import BuyerChangePasswordPage from '../pages/buyer/BuyerChangePasswordPage'
 import BuyerPrivacyPage from '../pages/buyer/BuyerPrivacyPage'
 import BuyerPersonalInfoPage from '../pages/buyer/BuyerPersonalInfoPage'
@@ -49,6 +48,7 @@ import AdminOrdersPage from '../pages/admin/AdminOrdersPage'
 import AdminStatisticsPage from '../pages/admin/AdminStatisticsPage'
 import AdminStoreApprovalsPage from '../pages/admin/AdminStoreApprovalsPage'
 import AdminReportedProductsPage from '../pages/admin/AdminReportedProductsPage'
+import AdminProductApprovalsPage from '../pages/admin/AdminProductApprovalsPage'
 import ShipperDashboardPage from '../pages/shipper/ShipperDashboardPage'
 import ShipperShipmentsPage from '../pages/shipper/ShipperShipmentsPage'
 import ShipperShipmentDetailPage from '../pages/shipper/ShipperShipmentDetailPage'
@@ -87,7 +87,6 @@ export default function AppRoutes() {
           <Route path="/profile" element={<BuyerPersonalInfoPage />} />
           <Route path="/profile/banks" element={<BuyerBankPage />} />
           <Route path="/profile/addresses" element={<BuyerAddressPage />} />
-          <Route path="/profile/notifications" element={<BuyerNotificationsPage />} />
           <Route path="/profile/change-password" element={<BuyerChangePasswordPage />} />
           <Route path="/profile/privacy" element={<BuyerPrivacyPage />} />
           <Route path="/profile/personal-info" element={<Navigate to="/profile" replace />} />
@@ -122,6 +121,7 @@ export default function AppRoutes() {
           <Route path="/admin/orders" element={<AdminOrdersPage />} />
           <Route path="/admin/statistics" element={<AdminStatisticsPage />} />
           <Route path="/admin/reported-products" element={<AdminReportedProductsPage />} />
+          <Route path="/admin/product-approvals" element={<AdminProductApprovalsPage />} />
         </Route>
       </Route>
 

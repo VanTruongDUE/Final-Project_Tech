@@ -21,7 +21,7 @@ function NavItem({ item }) {
       className={({ isActive }) =>
         `flex items-center gap-3 p-3 text-sm font-medium transition-all ${
           isActive
-            ? 'rounded-r-full border-l-4 border-[#ee4d2d] bg-[#ee4d2d]/10 text-[#ee4d2d] scale-95'
+            ? 'rounded-r-full border-l-4 border-[#ee4d2d] bg-[#ee4d2d]/10 text-[#ee4d2d]'
             : 'rounded-lg text-[#5b403b] hover:bg-[#e9e8e7] hover:text-[#b22204]'
         }`
       }

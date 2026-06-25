@@ -5,14 +5,14 @@ import { shipperService } from '../../services/shipperService'
 
 function MetricCard({ metric }) {
   return (
-    <div className="flex min-h-[140px] flex-col justify-between rounded-xl border border-[#e3beb6]/50 bg-white p-4 shadow-sm transition hover:shadow-md">
+    <div className="flex min-h-24 flex-col justify-between rounded-xl border border-[#e3beb6]/50 bg-white p-4 shadow-sm transition hover:shadow-md">
       <div className="mb-2 flex items-start justify-between">
         <p className="text-xs font-medium text-[#5b403b]">{metric.label}</p>
         <div className={`rounded-lg p-1.5 ${metric.iconClassName}`}>
           <ShipperIcon name={metric.icon} className="text-[20px]" />
         </div>
       </div>
-      <p className={`text-4xl font-bold ${metric.featured ? 'text-orange-800' : metric.danger ? 'text-red-800' : 'text-[#1b1c1c]'}`}>{metric.value}</p>
+      <p className={`text-[28px] font-bold leading-none ${metric.featured ? 'text-orange-800' : metric.danger ? 'text-red-800' : 'text-[#1b1c1c]'}`}>{metric.value}</p>
     </div>
   )
 }
@@ -73,7 +73,7 @@ export default function ShipperDashboardPage() {
   }
 
   return (
-    <section className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 p-4 md:p-6">
+    <section className="mx-auto flex w-full max-w-[1440px] flex-col gap-5 p-4 md:p-6">
       <div>
         <h2 className="hidden text-[32px] font-bold text-[#1b1c1c] md:block">Tổng quan</h2>
         <p className="mt-1 text-sm text-[#5b403b]">Theo dõi hiệu suất giao hàng trong ngày và các đơn đang hoạt động.</p>

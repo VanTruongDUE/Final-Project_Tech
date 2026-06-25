@@ -243,7 +243,7 @@ export default function AdminStoresPage() {
   ]
 
   return (
-    <section className="mx-auto flex w-full max-w-[1200px] flex-col p-3 md:p-6 lg:p-12">
+    <section className="mx-auto flex w-full max-w-[1600px] flex-col p-3 md:p-6">
       <header className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
           <h1 className="text-2xl font-bold text-[#1b1c1c] md:text-[32px]">Quản lý Cửa hàng</h1>

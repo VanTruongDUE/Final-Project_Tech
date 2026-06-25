@@ -120,11 +120,11 @@ export default function ProfilePage() {
   }
 
   return (
-    <section className="space-y-8">
-      <div className="rounded-2xl bg-white p-6 shadow-[0_1px_20px_0_rgba(0,0,0,0.05)] md:p-8">
+    <section className="space-y-6">
+      <div className="rounded-xl bg-white p-5 shadow-[0_1px_20px_0_rgba(0,0,0,0.05)] md:p-6">
         <div className="border-b border-[#e5e7eb] pb-5">
-          <h1 className="text-3xl font-bold leading-tight text-[#1b1c1c] md:text-4xl">Hồ sơ của tôi</h1>
-          <p className="mt-3 text-base leading-6 text-[#5b403b]">Quản lý thông tin hồ sơ để bảo mật tài khoản</p>
+          <h1 className="text-2xl font-bold leading-tight text-[#1b1c1c] md:text-[32px]">Hồ sơ của tôi</h1>
+          <p className="mt-2 text-sm leading-6 text-[#5b403b]">Quản lý thông tin hồ sơ để bảo mật tài khoản</p>
         </div>
 
         {feedbackMessage ? (
@@ -133,10 +133,10 @@ export default function ProfilePage() {
           </div>
         ) : null}
 
-        <div className="mt-6 flex flex-col gap-8 md:flex-row">
-          <form className="order-2 flex-1 space-y-6 md:order-1" onSubmit={(event) => event.preventDefault()}>
+        <div className="mt-6 flex flex-col gap-6 md:flex-row">
+          <form className="order-2 flex-1 space-y-5 md:order-1" onSubmit={(event) => event.preventDefault()}>
             <FieldRow label="Tên đăng nhập">
-              <p className="text-xl text-[#1b1c1c]">{username}</p>
+              <p className="text-sm font-medium text-[#1b1c1c]">{username}</p>
             </FieldRow>
 
             <FieldRow label="Họ và tên">
@@ -144,14 +144,14 @@ export default function ProfilePage() {
                 type="text"
                 value={fullName}
                 onChange={(event) => setFullName(event.target.value)}
-                className="h-12 w-full rounded-xl border border-[#d8dce3] bg-white px-4 text-lg outline-none transition focus:border-[#b22204] focus:ring-2 focus:ring-[#b22204]/15"
+                className="h-10 w-full rounded-lg border border-[#d8dce3] bg-white px-3 text-sm outline-none transition focus:border-[#b22204] focus:ring-2 focus:ring-[#b22204]/15"
               />
             </FieldRow>
 
             <FieldRow label="Email">
               <div className="flex flex-wrap items-center gap-3">
-                <p className="flex-1 text-xl text-[#1b1c1c]">{maskEmail(currentUser?.email)}</p>
-                <button type="button" className="text-lg text-[#b22204] underline underline-offset-2">
+                <p className="flex-1 text-sm text-[#1b1c1c]">{maskEmail(currentUser?.email)}</p>
+                <button type="button" className="text-sm text-[#b22204] underline underline-offset-2">
                   Thay đổi
                 </button>
               </div>
@@ -164,7 +164,7 @@ export default function ProfilePage() {
                   value={phone}
                   onChange={(event) => setPhone(event.target.value)}
                   placeholder={maskPhone()}
-                  className="h-12 flex-1 rounded-xl border border-[#d8dce3] bg-white px-4 text-lg outline-none transition focus:border-[#b22204] focus:ring-2 focus:ring-[#b22204]/15"
+                  className="h-10 flex-1 rounded-lg border border-[#d8dce3] bg-white px-3 text-sm outline-none transition focus:border-[#b22204] focus:ring-2 focus:ring-[#b22204]/15"
                 />
               </div>
             </FieldRow>
@@ -172,14 +172,14 @@ export default function ProfilePage() {
             <FieldRow label="Giới tính">
               <div className="flex flex-wrap gap-5 pt-1">
                 {genderOptions.map((option) => (
-                  <label key={option.value} className="flex cursor-pointer items-center gap-2 text-lg text-[#1b1c1c]">
+                  <label key={option.value} className="flex cursor-pointer items-center gap-2 text-sm text-[#1b1c1c]">
                     <input
                       type="radio"
                       name="gender"
                       value={option.value}
                       checked={gender === option.value}
                       onChange={(event) => setGender(event.target.value)}
-                      className="h-5 w-5 border-[#d8dce3] text-[#b22204] focus:ring-[#b22204]"
+                      className="h-4 w-4 border-[#d8dce3] text-[#b22204] focus:ring-[#b22204]"
                     />
                     <span>{option.label}</span>
                   </label>
@@ -192,7 +192,7 @@ export default function ProfilePage() {
                 <select
                   value={birthDay}
                   onChange={(event) => setBirthDay(event.target.value)}
-                  className="h-12 rounded-xl border border-[#d8dce3] bg-white px-4 text-lg outline-none transition focus:border-[#b22204] focus:ring-2 focus:ring-[#b22204]/15"
+                  className="h-10 rounded-lg border border-[#d8dce3] bg-white px-3 text-sm outline-none transition focus:border-[#b22204] focus:ring-2 focus:ring-[#b22204]/15"
                 >
                   {days.map((day) => (
                     <option key={day} value={day}>
@@ -203,7 +203,7 @@ export default function ProfilePage() {
                 <select
                   value={birthMonth}
                   onChange={(event) => setBirthMonth(event.target.value)}
-                  className="h-12 rounded-xl border border-[#d8dce3] bg-white px-4 text-lg outline-none transition focus:border-[#b22204] focus:ring-2 focus:ring-[#b22204]/15"
+                  className="h-10 rounded-lg border border-[#d8dce3] bg-white px-3 text-sm outline-none transition focus:border-[#b22204] focus:ring-2 focus:ring-[#b22204]/15"
                 >
                   {months.map((month) => (
                     <option key={month} value={month}>
@@ -214,7 +214,7 @@ export default function ProfilePage() {
                 <select
                   value={birthYear}
                   onChange={(event) => setBirthYear(event.target.value)}
-                  className="h-12 rounded-xl border border-[#d8dce3] bg-white px-4 text-lg outline-none transition focus:border-[#b22204] focus:ring-2 focus:ring-[#b22204]/15"
+                  className="h-10 rounded-lg border border-[#d8dce3] bg-white px-3 text-sm outline-none transition focus:border-[#b22204] focus:ring-2 focus:ring-[#b22204]/15"
                 >
                   {years.map((year) => (
                     <option key={year} value={year}>
@@ -231,7 +231,7 @@ export default function ProfilePage() {
                 <button
                   type="button"
                   onClick={handleUpdateProfile}
-                  className="rounded-xl bg-[#b22204] px-10 py-3 text-lg font-medium text-white transition hover:bg-[#981b02]"
+                  className="h-10 rounded-lg bg-[#b22204] px-6 text-sm font-semibold text-white transition hover:bg-[#981b02]"
                 >
                   Cập nhật
                 </button>
@@ -240,13 +240,13 @@ export default function ProfilePage() {
           </form>
 
           <div className="order-1 flex flex-col items-center gap-4 border-b border-[#e5e7eb] pb-6 md:order-2 md:w-[240px] md:border-b-0 md:border-l md:border-[#e5e7eb] md:pb-0 md:pl-8">
-            <div className="grid h-32 w-32 place-items-center rounded-full border-2 border-[#e5e7eb] bg-[#fff1ec] text-3xl font-bold text-[#b22204]">
+            <div className="grid h-28 w-28 place-items-center rounded-full border-2 border-[#e5e7eb] bg-[#fff1ec] text-2xl font-bold text-[#b22204]">
               {initials}
             </div>
             <button
               type="button"
               onClick={handleUpdateProfile}
-              className="rounded-xl border border-[#d8dce3] bg-white px-6 py-2.5 text-lg text-[#1b1c1c] transition hover:border-[#b22204] hover:text-[#b22204]"
+              className="h-10 rounded-lg border border-[#d8dce3] bg-white px-5 text-sm font-medium text-[#1b1c1c] transition hover:border-[#b22204] hover:text-[#b22204]"
             >
               Chọn Ảnh
             </button>
@@ -259,14 +259,14 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <div id="change-password" className="scroll-mt-24 rounded-2xl bg-white p-6 shadow-[0_1px_20px_0_rgba(0,0,0,0.05)] md:p-8">
+      <div id="change-password" className="scroll-mt-24 rounded-xl bg-white p-5 shadow-[0_1px_20px_0_rgba(0,0,0,0.05)] md:p-6">
         <div className="border-b border-[#e5e7eb] pb-5">
-          <h2 className="text-[2.35rem] font-bold text-[#1b1c1c] md:text-[3rem]">Đổi mật khẩu nhanh</h2>
+          <h2 className="text-xl font-bold text-[#1b1c1c] md:text-2xl">Đổi mật khẩu nhanh</h2>
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3 lg:items-end">
           <div>
-            <label htmlFor="current-password" className="mb-3 block text-lg text-[#5b403b]">
+            <label htmlFor="current-password" className="mb-2 block text-sm font-medium text-[#5b403b]">
               Mật khẩu hiện tại
             </label>
             <input
@@ -274,12 +274,12 @@ export default function ProfilePage() {
               type="password"
               value={currentPassword}
               onChange={(event) => setCurrentPassword(event.target.value)}
-              className="h-14 w-full rounded-xl border border-[#d8dce3] bg-white px-4 text-lg outline-none transition focus:border-[#b22204] focus:ring-2 focus:ring-[#b22204]/15"
+              className="h-10 w-full rounded-lg border border-[#d8dce3] bg-white px-3 text-sm outline-none transition focus:border-[#b22204] focus:ring-2 focus:ring-[#b22204]/15"
             />
           </div>
 
           <div>
-            <label htmlFor="new-password" className="mb-3 block text-lg text-[#5b403b]">
+            <label htmlFor="new-password" className="mb-2 block text-sm font-medium text-[#5b403b]">
               Mật khẩu mới
             </label>
             <input
@@ -287,12 +287,12 @@ export default function ProfilePage() {
               type="password"
               value={newPassword}
               onChange={(event) => setNewPassword(event.target.value)}
-              className="h-14 w-full rounded-xl border border-[#d8dce3] bg-white px-4 text-lg outline-none transition focus:border-[#b22204] focus:ring-2 focus:ring-[#b22204]/15"
+              className="h-10 w-full rounded-lg border border-[#d8dce3] bg-white px-3 text-sm outline-none transition focus:border-[#b22204] focus:ring-2 focus:ring-[#b22204]/15"
             />
           </div>
 
           <div>
-            <label htmlFor="confirm-password" className="mb-3 block text-lg text-[#5b403b]">
+            <label htmlFor="confirm-password" className="mb-2 block text-sm font-medium text-[#5b403b]">
               Xác nhận mật khẩu mới
             </label>
             <input
@@ -300,14 +300,14 @@ export default function ProfilePage() {
               type="password"
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
-              className="h-14 w-full rounded-xl border border-[#d8dce3] bg-white px-4 text-lg outline-none transition focus:border-[#b22204] focus:ring-2 focus:ring-[#b22204]/15"
+              className="h-10 w-full rounded-lg border border-[#d8dce3] bg-white px-3 text-sm outline-none transition focus:border-[#b22204] focus:ring-2 focus:ring-[#b22204]/15"
             />
           </div>
 
           <button
             type="button"
             onClick={handleChangePassword}
-            className="h-14 rounded-xl border border-[#b22204] bg-white px-6 text-lg font-medium text-[#b22204] transition hover:bg-[#fff1ec] lg:col-start-3"
+            className="h-10 rounded-lg border border-[#b22204] bg-white px-5 text-sm font-semibold text-[#b22204] transition hover:bg-[#fff1ec] lg:col-start-3"
           >
             Xác nhận đổi
           </button>

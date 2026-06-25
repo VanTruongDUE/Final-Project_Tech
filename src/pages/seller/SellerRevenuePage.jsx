@@ -93,7 +93,7 @@ function downloadRevenueExcelReport({ storeName, rangeLabel, rows, totalRevenue,
 
 function RevenueCard({ card }) {
   return (
-    <div className="group relative flex min-h-[176px] flex-col justify-between overflow-hidden rounded-xl border border-[#e3e2e2] bg-white p-6 shadow-sm transition-shadow hover:shadow-md lg:min-h-[188px]">
+    <div className="group relative flex min-h-28 flex-col justify-between overflow-hidden rounded-xl border border-[#e3e2e2] bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
       <div className={`pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-bl-full opacity-30 transition-transform duration-500 group-hover:scale-110 ${card.bgAccentClassName}`} />
       <div className="relative z-10 flex items-center justify-between">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-[#5b403b]">{card.title}</h3>
@@ -104,7 +104,7 @@ function RevenueCard({ card }) {
 
       <div className="relative z-10">
         <div className="flex items-end gap-1">
-          <p className="text-[40px] font-bold leading-none text-[#b22204] md:text-[48px]">{card.value}</p>
+          <p className="text-[28px] font-bold leading-none text-[#b22204] md:text-[32px]">{card.value}</p>
           {card.suffix ? <span className="mb-1 text-xl font-semibold text-[#5b403b]">{card.suffix}</span> : null}
         </div>
         <div className={`mt-2 flex items-center gap-1 text-xs font-medium ${card.trendClassName}`}>

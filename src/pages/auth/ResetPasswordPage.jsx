@@ -84,7 +84,7 @@ export default function ResetPasswordPage() {
                   value={formData.email}
                   onChange={handleChange}
                   readOnly={!canEditEmailAndOtp}
-                  className="h-12 w-full rounded-lg border border-[#e3beb6] bg-white px-4 text-sm outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/20 read-only:bg-[#f5f3f3]"
+                  className="h-11 w-full rounded-lg border border-[#e3beb6] bg-white px-4 text-sm outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/20 read-only:bg-[#f5f3f3]"
                   placeholder="Nhập email"
                   required
                 />
@@ -98,7 +98,7 @@ export default function ResetPasswordPage() {
                   value={formData.otp}
                   onChange={handleChange}
                   readOnly={!canEditEmailAndOtp}
-                  className="h-12 w-full rounded-lg border border-[#e3beb6] bg-white px-4 text-sm outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/20 read-only:bg-[#f5f3f3]"
+                  className="h-11 w-full rounded-lg border border-[#e3beb6] bg-white px-4 text-sm outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/20 read-only:bg-[#f5f3f3]"
                   placeholder="Nhập mã OTP"
                   required
                 />
@@ -120,7 +120,7 @@ export default function ResetPasswordPage() {
                   value={formData.newPassword}
                   onChange={handleChange}
                   placeholder="Nhập mật khẩu mới"
-                  className="h-12 min-w-0 flex-1 bg-transparent text-sm outline-none"
+                  className="h-11 min-w-0 flex-1 bg-transparent text-sm outline-none"
                   required
                 />
                 <button
@@ -148,7 +148,7 @@ export default function ResetPasswordPage() {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   placeholder="Nhập lại mật khẩu mới"
-                  className="h-12 min-w-0 flex-1 bg-transparent text-sm outline-none"
+                  className="h-11 min-w-0 flex-1 bg-transparent text-sm outline-none"
                   required
                 />
                 <button
@@ -174,7 +174,7 @@ export default function ResetPasswordPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="mt-1 flex h-12 items-center justify-center gap-2 rounded-lg bg-[#ee4d2d] text-sm font-semibold text-white transition hover:bg-[#d44124] disabled:cursor-not-allowed disabled:opacity-70"
+              className="mt-1 flex h-11 items-center justify-center gap-2 rounded-lg bg-[#ee4d2d] text-sm font-semibold text-white transition hover:bg-[#d44124] disabled:cursor-not-allowed disabled:opacity-70"
             >
               {isSubmitting ? 'Đang cập nhật mật khẩu' : 'Cập nhật mật khẩu'}
               <span className="material-symbols-outlined text-[18px]" aria-hidden="true">

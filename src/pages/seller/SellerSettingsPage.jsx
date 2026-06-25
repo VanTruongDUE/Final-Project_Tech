@@ -102,9 +102,9 @@ export default function SellerSettingsPage() {
 
   return (
     <section className="min-h-screen overflow-x-hidden bg-[#fbf9f9] p-4 pb-28 md:p-6 md:pb-6">
-      <form onSubmit={handleSubmit} className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+      <form onSubmit={handleSubmit} className="mx-auto flex w-full max-w-[1440px] flex-col gap-5">
         <header>
-          <h1 className="text-[34px] font-bold leading-tight tracking-tight text-[#1b1c1c] md:text-[40px]">Cài đặt cửa hàng</h1>
+          <h1 className="text-[28px] font-bold leading-tight tracking-tight text-[#1b1c1c] md:text-[32px]">Cài đặt cửa hàng</h1>
           <p className="mt-2 text-sm text-[#5b403b]">
             Quản lý thông tin hiển thị và trạng thái hoạt động của shop bạn trên TechToShop.
           </p>

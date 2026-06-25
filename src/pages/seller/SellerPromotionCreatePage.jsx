@@ -48,7 +48,7 @@ function TextInput({ id, value, onChange, placeholder, type = 'text', rightLabel
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className={`h-12 w-full rounded-lg border border-[#e3beb6] bg-[#fbf9f9] px-4 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15 ${rightLabel ? 'pr-12 text-right' : ''}`}
+        className={`h-10 w-full rounded-lg border border-[#e3beb6] bg-[#fbf9f9] px-4 text-sm text-[#1b1c1c] outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15 ${rightLabel ? 'pr-12 text-right' : ''}`}
       />
       {rightLabel ? <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-[#5b403b]">{rightLabel}</span> : null}
     </div>
@@ -96,13 +96,13 @@ export default function SellerPromotionCreatePage() {
 
   return (
     <section className="min-h-screen overflow-x-hidden bg-[#fbf9f9] p-4 md:p-6">
-      <form onSubmit={handleSubmit} className="mx-auto grid w-full max-w-6xl gap-6 lg:grid-cols-[minmax(0,2fr)_360px]">
+      <form onSubmit={handleSubmit} className="mx-auto grid w-full max-w-[1440px] gap-5 lg:grid-cols-[minmax(0,2fr)_340px]">
         <div className="flex min-w-0 flex-col gap-6">
           <header className="flex items-center gap-3 border-b border-[#e3beb6] pb-4">
             <button type="button" onClick={() => navigate('/seller/promotions')} className="grid h-10 w-10 place-items-center rounded-full text-[#5b403b] transition hover:bg-[#efeded] hover:text-[#b22204]" aria-label="Quay lại">
               <SellerIcon name="arrow_back" className="text-[24px]" />
             </button>
-            <h1 className="text-[34px] font-bold leading-tight tracking-tight text-[#1b1c1c] md:text-[40px]">Tạo khuyến mãi mới</h1>
+            <h1 className="text-[28px] font-bold leading-tight tracking-tight text-[#1b1c1c] md:text-[32px]">Tạo khuyến mãi mới</h1>
           </header>
 
           <FormSection icon="info" title="Thông tin cơ bản">

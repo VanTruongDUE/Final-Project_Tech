@@ -1,5 +1,6 @@
 import { mockProducts } from '../mocks/products.mock'
 import { mockUsers } from '../mocks/users.mock'
+import { ASSIGNABLE_USER_ROLES, resolveUserRole, saveUserRoleOverride } from '../utils/userRoleOverrides'
 
 const vnd = (value) => new Intl.NumberFormat('vi-VN').format(value) + 'đ'
 
@@ -675,6 +676,7 @@ export const adminService = {
     const users = adminUsers
       .map((user) => ({
         ...user,
+        role: resolveUserRole(user.email, user.role),
         status: storedStatuses[user.id] || user.status,
       }))
       .filter((user) => {
@@ -709,6 +711,7 @@ export const adminService = {
     }
 
     const status = storedStatuses[user.id] || user.status
+    const resolvedRole = resolveUserRole(user.email, user.role)
     const roleActivity = {
       ADMIN: ['Đăng nhập bảng điều khiển Admin', 'Cập nhật cấu hình hệ thống', 'Kiểm tra báo cáo toàn sàn'],
       SELLER: ['Quản lý sản phẩm', 'Xử lý đơn hàng từ cửa hàng', 'Theo dõi doanh thu cửa hàng'],
@@ -726,13 +729,14 @@ export const adminService = {
       success: true,
       data: {
         ...user,
+        role: resolvedRole,
         status,
         username: user.email.split('@')[0],
         lastLogin: user.status === 'PENDING' ? 'Chưa đăng nhập' : '24/10/2024 09:30',
         verified: status !== 'PENDING',
-        source: user.role === 'ADMIN' ? 'Tài khoản hệ thống' : 'Đăng ký mock/localStorage',
-        permissions: rolePermissions[user.role] || rolePermissions.CUSTOMER,
-        activity: (roleActivity[user.role] || roleActivity.CUSTOMER).map((label, index) => ({
+        source: resolvedRole === 'ADMIN' ? 'Tài khoản hệ thống' : 'Đăng ký mock/localStorage',
+        permissions: rolePermissions[resolvedRole] || rolePermissions.CUSTOMER,
+        activity: (roleActivity[resolvedRole] || roleActivity.CUSTOMER).map((label, index) => ({
           id: `${user.id}-activity-${index}`,
           label,
           time: index === 0 ? 'Gần đây' : 'Dữ liệu mock',
@@ -766,6 +770,39 @@ export const adminService = {
       data: {
         ...user,
         status,
+      },
+    }
+  },
+
+  updateUserRole(userId, role) {
+    const user = adminUsers.find((item) => item.id === userId)
+
+    if (!user) {
+      return {
+        success: false,
+        message: 'Không tìm thấy tài khoản.',
+      }
+    }
+
+    if (!ASSIGNABLE_USER_ROLES.includes(role)) {
+      return {
+        success: false,
+        message: 'Vai trò không hợp lệ.',
+      }
+    }
+
+    if (!saveUserRoleOverride(user.email, role)) {
+      return {
+        success: false,
+        message: 'Không thể lưu vai trò mới.',
+      }
+    }
+
+    return {
+      success: true,
+      data: {
+        ...user,
+        role,
       },
     }
   },
