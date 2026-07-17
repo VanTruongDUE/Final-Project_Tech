@@ -1,0 +1,94 @@
+{
+  "info": {
+    "_postman_id": "f42a7ea6-f7a0-4ef8-8db5-corefreeze0001",
+    "name": "TechTonic API - Flask Core",
+    "description": "Real Flask /api/v1 contract. Set credentials and tokens only in a private Postman environment.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api/v1" },
+    { "key": "customerToken", "value": "" },
+    { "key": "sellerToken", "value": "" },
+    { "key": "adminToken", "value": "" },
+    { "key": "shipperToken", "value": "" },
+    { "key": "productId", "value": "" },
+    { "key": "variantId", "value": "" },
+    { "key": "storeId", "value": "" },
+    { "key": "addressId", "value": "" },
+    { "key": "orderId", "value": "" },
+    { "key": "conversationId", "value": "" },
+    { "key": "shipmentId", "value": "" }
+    ,{ "key": "userId", "value": "" }
+    ,{ "key": "roleId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Public",
+      "item": [
+        { "name": "Roles", "request": { "method": "GET", "url": "{{baseUrl}}/roles" } },
+        { "name": "Categories", "request": { "method": "GET", "url": "{{baseUrl}}/categories" } },
+        { "name": "Product list", "request": { "method": "GET", "url": "{{baseUrl}}/products?limit=20" } },
+        { "name": "Product detail", "request": { "method": "GET", "url": "{{baseUrl}}/products/{{productId}}" } },
+        { "name": "Product reviews", "request": { "method": "GET", "url": "{{baseUrl}}/products/{{productId}}/reviews" } }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        { "name": "Customer login", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"{{customerPassword}}\"\n}" }, "url": "{{baseUrl}}/auth/login" } },
+        { "name": "Seller login", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{sellerEmail}}\",\n  \"password\": \"{{sellerPassword}}\"\n}" }, "url": "{{baseUrl}}/auth/login" } },
+        { "name": "Admin login", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}" }, "url": "{{baseUrl}}/auth/login" } },
+        { "name": "Shipper login", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{shipperEmail}}\",\n  \"password\": \"{{shipperPassword}}\"\n}" }, "url": "{{baseUrl}}/auth/login" } },
+        { "name": "Current user", "request": { "method": "GET", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "url": "{{baseUrl}}/users/me" } }
+      ]
+    },
+    {
+      "name": "Customer",
+      "item": [
+        { "name": "Addresses", "request": { "method": "GET", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "url": "{{baseUrl}}/me/addresses" } },
+        { "name": "Store application", "request": { "method": "GET", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "url": "{{baseUrl}}/me/store-application" } },
+        { "name": "Submit store application", "request": { "method": "POST", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"store_name\": \"TechTonic demo store\",\n  \"description\": \"Seller onboarding verification\",\n  \"contact_phone\": \"0900000000\",\n  \"contact_email\": \"seller@example.invalid\",\n  \"address_line\": \"Environment address\"\n}" }, "url": "{{baseUrl}}/me/store-application" } },
+        { "name": "Cart", "request": { "method": "GET", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "url": "{{baseUrl}}/cart" } },
+        { "name": "Add SKU to cart", "request": { "method": "POST", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"product_id\": {{productId}},\n  \"variant_id\": {{variantId}},\n  \"quantity\": 1\n}" }, "url": "{{baseUrl}}/cart/items" } },
+        { "name": "Voucher check", "request": { "method": "GET", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "url": "{{baseUrl}}/vouchers/check?code={{voucherCode}}&order_amount={{orderAmount}}&store_id={{storeId}}" } },
+        { "name": "Create order", "request": { "method": "POST", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"store_id\": {{storeId}},\n  \"address_id\": {{addressId}},\n  \"recipient_name\": \"Environment recipient\",\n  \"recipient_phone\": \"0900000000\",\n  \"shipping_address_line\": \"Environment address\",\n  \"shipping_province\": \"Ho Chi Minh\",\n  \"payment_method\": \"COD\",\n  \"voucher_code\": \"{{voucherCode}}\",\n  \"items\": [{\n    \"product_id\": {{productId}},\n    \"variant_id\": {{variantId}},\n    \"quantity\": 1\n  }]\n}" }, "url": "{{baseUrl}}/orders" } },
+        { "name": "Order detail", "request": { "method": "GET", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "url": "{{baseUrl}}/orders/{{orderId}}" } },
+        { "name": "Cancel order", "request": { "method": "POST", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"cancel_reason\": \"Postman verification\"\n}" }, "url": "{{baseUrl}}/orders/{{orderId}}/cancel" } },
+        { "name": "Create review", "request": { "method": "POST", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"order_item_id\": {{orderItemId}},\n  \"rating\": 5,\n  \"comment\": \"Postman verification\"\n}" }, "url": "{{baseUrl}}/reviews" } },
+        { "name": "Conversations", "request": { "method": "GET", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "url": "{{baseUrl}}/conversations" } },
+        { "name": "Messages", "request": { "method": "GET", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "url": "{{baseUrl}}/conversations/{{conversationId}}/messages" } }
+      ]
+    },
+    {
+      "name": "Seller",
+      "item": [
+        { "name": "Products", "request": { "method": "GET", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{sellerToken}}", "type": "string" }] }, "url": "{{baseUrl}}/seller/products" } },
+        { "name": "Orders", "request": { "method": "GET", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{sellerToken}}", "type": "string" }] }, "url": "{{baseUrl}}/seller/orders" } },
+        { "name": "Order detail", "request": { "method": "GET", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{sellerToken}}", "type": "string" }] }, "url": "{{baseUrl}}/seller/orders/{{orderId}}" } },
+        { "name": "Revenue", "request": { "method": "GET", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{sellerToken}}", "type": "string" }] }, "url": "{{baseUrl}}/seller/revenue?from_date={{fromDate}}&to_date={{toDate}}&group_by=day&limit=10" } },
+        { "name": "Store settings", "request": { "method": "GET", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{sellerToken}}", "type": "string" }] }, "url": "{{baseUrl}}/seller/store" } }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        { "name": "Users", "request": { "method": "GET", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] }, "url": "{{baseUrl}}/admin/users" } },
+        { "name": "Stores", "request": { "method": "GET", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] }, "url": "{{baseUrl}}/admin/stores" } },
+        { "name": "Approve store and grant Seller", "request": { "method": "PATCH", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"status\": \"ACTIVE\"\n}" }, "url": "{{baseUrl}}/admin/stores/{{storeId}}/status" } },
+        { "name": "Assign role", "request": { "method": "POST", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"role_code\": \"SHIPPER\"\n}" }, "url": "{{baseUrl}}/admin/users/{{userId}}/roles" } },
+        { "name": "Revoke role", "request": { "method": "DELETE", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] }, "url": "{{baseUrl}}/admin/users/{{userId}}/roles/{{roleId}}" } },
+        { "name": "Orders", "request": { "method": "GET", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] }, "url": "{{baseUrl}}/admin/orders" } },
+        { "name": "Reports", "request": { "method": "GET", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] }, "url": "{{baseUrl}}/admin/reports?from_date={{fromDate}}&to_date={{toDate}}&group_by=day&limit=10" } },
+        { "name": "Reviews", "request": { "method": "GET", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] }, "url": "{{baseUrl}}/admin/reviews?limit=20" } },
+        { "name": "Hide review", "request": { "method": "PATCH", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"reason\": \"Postman moderation verification\"\n}" }, "url": "{{baseUrl}}/reviews/{{reviewId}}/hide" } }
+      ]
+    },
+    {
+      "name": "Shipper",
+      "item": [
+        { "name": "Shipment list", "request": { "method": "GET", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{shipperToken}}", "type": "string" }] }, "url": "{{baseUrl}}/shipper/shipments" } },
+        { "name": "Update shipment status", "request": { "method": "PATCH", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{shipperToken}}", "type": "string" }] }, "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"new_status\": \"PICKED_UP\"\n}" }, "url": "{{baseUrl}}/shipper/shipments/{{shipmentId}}/status" } }
+      ]
+    }
+  ]
+}
