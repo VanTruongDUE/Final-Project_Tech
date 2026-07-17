@@ -1,228 +1,59 @@
-import { ORDER_STATUS, orderService } from './orderService'
+import { apiRequest } from './apiClient'
 
-const REVIEW_STORAGE_KEY = 'techtonic_reviews'
-
-const canUseStorage = () => typeof window !== 'undefined' && Boolean(window.localStorage)
-
-const normalizeNumber = (value, fallback = 0) => {
-  const parsedValue = Number(value)
-  return Number.isFinite(parsedValue) ? parsedValue : fallback
-}
-
-const normalizeId = (value) => {
-  if (value === undefined || value === null || value === '') {
-    return null
-  }
-
-  return String(value)
-}
-
-const normalizeRating = (value) => {
-  const rating = Math.round(normalizeNumber(value, 0))
-
-  if (rating < 1 || rating > 5) {
-    return null
-  }
-
-  return rating
-}
-
-const sanitizeReviews = (reviews) => {
-  if (!Array.isArray(reviews)) {
-    return []
-  }
-
-  return reviews
-    .map((review) => {
-      const orderId = normalizeId(review?.orderId)
-      const productId = normalizeId(review?.productId)
-      const customerId = normalizeId(review?.customerId)
-      const rating = normalizeRating(review?.rating)
-
-      if (!review?.id || !orderId || !productId || !customerId || !rating) {
-        return null
-      }
-
-      return {
-        id: review.id,
-        orderId,
-        productId,
-        customerId,
-        customerName: review.customerName?.trim() || 'Khách hàng TechToShop',
-        rating,
-        content: review.content?.trim() || '',
-        createdAt: review.createdAt || new Date().toISOString(),
-      }
-    })
-    .filter(Boolean)
-    .sort((firstReview, secondReview) => new Date(secondReview.createdAt) - new Date(firstReview.createdAt))
-}
-
-const saveReviews = (reviews) => {
-  const sanitizedReviews = sanitizeReviews(reviews)
-
-  if (canUseStorage()) {
-    window.localStorage.setItem(REVIEW_STORAGE_KEY, JSON.stringify(sanitizedReviews))
-  }
-
-  return sanitizedReviews
-}
-
-const readReviews = () => {
-  if (!canUseStorage()) {
-    return []
-  }
-
-  try {
-    const rawReviews = window.localStorage.getItem(REVIEW_STORAGE_KEY)
-    const parsedReviews = rawReviews ? JSON.parse(rawReviews) : []
-    const sanitizedReviews = sanitizeReviews(parsedReviews)
-
-    if (rawReviews && JSON.stringify(parsedReviews) !== JSON.stringify(sanitizedReviews)) {
-      saveReviews(sanitizedReviews)
-    }
-
-    return sanitizedReviews
-  } catch {
-    window.localStorage.removeItem(REVIEW_STORAGE_KEY)
-    return []
-  }
-}
-
-const getDateKey = (date = new Date()) => {
-  const year = date.getFullYear()
-  const month = `${date.getMonth() + 1}`.padStart(2, '0')
-  const day = `${date.getDate()}`.padStart(2, '0')
-  return `${year}${month}${day}`
-}
-
-const buildReviewId = (reviews) => {
-  const dateKey = getDateKey()
-  const todayReviewCount = reviews.filter((review) => review.id.startsWith(`REV-${dateKey}-`)).length
-  const sequence = `${todayReviewCount + 1}`.padStart(4, '0')
-  return `REV-${dateKey}-${sequence}`
-}
+const mapReview = (review = {}) => ({
+  id: String(review.review_id),
+  reviewId: review.review_id,
+  orderItemId: review.order_item_id,
+  rating: Number(review.rating) || 0,
+  content: review.comment || '',
+  comment: review.comment || '',
+  createdAt: review.created_at,
+  reviewerId: review.reviewer?.user_id,
+  customerName: review.reviewer?.full_name || 'Khách hàng TechTonic',
+  avatarUrl: review.reviewer?.avatar_url || '',
+  status: 'VISIBLE',
+})
 
 export const reviewService = {
-  getStorageKey() {
-    return REVIEW_STORAGE_KEY
-  },
+  async getProductReviews(productId, options = {}) {
+    const params = new URLSearchParams({
+      page: String(options.page || 1),
+      limit: String(options.limit || 50),
+      sort_by: options.sortBy || 'created_at',
+      sort_order: options.sortOrder || 'DESC',
+    })
+    if (options.rating) params.set('rating', String(options.rating))
 
-  getReviews() {
-    return readReviews()
-  },
-
-  getReviewsByProductId(productId) {
-    const normalizedProductId = normalizeId(productId)
-
-    if (!normalizedProductId) {
-      return []
-    }
-
-    return readReviews().filter((review) => review.productId === normalizedProductId)
-  },
-
-  getReviewsByOrderId(orderId, customerId) {
-    const normalizedOrderId = normalizeId(orderId)
-    const normalizedCustomerId = normalizeId(customerId)
-
-    if (!normalizedOrderId || !normalizedCustomerId) {
-      return []
-    }
-
-    return readReviews().filter(
-      (review) => review.orderId === normalizedOrderId && review.customerId === normalizedCustomerId,
-    )
-  },
-
-  hasReviewed(orderId, productId, customerId) {
-    const normalizedOrderId = normalizeId(orderId)
-    const normalizedProductId = normalizeId(productId)
-    const normalizedCustomerId = normalizeId(customerId)
-
-    if (!normalizedOrderId || !normalizedProductId || !normalizedCustomerId) {
-      return false
-    }
-
-    return readReviews().some(
-      (review) =>
-        review.orderId === normalizedOrderId &&
-        review.productId === normalizedProductId &&
-        review.customerId === normalizedCustomerId,
-    )
-  },
-
-  createReview(reviewPayload) {
-    const orderId = normalizeId(reviewPayload?.orderId)
-    const productId = normalizeId(reviewPayload?.productId)
-    const customerId = normalizeId(reviewPayload?.customerId)
-    const rating = normalizeRating(reviewPayload?.rating)
-
-    if (!orderId || !productId || !customerId || !rating) {
-      return {
-        success: false,
-        message: 'Không thể tạo đánh giá khi thiếu thông tin bắt buộc.',
-      }
-    }
-
-    const orderResponse = orderService.getOrderById(orderId, customerId)
-
-    if (!orderResponse.success || !orderResponse.data) {
-      return {
-        success: false,
-        message: 'Không tìm thấy đơn hàng hợp lệ để đánh giá.',
-      }
-    }
-
-    if (orderResponse.data.status !== ORDER_STATUS.COMPLETED) {
-      return {
-        success: false,
-        message: 'Chỉ có thể đánh giá sau khi đơn hàng hoàn thành.',
-      }
-    }
-
-    const hasPurchasedProduct = orderResponse.data.items?.some(
-      (item) => normalizeId(item.productId ?? item.product?.id) === productId,
-    )
-
-    if (!hasPurchasedProduct) {
-      return {
-        success: false,
-        message: 'Sản phẩm không thuộc đơn hàng này.',
-      }
-    }
-
-    const existingReviews = readReviews()
-    const duplicatedReview = existingReviews.find(
-      (review) =>
-        review.orderId === orderId &&
-        review.productId === productId &&
-        review.customerId === customerId,
-    )
-
-    if (duplicatedReview) {
-      return {
-        success: false,
-        message: 'Sản phẩm này đã được đánh giá.',
-      }
-    }
-
-    const nextReview = {
-      id: buildReviewId(existingReviews),
-      orderId,
-      productId,
-      customerId,
-      customerName: reviewPayload.customerName?.trim() || 'Khách hàng TechToShop',
-      rating,
-      content: reviewPayload.content?.trim() || '',
-      createdAt: new Date().toISOString(),
-    }
-
-    saveReviews([nextReview, ...existingReviews])
-
+    const result = await apiRequest(`/products/${productId}/reviews?${params}` , { auth: false })
     return {
       success: true,
-      data: nextReview,
+      data: (result.data?.reviews || []).map(mapReview),
+      pagination: result.data?.pagination,
     }
+  },
+
+  async createReview({ orderItemId, rating, content }) {
+    const normalizedRating = Number(rating)
+    if (!Number.isInteger(normalizedRating) || normalizedRating < 1 || normalizedRating > 5) {
+      throw new Error('Điểm đánh giá phải là số nguyên từ 1 đến 5.')
+    }
+
+    const result = await apiRequest('/reviews', {
+      method: 'POST',
+      body: JSON.stringify({
+        order_item_id: Number(orderItemId),
+        rating: normalizedRating,
+        comment: content?.trim() || null,
+      }),
+    })
+    return { success: true, data: mapReview(result.data), message: result.message || 'Đánh giá thành công.' }
+  },
+
+  async hideReview(reviewId, reason = '') {
+    const result = await apiRequest(`/reviews/${reviewId}/hide`, {
+      method: 'PATCH',
+      body: JSON.stringify({ reason: reason.trim() || null }),
+    })
+    return { success: true, data: result.data, message: result.message || 'Đã ẩn đánh giá.' }
   },
 }

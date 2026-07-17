@@ -37,6 +37,9 @@ function RatingStars() {
 
 export default function ProductPurchasePanel({
   product,
+  variants = [],
+  selectedVariantId = null,
+  onSelectVariant,
   selectedColor,
   selectedStorage,
   selectedQuantity,
@@ -50,6 +53,7 @@ export default function ProductPurchasePanel({
   cartMessage,
 }) {
   const optionGroup = optionGroups[product.category] || optionGroups.default
+  const hasApiVariants = variants.length > 0
 
   return (
     <div className="flex h-full flex-col">
@@ -130,6 +134,41 @@ export default function ProductPurchasePanel({
           </div>
         </div>
 
+        {hasApiVariants ? (
+          <div className="flex items-start">
+            <span className="mt-2 w-24 shrink-0 text-sm text-[#8f7069]">Phân loại</span>
+            <div className="flex flex-wrap gap-2">
+              {variants.map((variant) => {
+                const isSelected = String(variant.variantId) === String(selectedVariantId)
+                const isVariantUnavailable = variant.status === 'INACTIVE' || Number(variant.stockQuantity) <= 0
+
+                return (
+                  <button
+                    key={variant.variantId || variant.skuCode}
+                    type="button"
+                    onClick={() => onSelectVariant?.(variant.variantId)}
+                    disabled={isVariantUnavailable}
+                    className={`relative min-h-9 min-w-[96px] border px-4 py-2 text-sm transition disabled:cursor-not-allowed disabled:border-[#e8e8e8] disabled:bg-[#f5f3f3] disabled:text-[#8f7069] ${
+                      isSelected
+                        ? 'border-2 border-[#ee4d2d] bg-[#fff5f1] font-medium text-[#ee4d2d]'
+                        : 'border-[#e8e8e8] bg-white text-[#1b1c1c] hover:border-[#ee4d2d] hover:text-[#ee4d2d]'
+                    }`}
+                  >
+                    {variant.variantName || 'Mặc định'}
+                    {isSelected ? (
+                      <>
+                        <span className="absolute bottom-0 right-0 h-4 w-4 bg-[#ee4d2d] [clip-path:polygon(100%_0,0_100%,100%_100%)]" />
+                        <span className="material-symbols-outlined absolute bottom-0 right-0 z-10 text-[10px] leading-none text-white">
+                          check
+                        </span>
+                      </>
+                    ) : null}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        ) : (
         <div className="flex items-start">
           <span className="mt-2 w-24 shrink-0 text-sm text-[#8f7069]">{optionGroup.secondaryLabel}</span>
           <div className="flex flex-wrap gap-2">
@@ -157,7 +196,9 @@ export default function ProductPurchasePanel({
             ))}
           </div>
         </div>
+        )}
 
+        {!hasApiVariants ? (
         <div className="flex items-start">
           <span className="mt-2 w-24 shrink-0 text-sm text-[#8f7069]">{optionGroup.primaryLabel}</span>
           <div className="flex flex-wrap gap-2">
@@ -175,6 +216,15 @@ export default function ProductPurchasePanel({
                 {choice}
               </button>
             ))}
+          </div>
+        </div>
+        ) : null}
+
+        <div className="flex items-start text-sm">
+          <span className="w-24 shrink-0 text-[#8f7069]">SKU</span>
+          <div className="min-w-0 text-[#5b403b]">
+            <p className="break-all font-medium text-[#1b1c1c]">{product.skuCode || 'Chưa có SKU'}</p>
+            <p className="mt-1">Phân loại: {product.variantName || 'Mặc định'}</p>
           </div>
         </div>
 

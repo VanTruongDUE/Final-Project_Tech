@@ -3,15 +3,21 @@ import { useAuth } from '../contexts/useAuth'
 import { resolveRoleHome } from '../utils/roles'
 
 export default function ProtectedRoute({ allowedRoles }) {
-  const { currentUser, isAuthenticated } = useAuth()
+  const { currentUser, isAuthenticated, isAuthLoading } = useAuth()
   const location = useLocation()
+
+  if (isAuthLoading) {
+    return null
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location }} />
   }
 
-  if (allowedRoles?.length && !allowedRoles.includes(currentUser.role)) {
-    return <Navigate to={resolveRoleHome(currentUser.role)} replace />
+  const currentRoles = currentUser.roles?.length ? currentUser.roles : [currentUser.role]
+
+  if (allowedRoles?.length && !currentRoles.some((role) => allowedRoles.includes(role))) {
+    return <Navigate to={resolveRoleHome(currentRoles)} replace />
   }
 
   return <Outlet />

@@ -199,7 +199,15 @@ export default function LoginPage() {
 
         <div className="text-center text-sm text-[#1b1c1c]">
           Chưa có tài khoản?
-          <Link to="/register" className="ml-1 font-medium text-[#ee4d2d] hover:underline">
+          <Link
+            to="/register"
+            state={
+              location.state?.from?.pathname === '/seller-onboarding'
+                ? { sellerIntent: true }
+                : undefined
+            }
+            className="ml-1 font-medium text-[#ee4d2d] hover:underline"
+          >
             Đăng ký ngay
           </Link>
         </div>

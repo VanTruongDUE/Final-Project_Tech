@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import CheckoutAddressForm from '../../components/buyer/CheckoutAddressForm'
 import CheckoutOrderSummary from '../../components/buyer/CheckoutOrderSummary'
@@ -7,8 +7,11 @@ import CheckoutShippingMethod from '../../components/buyer/CheckoutShippingMetho
 import { shippingOptions } from '../../components/buyer/checkout-options'
 import { useAuth } from '../../contexts/useAuth'
 import { useCart } from '../../contexts/useCart'
+import { cartService } from '../../services/cartService'
+import { buyerAddressService } from '../../services/buyerAddressService'
 import { orderService } from '../../services/orderService'
 import { productService } from '../../services/productService'
+import { voucherService } from '../../services/voucherService'
 
 const normalizeBuyNowItem = (buyNowItem) => {
   if (!buyNowItem?.productId) {
@@ -18,6 +21,7 @@ const normalizeBuyNowItem = (buyNowItem) => {
   return [
     {
       productId: buyNowItem.productId,
+      variantId: buyNowItem.variantId || null,
       skuId: buyNowItem.skuId || buyNowItem.skuCode,
       skuCode: buyNowItem.skuCode,
       variantName: buyNowItem.variantName || 'Mặc định',
@@ -31,6 +35,7 @@ const normalizeBuyNowItem = (buyNowItem) => {
         location: buyNowItem.location,
         price: buyNowItem.price,
         originalPrice: buyNowItem.originalPrice,
+        variantId: buyNowItem.variantId || null,
         skuId: buyNowItem.skuId || buyNowItem.skuCode,
         skuCode: buyNowItem.skuCode,
         variantName: buyNowItem.variantName || 'Mặc định',
@@ -60,6 +65,7 @@ const normalizeCheckoutItems = (items) => {
 
       return {
         productId,
+        variantId: item.variantId || product?.variantId || null,
         skuId: item.skuId || product?.skuId || item.skuCode || product?.skuCode,
         skuCode: item.skuCode || product?.skuCode || '',
         variantName: item.variantName || product?.variantName || 'Mặc định',
@@ -79,25 +85,83 @@ export default function CheckoutPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { currentUser } = useAuth()
-  const { cartItems, removeSelectedItems } = useCart()
+  const { cartItems, removeSelectedItems, refreshCart } = useCart()
   const buyNowItem = location.state?.buyNowItem
   const checkoutItemsFromState = location.state?.checkoutItems
   const checkoutSource = location.state?.source
   const [fallbackItems, setFallbackItems] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const [isSubmittingOrder, setIsSubmittingOrder] = useState(false)
   const [shippingMethodId, setShippingMethodId] = useState('standard')
   const [paymentMethodId, setPaymentMethodId] = useState('cod')
   const [voucherCode, setVoucherCode] = useState('')
   const [voucherMessage, setVoucherMessage] = useState('')
+  const [appliedVoucher, setAppliedVoucher] = useState(null)
+  const [isVoucherLoading, setIsVoucherLoading] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [formErrors, setFormErrors] = useState({})
+  const [addresses, setAddresses] = useState([])
+  const [selectedAddressId, setSelectedAddressId] = useState('')
+  const [isAddressLoading, setIsAddressLoading] = useState(true)
+  const [addressError, setAddressError] = useState('')
   const [shippingForm, setShippingForm] = useState({
+    addressId: '',
     fullName: '',
     phone: '',
     email: '',
     address: '',
+    addressLine: '',
+    ward: '',
+    district: '',
+    province: '',
+    country: '',
     note: '',
   })
+
+  const applyAddress = useCallback((address) => {
+    setSelectedAddressId(String(address.id))
+    setShippingForm((previous) => ({
+      ...previous,
+      addressId: address.id,
+      fullName: address.fullName,
+      phone: address.phone,
+      email: currentUser?.email || '',
+      address: [address.street, address.ward, address.district, address.province, address.country].filter(Boolean).join(', '),
+      addressLine: address.street,
+      ward: address.ward,
+      district: address.district,
+      province: address.province,
+      country: address.country,
+    }))
+    setFormErrors({})
+    setAddressError('')
+  }, [currentUser?.email])
+
+  useEffect(() => {
+    let isMounted = true
+
+    const loadAddresses = async () => {
+      setIsAddressLoading(true)
+      try {
+        const result = await buyerAddressService.getAddresses()
+        if (!isMounted) return
+        setAddresses(result.data)
+        const selected = result.data.find((address) => address.isDefault) || result.data[0]
+        if (selected) applyAddress(selected)
+      } catch (error) {
+        if (!isMounted) return
+        setAddresses([])
+        setAddressError(error.message)
+      } finally {
+        if (isMounted) setIsAddressLoading(false)
+      }
+    }
+
+    if (currentUser?.id) loadAddresses()
+    return () => {
+      isMounted = false
+    }
+  }, [applyAddress, currentUser?.id])
 
   useEffect(() => {
     const hasStateItems =
@@ -144,6 +208,7 @@ export default function CheckoutPage() {
 
           return {
             productId: product.id,
+            variantId: item.variantId || product.variantId || null,
             skuId: item.skuId || product.skuId,
             skuCode: item.skuCode || product.skuCode,
             variantName: item.variantName || product.variantName || 'Mặc định',
@@ -182,6 +247,24 @@ export default function CheckoutPage() {
 
     return normalizeCheckoutItems(fallbackItems)
   }, [buyNowItem, checkoutItemsFromState, fallbackItems])
+
+  const subtotal = useMemo(
+    () => checkoutItems.reduce((sum, item) => sum + (item.price ?? item.product?.price ?? 0) * item.quantity, 0),
+    [checkoutItems],
+  )
+  const checkoutStoreIds = useMemo(
+    () => [...new Set(checkoutItems.map((item) => String(item.storeId || item.product?.storeId || '')).filter(Boolean))],
+    [checkoutItems],
+  )
+  const storeSignature = checkoutStoreIds.join(',')
+  const shippingFee = shippingOptions.find((option) => option.id === shippingMethodId)?.fee || 30000
+  const voucherDiscount = appliedVoucher?.discountAmount || 0
+  const total = Math.max(0, subtotal + shippingFee - voucherDiscount)
+
+  useEffect(() => {
+    setAppliedVoucher(null)
+    setVoucherMessage('')
+  }, [storeSignature, subtotal])
 
   if (isLoading) {
     return (
@@ -223,9 +306,6 @@ export default function CheckoutPage() {
     )
   }
 
-  const subtotal = checkoutItems.reduce((total, item) => total + (item.product?.price || 0) * item.quantity, 0)
-  const shippingFee = shippingOptions.find((option) => option.id === shippingMethodId)?.fee || 30000
-  const total = subtotal + shippingFee
   const isBuyNowFlow = Boolean(buyNowItem?.productId)
 
   const handleShippingFormChange = (field, value) => {
@@ -234,16 +314,47 @@ export default function CheckoutPage() {
     setSubmitError('')
   }
 
-  const handleApplyVoucher = () => {
-    setVoucherMessage(
-      voucherCode.trim()
-        ? 'Mã giảm giá sẽ được hỗ trợ sau trong sprint tiếp theo.'
-        : 'Vui lòng nhập mã giảm giá trước khi áp dụng.',
-    )
+  const handleVoucherCodeChange = (value) => {
+    setVoucherCode(value)
+    if (appliedVoucher) {
+      setAppliedVoucher(null)
+      setVoucherMessage('Mã voucher đã thay đổi. Vui lòng áp dụng lại.')
+    }
   }
 
-  const handlePlaceOrder = () => {
+  const handleApplyVoucher = async () => {
+    if (checkoutStoreIds.length !== 1) {
+      setVoucherMessage('Voucher chỉ được áp dụng khi checkout sản phẩm của một cửa hàng.')
+      setAppliedVoucher(null)
+      return
+    }
+
+    setIsVoucherLoading(true)
+    setVoucherMessage('')
+    try {
+      const response = await voucherService.validateVoucher({
+        code: voucherCode,
+        orderAmount: subtotal,
+        storeId: checkoutStoreIds[0],
+      })
+      setAppliedVoucher(response.data)
+      setVoucherCode(response.data.code)
+      setVoucherMessage(`Áp dụng ${response.data.code} thành công.`)
+    } catch (error) {
+      setAppliedVoucher(null)
+      setVoucherMessage(error.message)
+    } finally {
+      setIsVoucherLoading(false)
+    }
+  }
+
+  const handlePlaceOrder = async () => {
     const nextErrors = {}
+
+    if (!selectedAddressId) {
+      setSubmitError('Vui lòng thêm và chọn một địa chỉ giao hàng từ tài khoản trước khi đặt hàng.')
+      return
+    }
 
     if (!shippingForm.fullName.trim()) {
       nextErrors.fullName = 'Vui lòng nhập họ và tên người nhận'
@@ -268,10 +379,15 @@ export default function CheckoutPage() {
       return
     }
 
+    if (isSubmittingOrder) {
+      return
+    }
+
     const normalizedItems = checkoutItems
       .filter((item) => item.product && item.productId)
       .map((item) => ({
         productId: item.productId,
+        variantId: item.variantId || item.product?.variantId || null,
         skuId: item.skuId || item.skuCode || item.product.skuId,
         skuCode: item.skuCode || item.product.skuCode,
         productName: item.product.name,
@@ -289,14 +405,16 @@ export default function CheckoutPage() {
     }
 
     if (!currentUser?.id) {
-      setSubmitError('Vui lòng đăng nhập để đặt hàng.')
+      navigate('/login', { state: { from: '/checkout' } })
       return
     }
 
     const shippingMethod = shippingMethodId === 'express' ? 'EXPRESS' : 'STANDARD'
     const paymentMethod = paymentMethodId === 'bank' ? 'BANK_TRANSFER' : 'COD'
 
-    const response = orderService.createOrder({
+    setIsSubmittingOrder(true)
+
+    const response = await orderService.createOrder({
       customerId: currentUser.id,
       customerEmail: currentUser.email,
       customerName: currentUser.fullName,
@@ -305,19 +423,25 @@ export default function CheckoutPage() {
       shippingMethod,
       shippingFee,
       paymentMethod,
-      discountAmount: 0,
+      discountAmount: voucherDiscount,
       totalAmount: total,
+      voucherCode: appliedVoucher?.code || '',
     })
 
     if (!response.success) {
       setSubmitError(response.message || 'Không thể tạo đơn hàng. Vui lòng thử lại.')
+      setIsSubmittingOrder(false)
       return
     }
 
     const isCartFlow = checkoutSource === 'cart' || (!buyNowItem?.productId && cartItems.some((item) => item.selected !== false))
 
     if (isCartFlow) {
-      removeSelectedItems()
+      if (cartService.isApiMode()) {
+        await refreshCart()
+      } else {
+        await removeSelectedItems()
+      }
     }
 
     navigate('/orders', {
@@ -344,6 +468,14 @@ export default function CheckoutPage() {
             formData={shippingForm}
             errors={formErrors}
             onChange={handleShippingFormChange}
+            addresses={addresses}
+            selectedAddressId={selectedAddressId}
+            onSelectAddress={(addressId) => {
+              const selected = addresses.find((address) => String(address.id) === String(addressId))
+              if (selected) applyAddress(selected)
+            }}
+            isLoading={isAddressLoading}
+            apiError={addressError}
           />
           <CheckoutShippingMethod selectedShippingId={shippingMethodId} onChange={setShippingMethodId} />
           <CheckoutPaymentMethod selectedPaymentId={paymentMethodId} onChange={setPaymentMethodId} />
@@ -355,11 +487,20 @@ export default function CheckoutPage() {
             subtotal={subtotal}
             shippingFee={shippingFee}
             total={total}
+            discountAmount={voucherDiscount}
             voucherCode={voucherCode}
             voucherMessage={voucherMessage}
-            onVoucherChange={setVoucherCode}
+            appliedVoucher={appliedVoucher}
+            onVoucherChange={handleVoucherCodeChange}
             onApplyVoucher={handleApplyVoucher}
+            onRemoveVoucher={() => {
+              setAppliedVoucher(null)
+              setVoucherCode('')
+              setVoucherMessage('Đã bỏ voucher.')
+            }}
             onPlaceOrder={handlePlaceOrder}
+            isSubmitting={isSubmittingOrder}
+            isVoucherLoading={isVoucherLoading}
           />
         </div>
       </div>

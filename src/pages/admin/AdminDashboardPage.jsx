@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AdminIcon from '../../components/admin/AdminIcon'
 import { adminService } from '../../services/adminService'
@@ -241,11 +241,7 @@ function OrderStatus({ orderStatus }) {
     <div className="rounded border border-slate-200 bg-white p-3 shadow-sm">
       <h2 className="mb-2 text-sm font-bold text-slate-800">Trạng thái đơn hàng</h2>
       <div className="relative mb-2 flex h-32 items-center justify-center">
-        <svg className="h-28 w-28 -rotate-90" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="40" fill="transparent" stroke="#e2e8f0" strokeWidth="20" />
-          <circle cx="50" cy="50" r="40" fill="transparent" stroke="#2563eb" strokeDasharray="251.2" strokeDashoffset="62.8" strokeWidth="20" />
-          <circle cx="50" cy="50" r="40" fill="transparent" stroke="#fbbf24" strokeDasharray="251.2" strokeDashoffset="213.5" strokeWidth="20" />
-        </svg>
+        <div className="h-28 w-28 rounded-full border-[18px] border-slate-200" />
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-sm font-bold text-slate-800">{new Intl.NumberFormat('vi-VN').format(orderStatus.total)}</span>
           <span className="text-[10px] uppercase text-slate-500">Tổng</span>
@@ -259,9 +255,9 @@ function OrderStatus({ orderStatus }) {
               <span className={`h-2.5 w-2.5 rounded ${segment.colorClassName}`} />
               <span className="text-slate-600">{segment.label}</span>
             </div>
-            <span className="font-medium text-slate-800">{segment.value}%</span>
+            <span className="font-medium text-slate-800">{segment.value}</span>
             <span className="pointer-events-none absolute right-0 top-full z-10 mt-1 hidden whitespace-nowrap rounded border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-slate-800 shadow group-hover:block">
-              {segment.label}: {segment.value}% tổng đơn
+              {segment.label}: {segment.value} đơn
             </span>
           </div>
         ))}
@@ -270,8 +266,62 @@ function OrderStatus({ orderStatus }) {
   )
 }
 
+function BestSellingProducts({ products }) {
+  return (
+    <div className="overflow-hidden rounded border border-slate-200 bg-white shadow-sm">
+      <div className="border-b border-slate-200 bg-slate-50 p-3">
+        <h2 className="text-sm font-bold text-slate-800">Sản phẩm bán chạy</h2>
+      </div>
+      {products.length ? (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[680px] text-left text-sm">
+            <thead className="border-b border-slate-200 text-xs uppercase text-slate-500">
+              <tr><th className="px-4 py-2">Sản phẩm / SKU</th><th className="px-4 py-2">Cửa hàng</th><th className="px-4 py-2 text-right">Đã bán</th><th className="px-4 py-2 text-right">Doanh thu item</th></tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {products.slice(0, 5).map((product) => (
+                <tr key={product.id}>
+                  <td className="px-4 py-2"><p className="font-medium text-slate-800">{product.name}</p><p className="text-xs text-slate-500">{product.skuCode || 'Chưa có SKU'} · {product.variantName}</p></td>
+                  <td className="px-4 py-2 text-slate-600">{product.storeName}</td>
+                  <td className="px-4 py-2 text-right font-semibold">{product.sold.toLocaleString('vi-VN')}</td>
+                  <td className="px-4 py-2 text-right font-semibold text-blue-700">{product.revenueLabel}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : <p className="p-4 text-sm text-slate-500">Không có sản phẩm bán chạy trong kỳ.</p>}
+    </div>
+  )
+}
+
 export default function AdminDashboardPage() {
-  const dashboardResponse = adminService.getDashboardStats()
+  const [dashboardResponse, setDashboardResponse] = useState({ success: false, isLoading: true })
+
+  useEffect(() => {
+    let isMounted = true
+
+    setDashboardResponse({ success: false, isLoading: true })
+    Promise.resolve(adminService.getDashboardStats())
+      .then((response) => {
+        if (isMounted) setDashboardResponse(response)
+      })
+      .catch((error) => {
+        if (isMounted) setDashboardResponse({ success: false, message: error.message })
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  if (dashboardResponse.isLoading) {
+    return (
+      <section className="p-4">
+        <div className="rounded border border-slate-200 bg-white p-4 text-sm text-slate-600">Đang tải dashboard Admin...</div>
+      </section>
+    )
+  }
 
   if (!dashboardResponse.success) {
     return (
@@ -281,7 +331,7 @@ export default function AdminDashboardPage() {
     )
   }
 
-  const { metrics, revenueTrend, recentActivity, alerts, orderStatus, lastUpdated, totals } = dashboardResponse.data
+  const { metrics, revenueTrend, recentActivity, alerts, orderStatus, topProducts, lastUpdated, totals } = dashboardResponse.data
 
   return (
     <section className="mx-auto flex w-full max-w-[1600px] flex-col gap-5 p-3 md:p-6">
@@ -311,8 +361,10 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
+      <BestSellingProducts products={topProducts} />
+
       <p className="sr-only">
-        Dashboard mock toàn sàn: {totals.users} người dùng, {totals.stores} cửa hàng, {totals.products} sản phẩm, {totals.orders} đơn hàng,
+        Dashboard API toàn sàn: {totals.users} người dùng, {totals.stores} cửa hàng, {totals.products} sản phẩm, {totals.orders} đơn hàng,
         doanh thu {formatCompactVnd(totals.revenue)}.
       </p>
     </section>

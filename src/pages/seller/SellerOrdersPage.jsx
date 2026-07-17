@@ -1,5 +1,6 @@
 ﻿import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
 import SellerConfirmDialog from '../../components/seller/SellerConfirmDialog'
 import SellerIcon from '../../components/seller/SellerIcon'
 import { useAuth } from '../../contexts/useAuth'
@@ -28,6 +29,18 @@ const orderStatusActions = {
   ],
 }
 
+const apiOrderStatusActions = {
+  PENDING: [
+    { nextStatus: 'CONFIRMED', label: 'Xác nhận', icon: 'check_circle', hover: 'hover:text-[#16A34A]' },
+  ],
+  CONFIRMED: [
+    { nextStatus: 'PROCESSING', label: 'Xử lý', icon: 'inventory', hover: 'hover:text-[#0284C7]' },
+  ],
+  PROCESSING: [
+    { nextStatus: 'PACKING', label: 'Sẵn sàng giao', icon: 'inventory_2', hover: 'hover:text-[#0284C7]' },
+  ],
+}
+
 const statusOptions = [
   { value: 'all', label: 'Tất cả trạng thái' },
   { value: 'PENDING', label: 'Chờ xác nhận' },
@@ -48,7 +61,8 @@ function OrderSkuSummary({ order }) {
 }
 
 function ActionButtons({ order, onStatusChange, onViewOrder }) {
-  const availableActions = orderStatusActions[order.status] || []
+  const actionMap = sellerService.isApiMode() ? apiOrderStatusActions : orderStatusActions
+  const availableActions = actionMap[order.status] || []
 
   return (
     <div className="flex items-center justify-center gap-2 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
@@ -82,11 +96,39 @@ export default function SellerOrdersPage() {
   const [status, setStatus] = useState('all')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
-  const [, setOrdersVersion] = useState(0)
+  const [ordersVersion, setOrdersVersion] = useState(0)
   const [pendingUpdate, setPendingUpdate] = useState(null)
   const [updateError, setUpdateError] = useState('')
+  const [ordersResponse, setOrdersResponse] = useState({ success: false, isLoading: true })
 
-  const ordersResponse = sellerService.getSellerOrders(currentUser, { keyword, status, dateFrom, dateTo })
+  useEffect(() => {
+    let isMounted = true
+
+    setOrdersResponse({ success: false, isLoading: true })
+    Promise.resolve(sellerService.getSellerOrders(currentUser, { keyword, status, dateFrom, dateTo }))
+      .then((response) => {
+        if (isMounted) setOrdersResponse(response)
+      })
+      .catch((error) => {
+        if (isMounted) {
+          setOrdersResponse({ success: false, message: error.message || 'Không thể tải danh sách đơn hàng của seller.' })
+        }
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [currentUser, keyword, status, dateFrom, dateTo, ordersVersion])
+
+  if (ordersResponse.isLoading) {
+    return (
+      <section className="min-h-screen bg-[#f5f3f3] p-4 md:p-6">
+        <div className="rounded-xl border border-[#e3beb6] bg-white p-6 text-sm text-[#5b403b] shadow-sm">
+          Đang tải danh sách đơn hàng seller...
+        </div>
+      </section>
+    )
+  }
 
   if (!ordersResponse.success) {
     return (
@@ -119,13 +161,13 @@ export default function SellerOrdersPage() {
     setPendingUpdate({ order, action })
   }
 
-  const confirmStatusChange = () => {
+  const confirmStatusChange = async () => {
     if (!pendingUpdate) return
-    const response = sellerService.updateSellerOrderStatus(
+    const response = await Promise.resolve(sellerService.updateSellerOrderStatus(
       currentUser,
       pendingUpdate.order.id,
       pendingUpdate.action.nextStatus,
-    )
+    ))
 
     if (!response.success) {
       setUpdateError(response.message || 'Không thể cập nhật trạng thái đơn hàng.')

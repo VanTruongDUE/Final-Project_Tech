@@ -5,11 +5,16 @@ export default function CheckoutOrderSummary({
   subtotal,
   shippingFee,
   total,
+  discountAmount,
   voucherCode,
   voucherMessage,
+  appliedVoucher,
   onVoucherChange,
   onApplyVoucher,
+  onRemoveVoucher,
   onPlaceOrder,
+  isSubmitting = false,
+  isVoucherLoading = false,
 }) {
   return (
     <aside className="sticky top-24 flex flex-col gap-6 rounded-lg border border-[#e3e2e2] bg-white p-6 shadow-sm">
@@ -36,7 +41,7 @@ export default function CheckoutOrderSummary({
                   <h3 className="line-clamp-2 text-sm font-semibold text-[#1b1c1c]">{product.name}</h3>
                   <p className="mt-1 text-sm text-[#8f7069]">{product.storeName}</p>
                   <p className="mt-1 break-all text-xs text-[#8f7069]">
-                    {item.variantName || product.variantName || 'Mặc định'} · SKU: {item.skuCode || product.skuCode}
+                    {item.variantName || product.variantName || 'Mặc định'} · SKU: {item.skuCode || product.skuCode || 'Chưa có SKU'}
                   </p>
                 </div>
                 <div className="mt-2 flex items-center justify-between text-sm">
@@ -59,10 +64,11 @@ export default function CheckoutOrderSummary({
         />
         <button
           type="button"
-          onClick={onApplyVoucher}
+          onClick={appliedVoucher ? onRemoveVoucher : onApplyVoucher}
+          disabled={isVoucherLoading}
           className="h-10 rounded bg-[#ee4d2d] px-4 text-sm font-semibold text-white transition hover:bg-[#d73211]"
         >
-          Áp dụng
+          {isVoucherLoading ? 'Đang kiểm tra...' : appliedVoucher ? 'Bỏ mã' : 'Áp dụng'}
         </button>
       </div>
 
@@ -70,6 +76,13 @@ export default function CheckoutOrderSummary({
         <p className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
           {voucherMessage}
         </p>
+      ) : null}
+
+      {appliedVoucher ? (
+        <div className="rounded border border-emerald-200 bg-emerald-50 px-3 py-3 text-sm text-emerald-800">
+          <div className="flex justify-between gap-3"><strong>{appliedVoucher.code}</strong><span>{appliedVoucher.discountType}</span></div>
+          <p className="mt-1">Giá trị {appliedVoucher.discountValue} · Giảm thực tế {formatCurrency(appliedVoucher.discountAmount)}</p>
+        </div>
       ) : null}
 
       <div className="space-y-3 text-sm text-[#5b403b]">
@@ -83,7 +96,7 @@ export default function CheckoutOrderSummary({
         </div>
         <div className="flex items-center justify-between">
           <span>Giảm giá</span>
-          <span className="font-medium text-[#1b1c1c]">0đ</span>
+          <span className="font-medium text-[#ee4d2d]">- {formatCurrency(discountAmount)}</span>
         </div>
       </div>
 
@@ -98,9 +111,10 @@ export default function CheckoutOrderSummary({
       <button
         type="button"
         onClick={onPlaceOrder}
-        className="flex h-10 w-full items-center justify-center gap-2 rounded bg-[#ee4d2d] px-4 text-sm font-bold text-white transition hover:bg-[#d73211]"
+        disabled={isSubmitting}
+        className="flex h-10 w-full items-center justify-center gap-2 rounded bg-[#ee4d2d] px-4 text-sm font-bold text-white transition hover:bg-[#d73211] disabled:cursor-not-allowed disabled:bg-[#e8e8e8] disabled:text-[#8f7069]"
       >
-        Đặt hàng
+        {isSubmitting ? 'Đang đặt hàng...' : 'Đặt hàng'}
         <span aria-hidden="true">→</span>
       </button>
     </aside>

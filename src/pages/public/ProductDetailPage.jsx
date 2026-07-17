@@ -25,15 +25,37 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState(null)
   const [relatedProducts, setRelatedProducts] = useState([])
   const [productReviews, setProductReviews] = useState([])
+  const [reviewsLoading, setReviewsLoading] = useState(false)
+  const [reviewsError, setReviewsError] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
   const [activeImageIndex, setActiveImageIndex] = useState(0)
   const [selectedColor, setSelectedColor] = useState(productOptionDefaults.default.color)
   const [selectedStorage, setSelectedStorage] = useState(productOptionDefaults.default.storage)
   const [selectedQuantity, setSelectedQuantity] = useState(1)
+  const [selectedVariantId, setSelectedVariantId] = useState(null)
   const [cartMessage, setCartMessage] = useState('')
-  const isOutOfStock = product?.status === 'OUT_OF_STOCK'
-  const isUnavailable = isOutOfStock || (product?.stockQuantity || 0) <= 0
+  const variants = product?.variants || []
+  const selectedVariant =
+    variants.find((variant) => String(variant.variantId) === String(selectedVariantId))
+    || variants.find((variant) => variant.isDefault)
+    || variants[0]
+    || null
+  const displayProduct = selectedVariant
+    ? {
+        ...product,
+        variantId: selectedVariant.variantId,
+        skuId: selectedVariant.skuId || selectedVariant.skuCode,
+        skuCode: selectedVariant.skuCode || product.skuCode,
+        variantName: selectedVariant.variantName || product.variantName,
+        price: selectedVariant.price || product.price,
+        originalPrice: selectedVariant.price || product.originalPrice,
+        stockQuantity: selectedVariant.stockQuantity,
+        status: selectedVariant.status || product.status,
+      }
+    : product
+  const isOutOfStock = displayProduct?.status === 'OUT_OF_STOCK' || displayProduct?.status === 'INACTIVE'
+  const isUnavailable = isOutOfStock || (displayProduct?.stockQuantity || 0) <= 0
   const canUseBuyerFlow =
     !currentUser || [ROLES.CUSTOMER, ROLES.SELLER].includes(currentUser.role)
 
@@ -59,10 +81,30 @@ export default function ProductDetailPage() {
       }
 
       setProduct(response.data)
-      setProductReviews(reviewService.getReviewsByProductId(response.data.id))
+      setReviewsLoading(true)
+      try {
+        const reviewResponse = await reviewService.getProductReviews(response.data.id)
+        if (isMounted) {
+          setProductReviews(reviewResponse.data)
+          setReviewsError('')
+        }
+      } catch (error) {
+        if (isMounted) {
+          setProductReviews([])
+          setReviewsError(error.message)
+        }
+      } finally {
+        if (isMounted) setReviewsLoading(false)
+      }
       setErrorMessage('')
       setActiveImageIndex(0)
       setSelectedQuantity(1)
+      setSelectedVariantId(
+        response.data.defaultVariantId
+        || response.data.variants?.find((variant) => variant.isDefault)?.variantId
+        || response.data.variants?.[0]?.variantId
+        || null,
+      )
       const nextDefaults = productOptionDefaults[response.data.category] || productOptionDefaults.default
       setSelectedColor(nextDefaults.color)
       setSelectedStorage(nextDefaults.storage)
@@ -84,8 +126,13 @@ export default function ProductDetailPage() {
     }
   }, [id])
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!product) {
+      return
+    }
+
+    if (!currentUser) {
+      navigate('/login', { state: { from: location.pathname } })
       return
     }
 
@@ -94,12 +141,21 @@ export default function ProductDetailPage() {
       return
     }
 
-    addItem(product.id, selectedQuantity)
-    setCartMessage(`Đã thêm ${selectedQuantity} sản phẩm "${product.name}" vào giỏ hàng.`)
+    try {
+      await addItem(displayProduct, selectedQuantity, selectedVariant?.variantId)
+      setCartMessage(`Đã thêm ${selectedQuantity} sản phẩm "${product.name}" vào giỏ hàng.`)
+    } catch (error) {
+      setCartMessage(error.message || 'Không thể thêm sản phẩm vào giỏ hàng.')
+    }
   }
 
-  const handleBuyNow = () => {
+  const handleBuyNow = async () => {
     if (!product) {
+      return
+    }
+
+    if (!currentUser) {
+      navigate('/login', { state: { from: location.pathname } })
       return
     }
 
@@ -114,30 +170,36 @@ export default function ProductDetailPage() {
       return
     }
 
-    addItem(product.id, selectedQuantity)
+    try {
+      await addItem(displayProduct, selectedQuantity, selectedVariant?.variantId)
+    } catch (error) {
+      setCartMessage(error.message || 'Không thể thêm sản phẩm vào giỏ hàng.')
+      return
+    }
 
     const buyNowItem = {
       productId: product.id,
-      skuId: product.skuId,
-      skuCode: product.skuCode,
-      variantName: product.variantName,
+      variantId: displayProduct.variantId,
+      skuId: displayProduct.skuId,
+      skuCode: displayProduct.skuCode,
+      variantName: displayProduct.variantName,
       productName: product.name,
       imageUrl: product.imageUrl,
       storeId: product.storeId,
       storeName: product.storeName,
       location: product.location,
-      price: product.price,
-      originalPrice: product.originalPrice,
+      price: displayProduct.price,
+      originalPrice: displayProduct.originalPrice,
       color: selectedColor,
       storage: selectedStorage,
       quantity: selectedQuantity,
-      stockQuantity: product.stockQuantity,
+      stockQuantity: displayProduct.stockQuantity,
     }
 
     navigate('/checkout', { state: { buyNowItem } })
   }
 
-  const handleMessageShop = () => {
+  const handleMessageShop = async () => {
     if (!product) {
       return
     }
@@ -147,32 +209,25 @@ export default function ProductDetailPage() {
       return
     }
 
-    if (!canUseBuyerFlow) {
+    if (currentUser.role !== ROLES.CUSTOMER) {
       window.alert('Tài khoản hiện tại không thể nhắn tin với shop ở bước này.')
       navigate(resolveRoleHome(currentUser.role), { replace: true })
       return
     }
 
-    const response = conversationService.findOrCreateConversation({
-      customerId: currentUser.id,
-      customerName: currentUser.fullName,
+    try {
+      const response = await conversationService.createConversation({
       storeId: product.storeId,
-      storeName: product.storeName,
-      productId: product.id,
-      productName: product.name,
       orderId: null,
-    })
-
-    if (!response.success) {
-      window.alert(response.message || 'Không thể mở cuộc trò chuyện với shop.')
-      return
+      })
+      navigate(`/messages/${encodeURIComponent(response.data.id)}`)
+    } catch (error) {
+      window.alert(error.message || 'Không thể mở cuộc trò chuyện với shop.')
     }
-
-    navigate(`/messages/${encodeURIComponent(response.data.id)}`)
   }
 
   const updateQuantity = (nextValue) => {
-    const maxQuantity = product?.stockQuantity || 1
+    const maxQuantity = displayProduct?.stockQuantity || 1
     setSelectedQuantity(Math.min(maxQuantity, Math.max(1, nextValue)))
   }
 
@@ -190,7 +245,7 @@ export default function ProductDetailPage() {
         <div className="border border-[#e8e8e8] bg-white p-10">
           <h1 className="text-2xl font-bold">Không tìm thấy sản phẩm</h1>
           <p className="mt-3 text-sm text-[#5b403b]">
-            {errorMessage || 'Sản phẩm có thể đã bị ẩn hoặc không tồn tại trong dữ liệu mock.'}
+            {errorMessage || 'Sản phẩm có thể đã bị ẩn hoặc không tồn tại trong dữ liệu hiện tại.'}
           </p>
           <Link
             to="/products"
@@ -225,7 +280,10 @@ export default function ProductDetailPage() {
 
           <div className="w-full md:w-7/12">
             <ProductPurchasePanel
-              product={product}
+              product={displayProduct}
+              variants={variants}
+              selectedVariantId={selectedVariant?.variantId || null}
+              onSelectVariant={setSelectedVariantId}
               selectedColor={selectedColor}
               selectedStorage={selectedStorage}
               selectedQuantity={selectedQuantity}
@@ -252,7 +310,8 @@ export default function ProductDetailPage() {
             <div className="text-sm leading-7 text-[#5b403b]">
               <p>{product.description}</p>
               <ul className="mt-4 list-disc space-y-2 pl-5">
-                <li>Mã SKU: {product.skuCode}</li>
+                <li>Mã SKU: {displayProduct.skuCode || 'Chưa có SKU'}</li>
+                <li>Phân loại: {displayProduct.variantName || 'Mặc định'}</li>
                 <li>Sản phẩm thuộc danh mục {product.category}, phù hợp cho nhu cầu mua sắm hằng ngày.</li>
                 <li>Được bán bởi {product.storeName}, giao từ {product.location}.</li>
                 <li>Tình trạng hiện tại: {isOutOfStock ? 'Tạm hết hàng' : 'Đang mở bán'}.</li>
@@ -272,8 +331,9 @@ export default function ProductDetailPage() {
                 <span className="text-xs text-[#8f7069]">{productReviews.length || product.reviewCount} đánh giá</span>
               </div>
               <div className="min-w-[220px] flex-1 space-y-2 text-sm text-[#5b403b]">
-                {[5, 4, 3, 2, 1].map((star, index) => {
-                  const width = index === 0 ? 84 : Math.max(4, 16 - index * 3)
+                {[5, 4, 3, 2, 1].map((star) => {
+                  const count = Number(product.ratingDistribution?.[star]) || 0
+                  const width = product.reviewCount ? Math.round((count / product.reviewCount) * 100) : 0
 
                   return (
                     <div key={star} className="grid grid-cols-[44px_1fr_36px] items-center gap-2">
@@ -281,13 +341,15 @@ export default function ProductDetailPage() {
                       <div className="h-2 overflow-hidden rounded-full bg-[#e8e8e8]">
                         <div className="h-full bg-[#fbbf24]" style={{ width: `${width}%` }} />
                       </div>
-                      <span className="text-right">{width}%</span>
+                      <span className="text-right">{count}</span>
                     </div>
                   )
                 })}
               </div>
             </div>
-            <ProductReviewList reviews={productReviews.slice(0, 4)} />
+            {reviewsLoading ? <p className="mt-5 text-sm text-[#5b403b]">Đang tải đánh giá...</p> : null}
+            {reviewsError ? <p className="mt-5 rounded border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{reviewsError}</p> : null}
+            {!reviewsLoading && !reviewsError ? <ProductReviewList reviews={productReviews.slice(0, 4)} /> : null}
           </section>
         </div>
 

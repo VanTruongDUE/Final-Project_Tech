@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import ShipperIcon from '../../components/shipper/ShipperIcon'
 import { useAuth } from '../../contexts/useAuth'
 import { shipperService } from '../../services/shipperService'
@@ -61,8 +62,45 @@ function StatusDistribution({ distribution }) {
 
 export default function ShipperDashboardPage() {
   const { currentUser } = useAuth()
-  const dashboardResponse = shipperService.getShipperDashboard(currentUser)
+  const [dashboardResponse, setDashboardResponse] = useState({ success: true, data: null })
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    let isMounted = true
+
+    setIsLoading(true)
+    shipperService
+      .getShipperDashboard(currentUser)
+      .then((response) => {
+        if (isMounted) {
+          setDashboardResponse(response)
+        }
+      })
+      .catch((error) => {
+        if (isMounted) {
+          setDashboardResponse({ success: false, message: error.message })
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [currentUser])
+
   const dashboard = dashboardResponse.data
+
+  if (isLoading) {
+    return (
+      <section className="p-6">
+        <div className="rounded-xl border border-[#e3beb6] bg-white p-6 text-sm text-[#5b403b]">Đang tải dữ liệu giao hàng...</div>
+      </section>
+    )
+  }
 
   if (!dashboardResponse.success) {
     return (

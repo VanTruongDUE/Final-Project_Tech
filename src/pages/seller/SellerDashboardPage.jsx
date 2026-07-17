@@ -1,6 +1,6 @@
 ﻿import { useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import SellerChartTooltip from '../../components/seller/SellerChartTooltip'
 import SellerChartTypeToggle from '../../components/seller/SellerChartTypeToggle'
 import SellerIcon from '../../components/seller/SellerIcon'
@@ -77,7 +77,26 @@ export default function SellerDashboardPage() {
   const { currentUser } = useAuth()
   const [chartType, setChartType] = useState('bar')
   const [hoveredChartPoint, setHoveredChartPoint] = useState(null)
-  const dashboardResponse = sellerService.getSellerDashboardStats(currentUser)
+  const [dashboardResponse, setDashboardResponse] = useState({ success: false, isLoading: true })
+
+  useEffect(() => {
+    let isMounted = true
+
+    setDashboardResponse({ success: false, isLoading: true })
+    Promise.resolve(sellerService.getSellerDashboardStats(currentUser))
+      .then((response) => {
+        if (isMounted) setDashboardResponse(response)
+      })
+      .catch((error) => {
+        if (isMounted) {
+          setDashboardResponse({ success: false, message: error.message || 'Không thể tải dashboard seller.' })
+        }
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [currentUser])
 
   const maxChartValue = useMemo(() => {
     if (!dashboardResponse.success) {
@@ -86,6 +105,16 @@ export default function SellerDashboardPage() {
 
     return Math.max(...dashboardResponse.data.weekRevenue.map((item) => item.value), 20)
   }, [dashboardResponse])
+
+  if (dashboardResponse.isLoading) {
+    return (
+      <section className="p-4 md:p-6">
+        <div className="rounded-xl border border-[#e3beb6] bg-white p-6 text-sm text-[#5b403b] shadow-sm">
+          Đang tải dashboard seller...
+        </div>
+      </section>
+    )
+  }
 
   if (!dashboardResponse.success) {
     return (
@@ -241,7 +270,7 @@ export default function SellerDashboardPage() {
                   <div className="mx-auto flex aspect-square w-full max-w-[230px] items-center justify-center rounded-full shadow-inner" style={{ background: pieGradient }}>
                     <div className="flex h-[62%] w-[62%] flex-col items-center justify-center rounded-full bg-white text-center shadow-sm">
                       <span className="text-xs font-medium text-[#8f7069]">Tổng tuần</span>
-                      <span className="mt-1 text-lg font-semibold text-[#b22204]">{formatCurrency(totalWeekRevenue)}</span>
+                      <span className="mt-1 text-lg font-semibold text-[#b22204]">{formatCurrency(totalWeekRevenue * 1000000)}</span>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">

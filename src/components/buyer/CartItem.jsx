@@ -5,6 +5,7 @@ export default function CartItem({ item, product, onQuantityChange, onRemove, on
   const isOutOfStock = product.status === 'OUT_OF_STOCK' || product.stockQuantity <= 0
   const canIncrease = !isOutOfStock && item.quantity < product.stockQuantity
   const itemTotal = product.price * item.quantity
+  const cartItemKey = item.cartItemId || product.id
 
   return (
     <article className="group rounded-xl border border-[#e3e2e2] bg-white p-5 shadow-sm">
@@ -13,7 +14,7 @@ export default function CartItem({ item, product, onQuantityChange, onRemove, on
           <input
             type="checkbox"
             checked={item.selected !== false}
-            onChange={(event) => onToggleSelected(product.id, event.target.checked)}
+            onChange={(event) => onToggleSelected(cartItemKey, event.target.checked)}
             className="h-5 w-5 rounded border-[#e3beb6] text-[#ee4d2d] focus:ring-[#ee4d2d]"
             aria-label={`Chọn sản phẩm ${product.name}`}
           />
@@ -37,7 +38,7 @@ export default function CartItem({ item, product, onQuantityChange, onRemove, on
               </Link>
               <p className="mt-2 text-sm text-[#5b403b]">{product.storeName}</p>
               <p className="mt-1 text-[12px] text-[#8f7069]">Phân loại: {item.variantName || product.variantName || 'Mặc định'}</p>
-              <p className="mt-1 break-all text-[12px] text-[#8f7069]">SKU: {item.skuCode || product.skuCode}</p>
+              <p className="mt-1 break-all text-[12px] text-[#8f7069]">SKU: {item.skuCode || product.skuCode || 'Chưa có SKU'}</p>
               <div className="mt-2 flex flex-wrap items-center gap-3 text-sm">
                 <span className="font-semibold text-[#d0011b]">{formatCurrency(product.price)}</span>
                 {product.originalPrice > product.price ? (
@@ -62,7 +63,7 @@ export default function CartItem({ item, product, onQuantityChange, onRemove, on
             <div className="flex h-8 w-28 overflow-hidden rounded-md border border-[#e3beb6] bg-white">
               <button
                 type="button"
-                onClick={() => onQuantityChange(product.id, item.quantity - 1)}
+                onClick={() => onQuantityChange(cartItemKey, item.quantity - 1)}
                 className="grid h-full w-8 place-items-center text-[#5b403b] transition hover:bg-[#f5f3f3] disabled:cursor-not-allowed disabled:text-[#8f7069]"
                 disabled={item.quantity <= 1}
                 aria-label="Giảm số lượng"
@@ -74,7 +75,7 @@ export default function CartItem({ item, product, onQuantityChange, onRemove, on
               </span>
               <button
                 type="button"
-                onClick={() => onQuantityChange(product.id, item.quantity + 1)}
+                onClick={() => onQuantityChange(cartItemKey, item.quantity + 1)}
                 className="grid h-full w-8 place-items-center text-[#5b403b] transition hover:bg-[#f5f3f3] disabled:cursor-not-allowed disabled:text-[#8f7069]"
                 disabled={!canIncrease}
                 aria-label="Tăng số lượng"
@@ -85,7 +86,7 @@ export default function CartItem({ item, product, onQuantityChange, onRemove, on
 
             <button
               type="button"
-              onClick={() => onRemove(product.id)}
+              onClick={() => onRemove(cartItemKey)}
               className="flex items-center gap-1 text-sm text-[#8f7069] transition hover:text-[#ba1a1a] lg:opacity-0 lg:group-hover:opacity-100 lg:focus:opacity-100"
             >
               <span className="material-symbols-outlined text-[18px]" aria-hidden="true">

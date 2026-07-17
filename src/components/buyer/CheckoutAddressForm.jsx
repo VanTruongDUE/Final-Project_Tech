@@ -1,4 +1,15 @@
-export default function CheckoutAddressForm({ formData, errors, onChange }) {
+import { Link } from 'react-router-dom'
+
+export default function CheckoutAddressForm({
+  formData,
+  errors,
+  onChange,
+  addresses,
+  selectedAddressId,
+  onSelectAddress,
+  isLoading,
+  apiError,
+}) {
   const baseInputClass =
     'h-11 rounded-lg border bg-white px-4 text-sm text-[#1b1c1c] outline-none transition placeholder:text-[#c7b7b2] focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/15'
 
@@ -11,10 +22,24 @@ export default function CheckoutAddressForm({ formData, errors, onChange }) {
           </span>
         </div>
         <h2 className="text-xl font-semibold text-[#1b1c1c]">Thông tin giao hàng</h2>
-        <button type="button" className="ml-auto text-xs font-bold text-[#ee4d2d] transition hover:text-[#d0011b]">
-          Thay đổi
-        </button>
+        <Link to="/profile/addresses" className="ml-auto text-xs font-bold text-[#ee4d2d] transition hover:text-[#d0011b]">Quản lý địa chỉ</Link>
       </div>
+
+      {isLoading ? <p className="mb-4 text-sm text-[#5b403b]">Đang tải địa chỉ giao hàng...</p> : null}
+      {apiError ? <div className="mb-4 rounded border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{apiError}</div> : null}
+      {!isLoading && !apiError && addresses.length === 0 ? (
+        <div className="mb-4 rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Bạn chưa có địa chỉ. <Link to="/profile/addresses" className="font-semibold underline">Thêm địa chỉ trước khi đặt hàng</Link>.
+        </div>
+      ) : null}
+      {addresses.length > 0 ? (
+        <label className="mb-4 block">
+          <span className="mb-2 block text-sm text-[#5b403b]">Địa chỉ đã lưu</span>
+          <select value={selectedAddressId} onChange={(event) => onSelectAddress(event.target.value)} className="h-11 w-full rounded-lg border border-[#e3beb6] bg-white px-4 text-sm outline-none focus:border-[#ee4d2d]">
+            {addresses.map((address) => <option key={address.id} value={address.id}>{address.fullName} — {address.street}, {address.province}{address.isDefault ? ' (Mặc định)' : ''}</option>)}
+          </select>
+        </label>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <label className="flex flex-col gap-2 md:col-span-2">

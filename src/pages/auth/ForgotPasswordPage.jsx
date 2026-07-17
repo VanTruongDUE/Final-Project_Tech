@@ -7,7 +7,7 @@ import { resolveRoleHome } from '../../utils/roles'
 export default function ForgotPasswordPage() {
   const navigate = useNavigate()
   const { currentUser } = useAuth()
-  const [email, setEmail] = useState('')
+  const [identifier, setIdentifier] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -23,12 +23,13 @@ export default function ForgotPasswordPage() {
     setIsSubmitting(true)
 
     try {
-      const result = await authService.requestPasswordReset(email)
+      const result = await authService.requestPasswordReset(identifier)
 
       navigate('/verify-otp', {
         replace: true,
         state: {
-          email: result.data.email,
+          identifier: result.data.email || result.data.phone,
+          successMessage: result.message,
         },
       })
     } catch (error) {
@@ -64,9 +65,9 @@ export default function ForgotPasswordPage() {
               </span>
               <input
                 type="text"
-                value={email}
+                value={identifier}
                 onChange={(event) => {
-                  setEmail(event.target.value)
+                  setIdentifier(event.target.value)
                   setErrorMessage('')
                 }}
                 placeholder="VD: user@example.com hoặc 0987654321"

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import ProductGrid from '../../components/buyer/ProductGrid'
 import { productService } from '../../services/productService'
@@ -38,7 +38,8 @@ function RatingRow({ stars, label }) {
 export default function ProductListPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [products, setProducts] = useState([])
-  const [categories, setCategories] = useState([])
+  const [categoryGroups, setCategoryGroups] = useState([])
+  const [openCategoryGroups, setOpenCategoryGroups] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [priceInput, setPriceInput] = useState({ min: '', max: '' })
   const [priceRange, setPriceRange] = useState({ min: '', max: '' })
@@ -53,6 +54,7 @@ export default function ProductListPage() {
     },
     [searchParamsKey],
   )
+  const selectedCategoryValue = selectedCategories[0] || ''
   const sort = searchParams.get('sort') || ''
   const currentPage = Math.max(1, Number(searchParams.get('page')) || 1)
 
@@ -76,10 +78,32 @@ export default function ProductListPage() {
 
   const selectCategory = (nextCategory) => {
     const nextParams = new URLSearchParams(searchParams)
-    nextParams.set('category', nextCategory)
+    nextParams.set('category', String(nextCategory))
     nextParams.delete('page')
 
     setSearchParams(nextParams, { replace: true })
+  }
+
+  const getGroupChildIds = useCallback((group) => (
+    Array.isArray(group.children) && group.children.length
+      ? group.children.map((child) => child.id).filter(Boolean)
+      : [group.id].filter(Boolean)
+  ), [])
+
+  const selectCategoryGroup = (group) => {
+    const childIds = getGroupChildIds(group)
+
+    if (childIds.length) {
+      selectCategory(childIds.join(','))
+    }
+  }
+
+  const toggleCategoryGroup = (groupId) => {
+    setOpenCategoryGroups((current) =>
+      current.includes(groupId)
+        ? current.filter((id) => id !== groupId)
+        : [...current, groupId],
+    )
   }
 
   const clearCategoryFilter = () => {
@@ -107,10 +131,10 @@ export default function ProductListPage() {
     let isMounted = true
 
     const loadCategories = async () => {
-      const response = await productService.getCategories()
+      const response = await productService.getCategoryGroups()
 
       if (isMounted && response.success) {
-        setCategories(response.data)
+        setCategoryGroups(response.data)
       }
     }
 
@@ -120,6 +144,19 @@ export default function ProductListPage() {
       isMounted = false
     }
   }, [])
+
+  useEffect(() => {
+    if (!categoryGroups.length) {
+      return
+    }
+
+    const selectedIdSet = new Set(selectedCategories.flatMap((category) => String(category).split(',')).filter(Boolean))
+    const selectedGroupIds = categoryGroups
+      .filter((group) => getGroupChildIds(group).some((id) => selectedIdSet.has(String(id))))
+      .map((group) => group.id)
+
+    setOpenCategoryGroups((current) => Array.from(new Set([...current, ...selectedGroupIds])))
+  }, [categoryGroups, getGroupChildIds, selectedCategories])
 
   useEffect(() => {
     let isMounted = true
@@ -214,6 +251,26 @@ export default function ProductListPage() {
   const hasFilters = Boolean(
     keyword || selectedCategories.length || sort || priceRange.min || priceRange.max || ratingFilter,
   )
+  const categoryLabelMap = useMemo(() => {
+    const entries = []
+
+    categoryGroups.forEach((group) => {
+      entries.push([String(group.id), group.name])
+      getGroupChildIds(group).forEach((childId) => {
+        const child = group.children?.find((item) => String(item.id) === String(childId))
+        entries.push([String(childId), child?.name || group.name])
+      })
+    })
+
+    return new Map(entries)
+  }, [categoryGroups, getGroupChildIds])
+  const selectedCategoryLabel = selectedCategories.length
+    ? selectedCategories
+        .flatMap((category) => String(category).split(','))
+        .map((categoryId) => categoryLabelMap.get(String(categoryId)))
+        .filter(Boolean)
+        .join(', ') || selectedCategories.join(', ')
+    : ''
 
   return (
     <main className="mx-auto flex w-full max-w-[1200px] flex-col px-3 py-6">
@@ -223,7 +280,7 @@ export default function ProductListPage() {
         </Link>
         <span>›</span>
         <span className="text-[#1b1c1c]">
-          {selectedCategories.length ? selectedCategories.join(', ') : 'Tất cả sản phẩm'}
+          {selectedCategoryLabel || 'Tất cả sản phẩm'}
         </span>
       </nav>
 
@@ -244,20 +301,65 @@ export default function ProductListPage() {
                   Tất cả
                 </span>
               </label>
-              {categories.map((item) => (
-                <label key={item} className="flex cursor-pointer items-center gap-2">
-                  <input
-                    type="radio"
-                    name="desktop-category"
-                    checked={selectedCategories.includes(item)}
-                    onChange={() => selectCategory(item)}
-                    className="h-4 w-4 rounded-full border-[#8f7069] text-[#ee4d2d] focus:ring-[#ee4d2d]"
-                  />
-                  <span className={`text-sm transition ${selectedCategories.includes(item) ? 'text-[#ee4d2d]' : 'text-[#5b403b]'}`}>
-                    {item}
-                  </span>
-                </label>
-              ))}
+              {categoryGroups.map((group) => {
+                const childIds = getGroupChildIds(group)
+                const groupValue = childIds.join(',')
+                const isGroupSelected = selectedCategoryValue === groupValue
+                const isOpen = openCategoryGroups.includes(group.id)
+
+                return (
+                  <div key={group.id} className="rounded-lg border border-[#f0d8d2] bg-[#fbf9f9]">
+                    <div className="flex items-center gap-2 px-2 py-2">
+                      <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2">
+                        <input
+                          type="radio"
+                          name="desktop-category"
+                          checked={isGroupSelected}
+                          onChange={() => selectCategoryGroup(group)}
+                          className="h-4 w-4 rounded-full border-[#8f7069] text-[#ee4d2d] focus:ring-[#ee4d2d]"
+                        />
+                        <span className={`truncate text-sm font-semibold transition ${isGroupSelected ? 'text-[#ee4d2d]' : 'text-[#1b1c1c]'}`}>
+                          {group.name}
+                        </span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => toggleCategoryGroup(group.id)}
+                        className="grid h-7 w-7 shrink-0 place-items-center rounded text-[#8f7069] transition hover:bg-white hover:text-[#ee4d2d]"
+                        aria-label={`${isOpen ? 'Thu gọn' : 'Mở'} ${group.name}`}
+                      >
+                        <span className={`material-symbols-outlined text-[18px] transition ${isOpen ? 'rotate-180' : ''}`}>
+                          expand_more
+                        </span>
+                      </button>
+                    </div>
+
+                    {isOpen ? (
+                      <div className="space-y-1 border-t border-[#f0d8d2] bg-white px-3 py-2">
+                        {(group.children?.length ? group.children : [group]).map((child) => {
+                          const childValue = String(child.id)
+                          const isSelected = selectedCategories.includes(childValue)
+
+                          return (
+                            <label key={child.id} className="flex cursor-pointer items-center gap-2 py-1">
+                              <input
+                                type="radio"
+                                name="desktop-category"
+                                checked={isSelected}
+                                onChange={() => selectCategory(child.id)}
+                                className="h-4 w-4 rounded-full border-[#8f7069] text-[#ee4d2d] focus:ring-[#ee4d2d]"
+                              />
+                              <span className={`text-sm transition ${isSelected ? 'font-semibold text-[#ee4d2d]' : 'text-[#5b403b]'}`}>
+                                {child.name}
+                              </span>
+                            </label>
+                          )
+                        })}
+                      </div>
+                    ) : null}
+                  </div>
+                )
+              })}
             </div>
           </div>
 
@@ -384,20 +486,47 @@ export default function ProductListPage() {
                 >
                   Tất cả
                 </button>
-                {categories.map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    onClick={() => selectCategory(item)}
-                    className={`rounded-full px-3 py-2 text-sm ${
-                      selectedCategories.includes(item)
-                        ? 'bg-[#ee4d2d] text-white'
-                        : 'border border-[#e3beb6] bg-white text-[#5b403b]'
-                    }`}
-                  >
-                    {item}
-                  </button>
-                ))}
+                {categoryGroups.map((group) => {
+                  const groupValue = getGroupChildIds(group).join(',')
+                  const isGroupSelected = selectedCategoryValue === groupValue
+
+                  return (
+                    <div key={group.id} className="w-full rounded-lg border border-[#f0d8d2] bg-[#fbf9f9] p-2">
+                      <button
+                        type="button"
+                        onClick={() => selectCategoryGroup(group)}
+                        className={`mb-2 rounded-full px-3 py-1.5 text-sm font-semibold ${
+                          isGroupSelected
+                            ? 'bg-[#ee4d2d] text-white'
+                            : 'border border-[#e3beb6] bg-white text-[#1b1c1c]'
+                        }`}
+                      >
+                        {group.name}
+                      </button>
+                      <div className="flex flex-wrap gap-2">
+                        {(group.children?.length ? group.children : [group]).map((child) => {
+                          const childValue = String(child.id)
+                          const isSelected = selectedCategories.includes(childValue)
+
+                          return (
+                            <button
+                              key={child.id}
+                              type="button"
+                              onClick={() => selectCategory(child.id)}
+                              className={`rounded-full px-3 py-1.5 text-sm ${
+                                isSelected
+                                  ? 'bg-[#ee4d2d] text-white'
+                                  : 'border border-[#e3beb6] bg-white text-[#5b403b]'
+                              }`}
+                            >
+                              {child.name}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
 

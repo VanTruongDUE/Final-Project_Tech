@@ -85,15 +85,24 @@ export default function SellerProductCreatePage() {
     skus: variantNames.map((variantName) => ({ variantName, price: form.price, stockQuantity: form.stockQuantity })),
   })
   const variantSkuPreviews = variantSkuPreviewResponse.data || []
-  const variantRows = variantNames.map((variantName, index) => ({
-    skuId: `SKU-VARIANT-${String(index + 1).padStart(3, '0')}`,
-    skuCode: variantSkuPreviews[index]?.skuCode || createVariantSku(skuPreview, variantName, index),
-    variantName,
-    price: Number(variantData[variantName]?.price ?? form.price),
-    originalPrice: Number(variantData[variantName]?.originalPrice ?? form.originalPrice),
-    stockQuantity: Number(variantData[variantName]?.stockQuantity ?? form.stockQuantity),
-    status: variantData[variantName]?.hidden ? 'HIDDEN' : 'ACTIVE',
-  }))
+  const variantRows = createCombinations(attributes).map((values, index) => {
+    const variantName = values.join(' / ')
+
+    return {
+      skuId: `SKU-VARIANT-${String(index + 1).padStart(3, '0')}`,
+      skuCode: variantSkuPreviews[index]?.skuCode || createVariantSku(skuPreview, variantName, index),
+      variantName,
+      option1Name: attributes[0]?.name || '',
+      option1Value: values[0] || '',
+      option2Name: attributes[1]?.name || '',
+      option2Value: values[1] || '',
+      price: Number(variantData[variantName]?.price ?? form.price),
+      originalPrice: Number(variantData[variantName]?.originalPrice ?? form.originalPrice),
+      stockQuantity: Number(variantData[variantName]?.stockQuantity ?? form.stockQuantity),
+      status: variantData[variantName]?.hidden ? 'HIDDEN' : 'ACTIVE',
+      isDefault: index === 0,
+    }
+  })
 
   const updateField = (field, value) => {
     setForm((currentForm) => ({
@@ -169,7 +178,7 @@ export default function SellerProductCreatePage() {
   }
 
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
 
     if (hasVariants && !variantRows.length) {
@@ -177,15 +186,16 @@ export default function SellerProductCreatePage() {
       return
     }
 
-    const response = sellerService.createSellerProduct(currentUser, hasVariants
+    const response = await Promise.resolve(sellerService.createSellerProduct(currentUser, hasVariants
       ? {
           ...form,
           price: Math.min(...variantRows.map((row) => row.price)),
           originalPrice: Math.min(...variantRows.map((row) => row.originalPrice)),
           stockQuantity: variantRows.reduce((total, row) => total + row.stockQuantity, 0),
+          variants: variantRows,
           skus: variantRows,
         }
-      : form)
+      : form))
 
     if (!response.success) {
       setError(response.message || 'Không thể lưu sản phẩm mới.')

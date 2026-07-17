@@ -1,4 +1,7 @@
+import { apiRequest } from './apiClient'
+
 const SHIPPER_SHIPMENTS_STORAGE_KEY = 'techtonic_shipper_shipments'
+const USE_API = import.meta.env.VITE_DATA_SOURCE === 'api'
 
 const statusMeta = {
   ASSIGNED: {
@@ -230,6 +233,10 @@ const normalizeText = (value) =>
     .toLowerCase()
 
 function formatDeliveryDate(value) {
+  if (!value) {
+    return 'Chưa có dữ liệu'
+  }
+
   return new Intl.DateTimeFormat('vi-VN', {
     day: '2-digit',
     month: '2-digit',
@@ -247,6 +254,209 @@ function formatUpdateTime() {
     hour: '2-digit',
     minute: '2-digit',
   }).format(new Date())
+}
+
+function buildAddress(...parts) {
+  return parts
+    .map((part) => String(part || '').trim())
+    .filter(Boolean)
+    .join(', ')
+}
+
+function normalizeSearchText(value) {
+  return normalizeText(value)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+}
+
+function toUiShipmentStatus(status) {
+  const normalizedStatus = String(status || '').trim().toUpperCase()
+
+  if (normalizedStatus === 'SHIPPING') return 'IN_TRANSIT'
+  if (normalizedStatus === 'DELIVERY_FAILED') return 'FAILED'
+
+  return normalizedStatus || 'ASSIGNED'
+}
+
+function toBackendShipmentStatus(status) {
+  const normalizedStatus = String(status || '').trim().toUpperCase()
+
+  if (normalizedStatus === 'IN_TRANSIT') return 'SHIPPING'
+  if (normalizedStatus === 'FAILED') return 'DELIVERY_FAILED'
+
+  return normalizedStatus
+}
+
+function formatApiTime(value) {
+  if (!value) {
+    return 'Chờ cập nhật'
+  }
+
+  try {
+    return formatDeliveryDate(value)
+  } catch {
+    return String(value)
+  }
+}
+
+function buildApiTimeline(shipment) {
+  const events = [
+    { status: 'ASSIGNED', time: shipment.assignedAt, description: 'Đã phân công cho shipper' },
+    { status: 'PICKED_UP', time: shipment.pickedUpAt, description: 'Đã lấy hàng từ shop' },
+    { status: 'IN_TRANSIT', time: shipment.pickedUpAt, description: 'Đang giao đến khách hàng' },
+    {
+      status: shipment.status === 'FAILED' ? 'FAILED' : 'DELIVERED',
+      time: shipment.deliveredAt,
+      description: shipment.status === 'FAILED' ? shipment.failedReason || 'Giao hàng thất bại' : 'Giao hàng thành công',
+    },
+  ]
+  const currentIndex = statusFlow.indexOf(shipment.status)
+
+  return events.map((event, index) => {
+    const isTerminalFailure = shipment.status === 'FAILED' && event.status === 'FAILED'
+    const isCompleted = Boolean(event.time) || index < currentIndex || isTerminalFailure
+    const isCurrent = event.status === shipment.status && !['DELIVERED', 'FAILED', 'CANCELLED'].includes(shipment.status)
+
+    return {
+      status: event.status,
+      label: statusMeta[event.status]?.timelineLabel || statusMeta.ASSIGNED.timelineLabel,
+      description: isCompleted || index <= currentIndex ? event.description : 'Đang chờ',
+      time: formatApiTime(event.time),
+      state: isCompleted ? 'completed' : isCurrent ? 'current' : 'pending',
+    }
+  })
+}
+
+function mapApiShipment(apiShipment = {}) {
+  const status = toUiShipmentStatus(apiShipment.shipment_status)
+  const receiverAddress = buildAddress(
+    apiShipment.shipping_address_line,
+    apiShipment.shipping_ward,
+    apiShipment.shipping_district,
+    apiShipment.shipping_province,
+  )
+  const senderAddress = buildAddress(
+    apiShipment.store_address_line,
+    apiShipment.store_ward,
+    apiShipment.store_district,
+    apiShipment.store_province,
+  )
+  const totalAmount = Number(apiShipment.total_amount || 0)
+  const shipment = {
+    id: String(apiShipment.shipment_id || ''),
+    shipmentId: apiShipment.shipment_id,
+    orderId: apiShipment.order_code || String(apiShipment.order_id || 'Chưa có dữ liệu'),
+    orderNumericId: apiShipment.order_id,
+    orderStatus: apiShipment.order_status || 'Chưa có dữ liệu',
+    trackingCode: apiShipment.tracking_code || 'Chưa có dữ liệu',
+    receiverName: apiShipment.recipient_name || 'Chưa có dữ liệu',
+    receiverPhone: apiShipment.recipient_phone || 'Chưa có dữ liệu',
+    receiverAddress: receiverAddress || 'Chưa có dữ liệu',
+    estimatedDelivery: apiShipment.delivered_at || apiShipment.assigned_at || apiShipment.created_at,
+    codAmount: apiShipment.payment_method === 'COD' ? totalAmount : 0,
+    totalAmount,
+    paymentMethod: apiShipment.payment_method || 'Chưa có dữ liệu',
+    paymentStatus: apiShipment.payment_status || 'Chưa có dữ liệu',
+    status,
+    updatedAt: formatApiTime(apiShipment.delivered_at || apiShipment.picked_up_at || apiShipment.assigned_at || apiShipment.created_at),
+    assignedAt: apiShipment.assigned_at,
+    pickedUpAt: apiShipment.picked_up_at,
+    deliveredAt: apiShipment.delivered_at,
+    failedReason: apiShipment.failed_reason || '',
+    sender: {
+      shopName: apiShipment.store_name || 'Chưa có dữ liệu',
+      contactName: apiShipment.store_name || 'Chưa có dữ liệu',
+      contactPhone: apiShipment.store_phone || 'Chưa có dữ liệu',
+      address: senderAddress || 'Chưa có dữ liệu',
+    },
+    items: [],
+    deliveryNote: apiShipment.customer_note || apiShipment.failed_reason || 'Không có ghi chú giao hàng.',
+  }
+
+  return {
+    ...shipment,
+    statusMeta: statusMeta[shipment.status] || statusMeta.ASSIGNED,
+    codLabel: shipment.codAmount ? vnd(shipment.codAmount) : 'Đã thanh toán',
+    estimatedDeliveryLabel: formatDeliveryDate(shipment.estimatedDelivery),
+    timeline: buildApiTimeline(shipment),
+    nextStatuses: statusTransitions[shipment.status] || [],
+  }
+}
+
+function buildApiDashboard(shipments) {
+  const delivered = shipments.filter((shipment) => shipment.status === 'DELIVERED').length
+  const assigned = shipments.filter((shipment) => shipment.status === 'ASSIGNED' || shipment.status === 'PICKED_UP').length
+  const inTransit = shipments.filter((shipment) => shipment.status === 'IN_TRANSIT').length
+  const failed = shipments.filter((shipment) => shipment.status === 'FAILED').length
+  const total = shipments.length
+
+  return {
+    shipper: {
+      shipperId: 'API-SHIPPER',
+      displayName: 'Shipper TechTonic',
+    },
+    metrics: [
+      { id: 'assigned', label: 'Được giao', value: assigned, icon: 'assignment', iconClassName: 'bg-blue-100 text-blue-800' },
+      { id: 'shipping', label: 'Đang giao', value: inTransit, icon: 'local_shipping', iconClassName: 'bg-orange-100 text-orange-800', featured: true },
+      { id: 'delivered', label: 'Đã giao', value: delivered, icon: 'check_circle', iconClassName: 'bg-green-100 text-green-800' },
+      { id: 'failed', label: 'Cần xử lý', value: failed, icon: 'error', iconClassName: 'bg-red-100 text-red-800', danger: true },
+    ],
+    distribution: {
+      total,
+      onTimeRate: total ? Math.round((delivered / total) * 100) : 0,
+      successPercent: total ? Math.round((delivered / total) * 100) : 0,
+      pendingPercent: total ? Math.round(((assigned + inTransit) / total) * 100) : 0,
+      failedPercent: total ? Math.round((failed / total) * 100) : 0,
+    },
+    recentShipments: shipments.slice(0, 4),
+  }
+}
+
+async function fetchApiShipments({ keyword = '', status = 'all' } = {}) {
+  const query = new URLSearchParams({ page: '1', limit: '100' })
+  const backendStatus = status === 'all' ? '' : toBackendShipmentStatus(status)
+
+  if (backendStatus) {
+    query.set('status', backendStatus)
+  }
+
+  const response = await apiRequest(`/shipper/shipments?${query.toString()}`)
+  const shipments = (response.data?.shipments || []).map(mapApiShipment)
+  const normalizedKeyword = normalizeSearchText(keyword)
+  const filteredShipments = normalizedKeyword
+    ? shipments.filter((shipment) =>
+        [
+          shipment.id,
+          shipment.orderId,
+          shipment.trackingCode,
+          shipment.receiverName,
+          shipment.receiverPhone,
+          shipment.receiverAddress,
+        ].some((value) => normalizeSearchText(value).includes(normalizedKeyword)),
+      )
+    : shipments
+  const counts = shipments.reduce(
+    (result, shipment) => ({
+      ...result,
+      [shipment.status]: (result[shipment.status] || 0) + 1,
+    }),
+    {},
+  )
+
+  return {
+    success: true,
+    data: filteredShipments,
+    meta: {
+      shipper: {
+        shipperId: 'API-SHIPPER',
+        displayName: 'Shipper TechTonic',
+      },
+      counts,
+      totalCount: response.data?.pagination?.total_items ?? shipments.length,
+      filteredCount: filteredShipments.length,
+      pagination: response.data?.pagination,
+    },
+  }
 }
 
 function readShipmentOverrides() {
@@ -336,7 +546,16 @@ function getScopedShipments(currentUser) {
 }
 
 export const shipperService = {
-  getShipperDashboard(currentUser) {
+  async getShipperDashboard(currentUser) {
+    if (USE_API) {
+      const shipmentsResponse = await fetchApiShipments()
+
+      return {
+        success: true,
+        data: buildApiDashboard(shipmentsResponse.data),
+      }
+    }
+
     const { shipper, shipments } = getScopedShipments(currentUser)
 
     if (!shipper) {
@@ -375,7 +594,11 @@ export const shipperService = {
     }
   },
 
-  getShipperShipments(currentUser, { keyword = '', status = 'all', dateFrom = '', dateTo = '' } = {}) {
+  async getShipperShipments(currentUser, { keyword = '', status = 'all', dateFrom = '', dateTo = '' } = {}) {
+    if (USE_API) {
+      return fetchApiShipments({ keyword, status })
+    }
+
     const { shipper, shipments: shipmentsByShipper } = getScopedShipments(currentUser)
 
     if (!shipper) {
@@ -420,7 +643,26 @@ export const shipperService = {
     }
   },
 
-  getShipperShipmentById(currentUser, shipmentId) {
+  async getShipperShipmentById(currentUser, shipmentId) {
+    if (USE_API) {
+      const shipmentsResponse = await fetchApiShipments()
+      const shipment = shipmentsResponse.data.find((item) => String(item.id) === String(shipmentId))
+
+      if (!shipment) {
+        return {
+          success: false,
+          code: 'NOT_FOUND',
+          message: 'Không tìm thấy đơn giao trong dữ liệu backend trả về.',
+        }
+      }
+
+      return {
+        success: true,
+        data: shipment,
+        meta: shipmentsResponse.meta,
+      }
+    }
+
     const { shipper, shipments } = getScopedShipments(currentUser)
 
     if (!shipper) {
@@ -448,8 +690,24 @@ export const shipperService = {
     }
   },
 
-  updateShipperShipmentStatus(currentUser, shipmentId, nextStatus) {
-    const current = this.getShipperShipmentById(currentUser, shipmentId)
+  async updateShipperShipmentStatus(currentUser, shipmentId, nextStatus, { failedReason = '' } = {}) {
+    if (USE_API) {
+      const backendStatus = toBackendShipmentStatus(nextStatus)
+      const body = { new_status: backendStatus }
+
+      if (backendStatus === 'DELIVERY_FAILED') {
+        body.failed_reason = failedReason || 'Shipper báo giao hàng thất bại từ giao diện demo.'
+      }
+
+      await apiRequest(`/shipper/shipments/${shipmentId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      })
+
+      return this.getShipperShipmentById(currentUser, shipmentId)
+    }
+
+    const current = await this.getShipperShipmentById(currentUser, shipmentId)
 
     if (!current.success) {
       return current

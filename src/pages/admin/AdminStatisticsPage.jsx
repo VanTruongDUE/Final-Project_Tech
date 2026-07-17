@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import AdminIcon from '../../components/admin/AdminIcon'
 import { adminService } from '../../services/adminService'
 
@@ -14,6 +14,12 @@ const chartTypeOptions = [
   { value: 'bar', label: 'Cột' },
 ]
 
+const orderStatusLabels = {
+  PENDING: 'Chờ xác nhận', CONFIRMED: 'Đã xác nhận', PROCESSING: 'Đang xử lý',
+  READY_TO_SHIP: 'Chờ giao vận', SHIPPING: 'Đang giao', COMPLETED: 'Hoàn thành',
+  CANCELLED: 'Đã hủy', DELIVERY_FAILED: 'Giao thất bại',
+}
+
 function KpiCard({ label, value, trend, icon, featured = false }) {
   return (
     <div className="relative overflow-hidden rounded-xl border border-[#e3e2e2]/60 bg-white p-4 shadow-sm">
@@ -25,13 +31,7 @@ function KpiCard({ label, value, trend, icon, featured = false }) {
         {featured ? <AdminIcon name="info" className="text-[14px] text-[#8f7069]" /> : null}
       </div>
       <div className={`relative z-10 font-bold ${featured ? 'text-[28px] text-[#ee4d2d] md:text-[32px]' : 'mt-2 text-2xl text-[#1b1c1c]'}`}>{value}</div>
-      <div className="relative z-10 mt-2 flex items-center gap-1 text-xs">
-        <span className="flex items-center rounded bg-green-50 px-1 text-green-600">
-          <AdminIcon name="trending_up" className="text-[12px]" />
-          {trend}
-        </span>
-        <span className="text-[#5b403b]">so với kỳ trước</span>
-      </div>
+      {trend ? <div className="relative z-10 mt-2 text-xs text-[#5b403b]">{trend}</div> : <div className="relative z-10 mt-2 text-xs text-[#5b403b]">Trong khoảng đã chọn</div>}
     </div>
   )
 }
@@ -62,6 +62,9 @@ function buildRevenuePath(data) {
 }
 
 function RevenueChart({ data, chartType }) {
+  if (!data.length) {
+    return <div className="grid h-[300px] place-items-center bg-[#fbf9f9] text-sm text-[#5b403b]">Không có doanh thu hoàn thành trong khoảng đã chọn.</div>
+  }
   const chart = buildRevenuePath(data)
 
   return (
@@ -121,7 +124,41 @@ export default function AdminStatisticsPage() {
   const [range, setRange] = useState('today')
   const [chartType, setChartType] = useState('area')
   const [storeKeyword, setStoreKeyword] = useState('')
-  const reportResponse = adminService.getAdminStatisticsReport({ range })
+  const [reportResponse, setReportResponse] = useState({ success: false, isLoading: true })
+
+  useEffect(() => {
+    let isMounted = true
+
+    setReportResponse({ success: false, isLoading: true })
+    Promise.resolve(adminService.getAdminStatisticsReport({ range }))
+      .then((response) => {
+        if (isMounted) setReportResponse(response)
+      })
+      .catch((error) => {
+        if (isMounted) setReportResponse({ success: false, message: error.message })
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [range])
+
+  if (reportResponse.isLoading) {
+    return (
+      <section className="flex w-full min-w-0 flex-col gap-6 bg-[#fbf9f9] p-3 md:p-6">
+        <div className="rounded-xl border border-[#e3e2e2] bg-white p-5 text-sm text-[#5b403b] shadow-sm">Đang tải báo cáo Admin...</div>
+      </section>
+    )
+  }
+
+  if (!reportResponse.success) {
+    return (
+      <section className="flex w-full min-w-0 flex-col gap-6 bg-[#fbf9f9] p-3 md:p-6">
+        <div className="rounded-xl border border-[#ffdad6] bg-white p-5 text-sm text-[#ba1a1a] shadow-sm">{reportResponse.message || 'Không thể tải báo cáo Admin.'}</div>
+      </section>
+    )
+  }
+
   const report = reportResponse.data
   const metrics = report.metrics
   const stores = report.storePerformance.filter((store) => store.name.toLowerCase().includes(storeKeyword.trim().toLowerCase()))
@@ -147,21 +184,13 @@ export default function AdminStatisticsPage() {
               </button>
             ))}
           </div>
-          <button
-            type="button"
-            onClick={() => window.alert('Xuất báo cáo hiện đang ở chế độ mock Admin.')}
-            className="flex items-center gap-1 rounded-lg bg-[#ee4d2d] px-4 py-2 text-xs font-medium text-white shadow-sm transition hover:bg-[#d44428]"
-          >
-            <AdminIcon name="download" className="text-[18px]" />
-            Xuất báo cáo
-          </button>
         </div>
       </header>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <KpiCard label="Tổng doanh thu" value={metrics.totalRevenueLabel} trend={metrics.revenueGrowth} icon="payments" featured />
         <KpiCard label="Đơn hàng hoàn tất" value={metrics.completedOrders.toLocaleString('vi-VN')} trend={metrics.orderGrowth} icon="check_circle" />
-        <KpiCard label="Doanh thu trung bình/ngày" value={metrics.avgDailyRevenueLabel} trend="0.0%" icon="query_stats" />
+        <KpiCard label="Doanh thu trung bình/ngày" value={metrics.avgDailyRevenueLabel} icon="query_stats" />
         <div className="relative overflow-hidden rounded-xl border border-[#e3e2e2]/60 bg-white p-4 shadow-sm">
           <div className="absolute right-0 top-0 p-4 opacity-10">
             <AdminIcon name="storefront" className="text-[44px]" filled />
@@ -171,8 +200,20 @@ export default function AdminStatisticsPage() {
             {metrics.storesWithRevenue} <span className="text-sm font-normal text-[#5b403b]">/ {metrics.totalStores}</span>
           </div>
           <div className="relative z-10 mt-3 h-1.5 overflow-hidden rounded-full bg-[#e9e8e7]">
-            <div className="h-1.5 rounded-full bg-[#ee4d2d]" style={{ width: `${Math.round((metrics.storesWithRevenue / metrics.totalStores) * 100)}%` }} />
+            <div className="h-1.5 rounded-full bg-[#ee4d2d]" style={{ width: `${Math.round((metrics.storesWithRevenue / Math.max(metrics.totalStores, 1)) * 100)}%` }} />
           </div>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-[#e3e2e2] bg-white p-4 shadow-sm">
+        <h2 className="text-xl font-semibold text-[#1b1c1c]">Thống kê trạng thái đơn hàng</h2>
+        <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+          {Object.entries(orderStatusLabels).map(([status, label]) => (
+            <div key={status} className="rounded-lg border border-[#e3e2e2] bg-[#fbf9f9] p-3">
+              <p className="text-xs text-[#5b403b]">{label}</p>
+              <p className="mt-1 text-xl font-bold text-[#b22204]">{Number(report.orderStatistics[status] || 0)}</p>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -217,11 +258,10 @@ export default function AdminStatisticsPage() {
                 <th className="p-3 text-right font-semibold">Đơn hoàn tất</th>
                 <th className="p-3 text-right font-semibold">Sản phẩm bán</th>
                 <th className="p-3 text-right font-semibold">Doanh thu</th>
-                <th className="p-3 text-right font-semibold">Thay đổi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#e3e2e2] text-sm">
-              {stores.map((store) => (
+              {stores.length ? stores.map((store) => (
                 <tr key={store.id} className="transition-colors hover:bg-[#fbf9f9]">
                   <td className="p-3">
                     <div className="flex items-center gap-2">
@@ -232,9 +272,8 @@ export default function AdminStatisticsPage() {
                   <td className="p-3 text-right text-[#1b1c1c]">{store.completedOrders.toLocaleString('vi-VN')}</td>
                   <td className="p-3 text-right text-[#1b1c1c]">{store.itemsSold.toLocaleString('vi-VN')}</td>
                   <td className="p-3 text-right font-semibold text-[#ee4d2d]">{store.revenueLabel}</td>
-                  <td className={`p-3 text-right font-medium ${store.changeType === 'down' ? 'text-[#ba1a1a]' : store.changeType === 'flat' ? 'text-[#8f7069]' : 'text-green-600'}`}>{store.change}</td>
                 </tr>
-              ))}
+              )) : <tr><td colSpan="4" className="p-6 text-center text-[#5b403b]">Không có cửa hàng phát sinh doanh thu trong kỳ.</td></tr>}
             </tbody>
           </table>
         </div>
@@ -249,6 +288,22 @@ export default function AdminStatisticsPage() {
             </button>
           </div>
         </div>
+      </div>
+
+      <div className="overflow-hidden rounded-xl border border-[#e3e2e2] bg-white shadow-sm">
+        <div className="border-b border-[#e3e2e2] bg-[#fbf9f9] p-4"><h2 className="text-xl font-semibold text-[#1b1c1c]">Sản phẩm bán chạy theo SKU / biến thể</h2></div>
+        {report.topProducts.length ? (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[760px] text-left text-sm">
+              <thead className="border-b border-[#e3e2e2] text-xs uppercase text-[#5b403b]"><tr><th className="p-3">Sản phẩm</th><th className="p-3">Cửa hàng</th><th className="p-3 text-right">Số lượng</th><th className="p-3 text-right">Doanh thu item</th></tr></thead>
+              <tbody className="divide-y divide-[#e3e2e2]">
+                {report.topProducts.map((product) => (
+                  <tr key={product.id}><td className="p-3"><p className="font-semibold">{product.name}</p><p className="text-xs text-[#5b403b]">{product.skuCode || 'Chưa có SKU'} · {product.variantName}</p></td><td className="p-3">{product.storeName}</td><td className="p-3 text-right font-semibold">{product.sold.toLocaleString('vi-VN')}</td><td className="p-3 text-right font-semibold text-[#ee4d2d]">{product.revenueLabel}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : <p className="p-6 text-center text-sm text-[#5b403b]">Không có sản phẩm bán chạy trong kỳ.</p>}
       </div>
     </section>
   )

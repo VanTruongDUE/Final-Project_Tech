@@ -41,6 +41,7 @@ import SellerRevenuePage from '../pages/seller/SellerRevenuePage'
 import SellerMessagesPage from '../pages/seller/SellerMessagesPage'
 import SellerConversationPage from '../pages/seller/SellerConversationPage'
 import SellerSettingsPage from '../pages/seller/SellerSettingsPage'
+import SellerOnboardingPage from '../pages/seller/SellerOnboardingPage'
 import AdminDashboardPage from '../pages/admin/AdminDashboardPage'
 import AdminUsersPage from '../pages/admin/AdminUsersPage'
 import AdminStoresPage from '../pages/admin/AdminStoresPage'
@@ -49,6 +50,7 @@ import AdminStatisticsPage from '../pages/admin/AdminStatisticsPage'
 import AdminStoreApprovalsPage from '../pages/admin/AdminStoreApprovalsPage'
 import AdminReportedProductsPage from '../pages/admin/AdminReportedProductsPage'
 import AdminProductApprovalsPage from '../pages/admin/AdminProductApprovalsPage'
+import AdminReviewsPage from '../pages/admin/AdminReviewsPage'
 import ShipperDashboardPage from '../pages/shipper/ShipperDashboardPage'
 import ShipperShipmentsPage from '../pages/shipper/ShipperShipmentsPage'
 import ShipperShipmentDetailPage from '../pages/shipper/ShipperShipmentDetailPage'
@@ -65,6 +67,10 @@ export default function AppRoutes() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/verify-otp" element={<VerifyOtpPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+      </Route>
+
+      <Route element={<ProtectedRoute allowedRoles={[ROLES.CUSTOMER, ROLES.SELLER]} />}>
+        <Route path="/seller-onboarding" element={<SellerOnboardingPage />} />
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={[ROLES.CUSTOMER, ROLES.SELLER]} />}>
@@ -120,6 +126,7 @@ export default function AppRoutes() {
           <Route path="/admin/store-approvals" element={<AdminStoreApprovalsPage />} />
           <Route path="/admin/orders" element={<AdminOrdersPage />} />
           <Route path="/admin/statistics" element={<AdminStatisticsPage />} />
+          <Route path="/admin/reviews" element={<AdminReviewsPage />} />
           <Route path="/admin/reported-products" element={<AdminReportedProductsPage />} />
           <Route path="/admin/product-approvals" element={<AdminProductApprovalsPage />} />
         </Route>

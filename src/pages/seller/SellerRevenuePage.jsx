@@ -1,5 +1,6 @@
 ﻿import { useMemo, useState } from 'react'
 import SellerChartTooltip from '../../components/seller/SellerChartTooltip'
+import { useEffect } from 'react'
 import SellerChartTypeToggle from '../../components/seller/SellerChartTypeToggle'
 import SellerIcon from '../../components/seller/SellerIcon'
 import { useAuth } from '../../contexts/useAuth'
@@ -14,6 +15,16 @@ const rangeOptions = [
 ]
 
 const pieColors = ['#b22204', '#ee4d2d', '#ffb4a4', '#d63c1e', '#8d1600', '#ffdad3', '#e3beb6']
+const orderStatusLabels = {
+  PENDING: 'Chờ xác nhận',
+  CONFIRMED: 'Đã xác nhận',
+  PROCESSING: 'Đang xử lý',
+  READY_TO_SHIP: 'Chờ giao vận',
+  SHIPPING: 'Đang giao',
+  COMPLETED: 'Hoàn thành',
+  CANCELLED: 'Đã hủy',
+  DELIVERY_FAILED: 'Giao thất bại',
+}
 
 function buildPieGradient(points) {
   const total = points.reduce((sum, item) => sum + item.value, 0)
@@ -34,7 +45,7 @@ function buildPieGradient(points) {
 }
 
 function formatChartDate(label) {
-  return `${label}/${new Date().getFullYear()}`
+  return label
 }
 
 function escapeCsvCell(value) {
@@ -123,7 +134,23 @@ export default function SellerRevenuePage() {
   const [chartType, setChartType] = useState('line')
   const [hoveredChartPoint, setHoveredChartPoint] = useState(null)
   const [exportMessage, setExportMessage] = useState('')
-  const revenueResponse = sellerService.getSellerRevenueReport(currentUser, { keyword, range })
+  const [revenueResponse, setRevenueResponse] = useState({ success: false, isLoading: true })
+
+  useEffect(() => {
+    let isMounted = true
+    setRevenueResponse({ success: false, isLoading: true })
+    sellerService.getSellerRevenueReport(currentUser, { keyword, range })
+      .then((response) => {
+        if (isMounted) setRevenueResponse(response)
+      })
+      .catch((error) => {
+        if (isMounted) setRevenueResponse({ success: false, message: error.message })
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [currentUser, keyword, range])
 
   const chartMeta = useMemo(() => {
     if (!revenueResponse.success) {
@@ -156,6 +183,16 @@ export default function SellerRevenuePage() {
     }
   }, [revenueResponse])
 
+  if (revenueResponse.isLoading) {
+    return (
+      <section className="min-h-screen bg-[#f5f3f3] p-4 md:p-6">
+        <div className="rounded-xl border border-[#e3e2e2] bg-white p-6 text-sm text-[#5b403b] shadow-sm">
+          Đang tải báo cáo doanh thu...
+        </div>
+      </section>
+    )
+  }
+
   if (!revenueResponse.success) {
     return (
       <section className="min-h-screen bg-[#f5f3f3] p-4 md:p-6">
@@ -167,7 +204,7 @@ export default function SellerRevenuePage() {
   }
 
   const { cards, chart, rows } = revenueResponse.data
-  const { totalCount } = revenueResponse.meta
+  const { totalCount, orderStatistics } = revenueResponse.meta
   const selectedRangeLabel = rangeOptions.find((option) => option.value === range)?.label || '30 ngày qua'
   const pieGradient = buildPieGradient(chart)
   const totalChartRevenue = chart.reduce((sum, point) => sum + point.value, 0)
@@ -225,6 +262,18 @@ export default function SellerRevenuePage() {
           ))}
         </section>
 
+        <section className="rounded-xl border border-[#e3e2e2] bg-white p-5 shadow-sm">
+          <h2 className="text-[20px] font-semibold text-[#1b1c1c]">Thống kê trạng thái đơn hàng</h2>
+          <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+            {Object.entries(orderStatusLabels).map(([status, label]) => (
+              <div key={status} className="rounded-lg border border-[#e3e2e2] bg-[#fbf9f9] p-3">
+                <p className="text-xs font-medium text-[#5b403b]">{label}</p>
+                <p className="mt-1 text-xl font-bold text-[#b22204]">{Number(orderStatistics[status] || 0)}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
         <section className="relative flex flex-col gap-6 rounded-xl border border-[#e3e2e2] bg-white p-5 shadow-sm md:p-6 lg:p-7" onMouseLeave={() => setHoveredChartPoint(null)}>
           <SellerChartTooltip item={hoveredChartPoint} className="absolute right-6 top-20" />
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -238,7 +287,11 @@ export default function SellerRevenuePage() {
             </div>
           </div>
 
-          {chartType === 'pie' ? (
+          {!chart.length ? (
+            <div className="grid min-h-[320px] place-items-center text-sm text-[#5b403b]">
+              Không có doanh thu hoàn thành trong khoảng thời gian này.
+            </div>
+          ) : chartType === 'pie' ? (
             <div className="grid min-h-[320px] grid-cols-1 items-center gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
               <div className="mx-auto flex aspect-square w-full max-w-[260px] items-center justify-center rounded-full shadow-inner" style={{ background: pieGradient }}>
                 <div className="flex h-[62%] w-[62%] flex-col items-center justify-center rounded-full bg-white text-center shadow-sm">

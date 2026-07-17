@@ -10,6 +10,7 @@ const navItems = [
   { to: '/admin/product-approvals', label: 'Duyệt sản phẩm', icon: 'fact_check' },
   { to: '/admin/users', label: 'Người dùng', icon: 'people' },
   { to: '/admin/statistics', label: 'Báo cáo', icon: 'analytics' },
+  { to: '/admin/reviews', label: 'Đánh giá', icon: 'rate_review' },
 ]
 
 function AdminNavLink({ item }) {

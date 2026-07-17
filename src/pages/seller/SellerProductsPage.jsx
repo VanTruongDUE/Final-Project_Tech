@@ -1,5 +1,6 @@
 ﻿import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
 import SellerIcon from '../../components/seller/SellerIcon'
 import SellerProductFilterBar from '../../components/seller/SellerProductFilterBar'
 import SellerProductStatusBadge from '../../components/seller/SellerProductStatusBadge'
@@ -14,11 +15,36 @@ export default function SellerProductsPage() {
   const [keyword, setKeyword] = useState('')
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [productsResponse, setProductsResponse] = useState({ success: false, isLoading: true })
 
-  const productsResponse = sellerService.getSellerProducts(currentUser, {
-    keyword,
-    refreshKey,
-  })
+  useEffect(() => {
+    let isMounted = true
+
+    setProductsResponse({ success: false, isLoading: true })
+    Promise.resolve(sellerService.getSellerProducts(currentUser, { keyword, refreshKey }))
+      .then((response) => {
+        if (isMounted) setProductsResponse(response)
+      })
+      .catch((error) => {
+        if (isMounted) {
+          setProductsResponse({ success: false, message: error.message || 'Không thể tải danh sách sản phẩm của seller.' })
+        }
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [currentUser, keyword, refreshKey])
+
+  if (productsResponse.isLoading) {
+    return (
+      <section className="min-h-screen bg-[#f5f3f3] p-4 md:p-6">
+        <div className="rounded-xl border border-[#e3beb6] bg-white p-6 text-sm text-[#5b403b] shadow-sm">
+          Đang tải danh sách sản phẩm seller...
+        </div>
+      </section>
+    )
+  }
 
   if (!productsResponse.success) {
     return (
@@ -32,14 +58,14 @@ export default function SellerProductsPage() {
 
   const { data: products, meta } = productsResponse
 
-  const handleDeleteProduct = (product) => {
+  const handleDeleteProduct = async (product) => {
     const confirmed = window.confirm(`Xóa sản phẩm "${product.name}" khỏi danh sách seller?`)
 
     if (!confirmed) {
       return
     }
 
-    const response = sellerService.deleteSellerProduct(currentUser, product.id)
+    const response = await Promise.resolve(sellerService.deleteSellerProduct(currentUser, product.id))
 
     if (!response.success) {
       window.alert(response.message || 'Không thể xóa sản phẩm.')
@@ -128,6 +154,23 @@ export default function SellerProductsPage() {
                   <div className="rounded-lg bg-[#fbf9f9] p-3">
                     <p className="text-xs text-[#8f7069]">Shop</p>
                     <p className="mt-1 truncate font-bold text-[#1b1c1c]">{selectedProduct.storeName}</p>
+                  </div>
+                </div>
+
+                <div className="mt-5 rounded-lg border border-[#e3beb6] bg-[#fbf9f9] p-3">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <p className="text-xs font-bold uppercase tracking-wide text-[#5b403b]">SKU / Biến thể</p>
+                    <span className="text-xs text-[#8f7069]">
+                      {selectedProduct.variantCount || selectedProduct.variants?.length || selectedProduct.skus?.length || 1} biến thể
+                    </span>
+                  </div>
+                  <div className="max-h-36 space-y-2 overflow-y-auto pr-1">
+                    {(selectedProduct.variants?.length ? selectedProduct.variants : selectedProduct.skus?.length ? selectedProduct.skus : [selectedProduct]).map((variant) => (
+                      <div key={variant.variantId || variant.skuId || variant.skuCode} className="rounded border border-[#eee5e2] bg-white px-3 py-2 text-xs">
+                        <p className="font-semibold text-[#1b1c1c]">{variant.variantName || 'Mặc định'}</p>
+                        <p className="mt-1 break-all font-mono text-[#8f7069]">{variant.skuCode || selectedProduct.skuCode || 'Chưa có SKU'}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
 

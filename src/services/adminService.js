@@ -1,9 +1,11 @@
 import { mockProducts } from '../mocks/products.mock'
 import { mockUsers } from '../mocks/users.mock'
+import { apiRequest } from './apiClient'
 import { ASSIGNABLE_USER_ROLES, resolveUserRole, saveUserRoleOverride } from '../utils/userRoleOverrides'
 
 const vnd = (value) => new Intl.NumberFormat('vi-VN').format(value) + 'đ'
 
+const USE_API = import.meta.env.VITE_DATA_SOURCE === 'api'
 const storeIds = new Set(mockProducts.map((product) => product.storeId))
 const totalProducts = mockProducts.length
 const totalStores = storeIds.size
@@ -544,8 +546,257 @@ function buildAdminOrderDetail(order) {
   }
 }
 
+const normalizeApiAdminStatus = (status) => {
+  if (status === 'SUSPENDED') return 'LOCKED'
+  if (status === 'INACTIVE') return 'REJECTED'
+  return status || 'ACTIVE'
+}
+
+const toApiAdminStatus = (status) => {
+  if (status === 'LOCKED') return 'SUSPENDED'
+  if (status === 'REJECTED') return 'INACTIVE'
+  return status || 'ACTIVE'
+}
+
+const formatApiDate = (value) => {
+  if (!value) return ''
+  return new Intl.DateTimeFormat('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(new Date(value))
+}
+
+const formatApiDateTime = (value) => {
+  if (!value) return ''
+  return new Intl.DateTimeFormat('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value))
+}
+
+const mapApiAdminUser = (user = {}) => {
+  const roles = Array.isArray(user.roles) ? user.roles.map((role) => String(role).toUpperCase()) : []
+  const role = ['ADMIN', 'SELLER', 'SHIPPER', 'CUSTOMER'].find((item) => roles.includes(item)) || 'CUSTOMER'
+  const status = normalizeApiAdminStatus(user.status)
+
+  return {
+    id: String(user.user_id),
+    fullName: user.full_name || user.email || 'Người dùng',
+    email: user.email || '',
+    phone: user.phone || 'Chưa cập nhật',
+    role,
+    roles,
+    roleAssignments: Array.isArray(user.role_assignments) ? user.role_assignments.map((assignment) => ({
+      roleId: Number(assignment.role_id),
+      roleCode: String(assignment.role_code || '').toUpperCase(),
+    })) : [],
+    status,
+    createdAt: formatApiDate(user.created_at),
+    activityCount: 0,
+  }
+}
+
+const enrichApiAdminUserDetail = (user) => ({
+  ...user,
+  username: user.email?.split('@')[0] || user.id,
+  lastLogin: 'Dữ liệu đăng nhập chưa có trong API Admin',
+  verified: user.status !== 'PENDING',
+  source: 'Dữ liệu từ API Admin',
+  permissions: [
+    user.role === 'ADMIN' ? 'Quản trị toàn sàn' : 'Truy cập theo vai trò',
+    'Quản lý dữ liệu theo phân quyền',
+  ],
+  activity: [
+    {
+      id: `${user.id}-api`,
+      label: 'Tài khoản được tải từ cơ sở dữ liệu',
+      time: user.createdAt || 'Chưa rõ',
+      icon: 'history',
+    },
+  ],
+  stats: [
+    { label: 'Hoạt động', value: user.activityCount.toLocaleString('vi-VN'), icon: 'monitoring' },
+    { label: 'Vai trò', value: user.role, icon: 'admin_panel_settings' },
+    { label: 'Trạng thái', value: user.status, icon: 'verified_user' },
+  ],
+})
+
+const mapApiAdminStore = (store = {}) => {
+  const productCount = Number(store.total_products) || 0
+  const status = normalizeApiAdminStatus(store.status)
+
+  return {
+    id: String(store.store_id),
+    name: store.store_name || 'Cửa hàng',
+    location: store.slug || 'Việt Nam',
+    ownerName: store.owner_name || 'Chưa có chủ cửa hàng',
+    email: store.owner_email || '',
+    phone: 'Chưa cập nhật',
+    category: 'Tất cả',
+    productCount,
+    orderCount: 0,
+    revenue: 0,
+    revenueLabel: vnd(0),
+    status,
+    createdAt: formatApiDate(store.created_at),
+  }
+}
+
+const enrichApiAdminStoreDetail = (store) => ({
+  ...store,
+  completedOrders: 0,
+  cancelledOrders: 0,
+  rating: '0.0',
+  averageOrderValueLabel: vnd(0),
+  address: store.location || 'Chưa cập nhật',
+  description: `${store.name} được tải từ API Admin. Backend hiện chưa trả chi tiết doanh thu/đơn hàng theo cửa hàng trong endpoint danh sách.`,
+  documents: [
+    { id: 'api-store-status', label: 'Trạng thái cửa hàng', status: store.status },
+    { id: 'api-owner', label: 'Chủ cửa hàng', status: store.ownerName },
+    { id: 'api-products', label: 'Số sản phẩm', status: store.productCount.toLocaleString('vi-VN') },
+  ],
+  activity: [
+    { id: 'api-created', label: 'Tải cửa hàng từ API Admin', time: store.createdAt || 'Chưa rõ', icon: 'storefront' },
+  ],
+})
+
+const normalizeApiOrderStatus = (status) => {
+  if (status === 'READY_TO_SHIP') return 'PACKING'
+  if (status === 'DELIVERED') return 'COMPLETED'
+  return status || 'PENDING'
+}
+
+const mapApiAdminOrder = (order = {}) => {
+  const total = Number(order.total_amount) || 0
+  const status = normalizeApiOrderStatus(order.order_status)
+  const orderedAt = order.created_at || new Date().toISOString()
+
+  return {
+    id: String(order.order_id),
+    code: order.order_code || String(order.order_id),
+    customerName: order.customer_name || 'Khách hàng',
+    storeName: order.store_name || 'Cửa hàng',
+    storeId: String(order.store_id || ''),
+    summary: order.first_item || 'Đơn hàng từ API Admin',
+    orderedAt,
+    orderedAtLabel: formatApiDateTime(orderedAt),
+    total,
+    totalLabel: vnd(total),
+    status,
+    paymentStatus: order.payment_status || 'UNPAID',
+  }
+}
+
+const buildApiAdminOrderDetail = (order) => buildAdminOrderDetail({
+  ...order,
+  id: order.code || order.id,
+  items: order.items || [
+    {
+      productId: `${order.id}-item`,
+      productName: order.summary,
+      quantity: 1,
+      unitPrice: order.total,
+      totalPrice: order.total,
+      variantLabel: 'Dữ liệu chi tiết chưa có endpoint riêng',
+    },
+  ],
+})
+
+const buildQueryString = (params) => {
+  const searchParams = new URLSearchParams()
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '' && value !== 'all') {
+      searchParams.set(key, value)
+    }
+  })
+  const query = searchParams.toString()
+  return query ? `?${query}` : ''
+}
+
+const getLast30DayRange = () => {
+  const toDate = new Date()
+  const fromDate = new Date()
+  fromDate.setDate(toDate.getDate() - 29)
+  return {
+    fromDate: fromDate.toISOString().slice(0, 10),
+    toDate: toDate.toISOString().slice(0, 10),
+  }
+}
+
 export const adminService = {
+  isApiMode() {
+    return USE_API
+  },
+
   getDashboardStats() {
+    if (USE_API) {
+      const { fromDate, toDate } = getLast30DayRange()
+      return Promise.all([
+        adminService.getAdminStatisticsReport({ dateFrom: fromDate, dateTo: toDate }),
+        adminService.getAdminOrders({ limit: 5 }),
+      ]).then(([reportResponse, ordersResponse]) => {
+        if (!reportResponse.success) return reportResponse
+        if (!ordersResponse.success) return ordersResponse
+
+        const report = reportResponse.data
+        const orders = ordersResponse.data || []
+        const statusColors = ['bg-blue-600', 'bg-violet-500', 'bg-cyan-500', 'bg-orange-400', 'bg-teal-500', 'bg-green-600', 'bg-slate-400', 'bg-red-500']
+        const statusLabels = {
+          PENDING: 'Chờ xác nhận', CONFIRMED: 'Đã xác nhận', PROCESSING: 'Đang xử lý',
+          READY_TO_SHIP: 'Chờ giao vận', SHIPPING: 'Đang giao', COMPLETED: 'Hoàn thành',
+          CANCELLED: 'Đã hủy', DELIVERY_FAILED: 'Giao thất bại',
+        }
+
+        return {
+          success: true,
+          data: {
+            lastUpdated: new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(new Date()),
+            metrics: [
+              { id: 'users', label: 'Tổng người dùng', value: report.overview.totalUsers.toLocaleString('vi-VN'), trend: 'API', icon: 'group', iconClassName: 'text-blue-600' },
+              { id: 'stores', label: 'Tổng cửa hàng', value: report.overview.totalStores.toLocaleString('vi-VN'), trend: 'API', icon: 'store', iconClassName: 'text-blue-600' },
+              { id: 'products', label: 'Tổng sản phẩm', value: report.overview.totalProducts.toLocaleString('vi-VN'), trend: 'API', icon: 'inventory', iconClassName: 'text-blue-600' },
+              { id: 'orders', label: 'Đơn hàng trong kỳ', value: report.metrics.totalOrders.toLocaleString('vi-VN'), trend: '30 ngày', icon: 'local_shipping', iconClassName: 'text-blue-600' },
+              { id: 'revenue', label: 'Doanh thu toàn sàn', value: report.metrics.totalRevenueLabel, trend: '30 ngày', icon: 'account_balance_wallet', featured: true },
+            ],
+            revenueTrend: report.revenueTrend,
+            recentActivity: orders.slice(0, 5).map((order) => ({
+              id: order.id,
+              entity: order.customerName,
+              action: 'Đặt đơn hàng ' + (order.code || order.id),
+              time: order.orderedAtLabel,
+              status: order.status,
+              statusClassName: 'bg-blue-100 text-blue-800',
+              icon: 'receipt_long',
+              iconClassName: 'bg-blue-100 text-blue-600',
+            })),
+            alerts: [],
+            orderStatus: {
+              total: report.metrics.totalOrders,
+              segments: Object.entries(statusLabels).map(([status, label], index) => ({
+                id: status,
+                label,
+                value: Number(report.orderStatistics[status] || 0),
+                colorClassName: statusColors[index],
+                textClassName: 'text-slate-700',
+              })),
+            },
+            topProducts: report.topProducts,
+            totals: {
+              users: report.overview.totalUsers,
+              stores: report.overview.totalStores,
+              products: report.overview.totalProducts,
+              orders: report.metrics.totalOrders,
+              revenue: report.metrics.totalRevenue,
+            },
+          },
+        }
+      }).catch((error) => ({ success: false, message: error.message }))
+    }
+
     return {
       success: true,
       data: {
@@ -670,6 +921,30 @@ export const adminService = {
   },
 
   getAdminUsers({ keyword = '', role = 'all', status = 'all' } = {}) {
+    if (USE_API) {
+      const query = buildQueryString({
+        keyword,
+        role_code: role,
+        status: status === 'all' ? status : toApiAdminStatus(status),
+        page: 1,
+        limit: 100,
+      })
+
+      return apiRequest(`/admin/users${query}`)
+        .then((result) => {
+          const users = (result.data?.users || []).map(mapApiAdminUser)
+          return {
+            success: true,
+            data: users,
+            meta: {
+              totalCount: result.data?.pagination?.total_items ?? users.length,
+              allCount: result.data?.pagination?.total_items ?? users.length,
+            },
+          }
+        })
+        .catch((error) => ({ success: false, message: error.message }))
+    }
+
     const storedStatuses = getStoredUserStatuses()
     const normalizedKeyword = normalizeText(keyword)
 
@@ -700,6 +975,17 @@ export const adminService = {
   },
 
   getAdminUserById(userId) {
+    if (USE_API) {
+      return adminService.getAdminUsers({})
+        .then((response) => {
+          if (!response.success) return response
+          const user = response.data.find((item) => String(item.id) === String(userId))
+          return user
+            ? { success: true, data: enrichApiAdminUserDetail(user) }
+            : { success: false, message: 'Backend chưa có endpoint chi tiết user hoặc không tìm thấy tài khoản.' }
+        })
+    }
+
     const storedStatuses = getStoredUserStatuses()
     const user = adminUsers.find((item) => item.id === userId)
 
@@ -752,6 +1038,21 @@ export const adminService = {
   },
 
   updateUserStatus(userId, status) {
+    if (USE_API) {
+      return apiRequest(`/admin/users/${encodeURIComponent(userId)}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: toApiAdminStatus(status) }),
+      })
+        .then((result) => ({
+          success: true,
+          data: {
+            id: String(result.data?.user_id || userId),
+            status: normalizeApiAdminStatus(result.data?.status || status),
+          },
+        }))
+        .catch((error) => ({ success: false, message: error.message }))
+    }
+
     const user = adminUsers.find((item) => item.id === userId)
 
     if (!user) {
@@ -775,6 +1076,21 @@ export const adminService = {
   },
 
   updateUserRole(userId, role) {
+    if (USE_API) {
+      return apiRequest(`/admin/users/${encodeURIComponent(userId)}/roles`, {
+        method: 'POST',
+        body: JSON.stringify({ role_code: role }),
+      })
+        .then((result) => ({
+          success: true,
+          data: {
+            id: String(result.data?.user_id || userId),
+            role: result.data?.role_code || role,
+          },
+        }))
+        .catch((error) => ({ success: false, message: error.message }))
+    }
+
     const user = adminUsers.find((item) => item.id === userId)
 
     if (!user) {
@@ -807,7 +1123,58 @@ export const adminService = {
     }
   },
 
+  revokeUserRole(userId, roleId) {
+    if (USE_API) {
+      return apiRequest(`/admin/users/${encodeURIComponent(userId)}/roles/${encodeURIComponent(roleId)}`, {
+        method: 'DELETE',
+      })
+        .then((result) => ({ success: true, message: result.message || 'Đã thu hồi vai trò.' }))
+        .catch((error) => ({ success: false, message: error.message }))
+    }
+
+    return { success: false, message: 'Thu hồi vai trò chỉ hỗ trợ trong API mode.' }
+  },
+
   getAdminStores({ keyword = '', status = 'all', category = 'all' } = {}) {
+    if (USE_API) {
+      const query = buildQueryString({
+        keyword,
+        status: status === 'all' ? status : toApiAdminStatus(status),
+        page: 1,
+        limit: 100,
+      })
+
+      return apiRequest(`/admin/stores${query}`)
+        .then((result) => {
+          const stores = (result.data?.stores || []).map(mapApiAdminStore)
+          const filteredStores = category === 'all'
+            ? stores
+            : stores.filter((store) => store.category === category)
+          const summary = stores.reduce(
+            (accumulator, store) => {
+              accumulator.total += 1
+              if (store.status === 'ACTIVE') accumulator.active += 1
+              if (store.status === 'LOCKED') accumulator.locked += 1
+              if (store.status === 'PENDING') accumulator.pending += 1
+              return accumulator
+            },
+            { total: 0, active: 0, locked: 0, pending: 0 },
+          )
+
+          return {
+            success: true,
+            data: filteredStores,
+            meta: {
+              totalCount: filteredStores.length,
+              allCount: result.data?.pagination?.total_items ?? stores.length,
+              summary,
+              categories: ['Tất cả'],
+            },
+          }
+        })
+        .catch((error) => ({ success: false, message: error.message }))
+    }
+
     const storedStatuses = getStoredStoreStatuses()
     const normalizedKeyword = normalizeText(keyword)
 
@@ -863,6 +1230,17 @@ export const adminService = {
   },
 
   getAdminStoreById(storeId) {
+    if (USE_API) {
+      return adminService.getAdminStores({})
+        .then((response) => {
+          if (!response.success) return response
+          const store = response.data.find((item) => String(item.id) === String(storeId))
+          return store
+            ? { success: true, data: enrichApiAdminStoreDetail(store) }
+            : { success: false, message: 'Backend chưa có endpoint chi tiết store hoặc không tìm thấy cửa hàng.' }
+        })
+    }
+
     const storedStatuses = getStoredStoreStatuses()
     const store = adminStores.find((item) => item.id === storeId)
 
@@ -905,6 +1283,21 @@ export const adminService = {
   },
 
   updateStoreStatus(storeId, status) {
+    if (USE_API) {
+      return apiRequest(`/admin/stores/${encodeURIComponent(storeId)}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: toApiAdminStatus(status) }),
+      })
+        .then((result) => ({
+          success: true,
+          data: {
+            id: String(result.data?.store_id || storeId),
+            status: normalizeApiAdminStatus(result.data?.status || status),
+          },
+        }))
+        .catch((error) => ({ success: false, message: error.message }))
+    }
+
     const store = adminStores.find((item) => item.id === storeId)
 
     if (!store) {
@@ -1076,6 +1469,23 @@ export const adminService = {
   },
 
   getAdminOrderStats() {
+    if (USE_API) {
+      return adminService.getAdminOrders({})
+        .then((response) => {
+          if (!response.success) return response
+          const orders = response.data
+          return {
+            success: true,
+            data: {
+              pending: orders.filter((order) => order.status === 'PENDING').length,
+              shipping: orders.filter((order) => order.status === 'SHIPPING').length,
+              completed: orders.filter((order) => order.status === 'COMPLETED').length,
+              cancelled: orders.filter((order) => order.status === 'CANCELLED').length,
+            },
+          }
+        })
+    }
+
     const storedStatuses = getStoredOrderStatuses()
     const orders = adminOrders.map((order) => ({
       ...order,
@@ -1094,6 +1504,43 @@ export const adminService = {
   },
 
   getAdminOrders({ keyword = '', status = 'all', paymentStatus = 'all', store = 'all', dateFrom = '', dateTo = '' } = {}) {
+    if (USE_API) {
+      const apiStatus = status === 'PACKING' ? 'READY_TO_SHIP' : status
+      const query = buildQueryString({
+        status: apiStatus,
+        store_id: store,
+        from_date: dateFrom,
+        to_date: dateTo,
+        page: 1,
+        limit: 100,
+      })
+
+      return apiRequest(`/admin/orders${query}`)
+        .then((result) => {
+          const normalizedKeyword = normalizeText(keyword)
+          let orders = (result.data?.orders || []).map(mapApiAdminOrder)
+          if (normalizedKeyword) {
+            orders = orders.filter((order) => [order.id, order.code, order.customerName, order.storeName, order.summary].some((value) => normalizeText(value).includes(normalizedKeyword)))
+          }
+          if (paymentStatus !== 'all') {
+            orders = orders.filter((order) => order.paymentStatus === paymentStatus)
+          }
+          const stores = Array.from(new Map(orders.map((order) => [order.storeId || order.storeName, { id: order.storeId || order.storeName, name: order.storeName }])).values())
+
+          return {
+            success: true,
+            data: orders,
+            meta: {
+              totalCount: orders.length,
+              allCount: result.data?.pagination?.total_items ?? orders.length,
+              stores,
+              latestOrderedAt: orders[0]?.orderedAt || new Date().toISOString(),
+            },
+          }
+        })
+        .catch((error) => ({ success: false, message: error.message }))
+    }
+
     const storedStatuses = getStoredOrderStatuses()
     const normalizedKeyword = normalizeText(keyword)
     const fromTime = dateFrom ? new Date(`${dateFrom}T00:00:00`).getTime() : null
@@ -1143,6 +1590,17 @@ export const adminService = {
   },
 
   getAdminOrderById(orderId) {
+    if (USE_API) {
+      return adminService.getAdminOrders({})
+        .then((response) => {
+          if (!response.success) return response
+          const order = response.data.find((item) => String(item.id) === String(orderId) || String(item.code) === String(orderId))
+          return order
+            ? { success: true, data: buildApiAdminOrderDetail(order) }
+            : { success: false, message: 'Backend chưa có endpoint chi tiết đơn hàng Admin hoặc không tìm thấy đơn hàng.' }
+        })
+    }
+
     const storedStatuses = getStoredOrderStatuses()
     const order = adminOrders.find((item) => item.id === orderId)
 
@@ -1164,6 +1622,13 @@ export const adminService = {
   },
 
   updateAdminOrderStatus(orderId, status) {
+    if (USE_API) {
+      return {
+        success: false,
+        message: 'Backend hiện chưa hỗ trợ Admin cập nhật trạng thái đơn hàng. Endpoint cập nhật trạng thái đang thuộc Seller flow.',
+      }
+    }
+
     const order = adminOrders.find((item) => item.id === orderId)
 
     if (!order) {
@@ -1197,6 +1662,84 @@ export const adminService = {
   },
 
   getAdminStatisticsReport({ range = 'today', dateFrom = '', dateTo = '' } = {}) {
+    if (USE_API) {
+      const formatDate = (date) => [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, '0'),
+        String(date.getDate()).padStart(2, '0'),
+      ].join('-')
+      const today = new Date()
+      const start = new Date(today)
+      start.setDate(today.getDate() - (range === 'today' ? 0 : range === '7days' ? 6 : 29))
+      const from = dateFrom || formatDate(start)
+      const to = dateTo || formatDate(today)
+      const params = buildQueryString({ from_date: from, to_date: to, group_by: 'day', limit: 100 })
+
+      return apiRequest('/admin/reports' + params)
+        .then((result) => {
+          const report = result.data || {}
+          const revenueRows = report.revenue_by_period || []
+          const storeRows = report.store_performance || []
+          const totalRevenueValue = Number(report.total_revenue) || 0
+          const fromValue = new Date(from + 'T00:00:00')
+          const toValue = new Date(to + 'T00:00:00')
+          const dayCount = Math.max(1, Math.round((toValue - fromValue) / 86400000) + 1)
+
+          return {
+            success: true,
+            data: {
+              metrics: {
+                totalRevenue: totalRevenueValue,
+                totalRevenueLabel: vnd(totalRevenueValue),
+                totalOrders: Number(report.total_orders) || 0,
+                completedOrders: Number(report.completed_orders) || 0,
+                cancelledOrders: Number(report.cancelled_orders) || 0,
+                avgDailyRevenueLabel: vnd(Math.round(totalRevenueValue / dayCount)),
+                storesWithRevenue: storeRows.length,
+                totalStores: Number(report.overview?.total_stores) || 0,
+                revenueGrowth: null,
+                orderGrowth: null,
+              },
+              overview: {
+                totalUsers: Number(report.overview?.total_users) || 0,
+                totalStores: Number(report.overview?.total_stores) || 0,
+                totalProducts: Number(report.overview?.total_products) || 0,
+              },
+              orderStatistics: report.orders_by_status || {},
+              revenueTrend: revenueRows.map((row) => ({
+                label: row.period,
+                value: Number(row.revenue) || 0,
+                valueLabel: vnd(Number(row.revenue) || 0),
+              })),
+              storePerformance: storeRows.map((row) => ({
+                id: row.store_id,
+                name: row.store_name || 'Cửa hàng',
+                shortName: String(row.store_name || 'CH').slice(0, 2).toUpperCase(),
+                completedOrders: Number(row.completed_orders) || 0,
+                itemsSold: Number(row.items_sold) || 0,
+                revenue: Number(row.revenue) || 0,
+                revenueLabel: vnd(Number(row.revenue) || 0),
+              })),
+              topProducts: (report.top_products || []).map((product) => ({
+                id: String(product.product_id) + '::' + String(product.variant_id || 'default'),
+                productId: product.product_id,
+                variantId: product.variant_id,
+                name: product.product_name || 'Sản phẩm',
+                skuCode: product.sku_code || '',
+                variantName: product.variant_name || 'Mặc định',
+                storeName: product.store_name || 'Cửa hàng',
+                sold: Number(product.quantity_sold) || 0,
+                revenue: Number(product.revenue) || 0,
+                revenueLabel: vnd(Number(product.revenue) || 0),
+              })),
+              fromDate: from,
+              toDate: to,
+            },
+          }
+        })
+        .catch((error) => ({ success: false, message: error.message }))
+    }
+
     const rangeConfig = {
       today: {
         totalRevenue: 452800000,
@@ -1267,17 +1810,49 @@ export const adminService = {
     }
   },
 
-  getAdminBestSellingProducts({ range = 'today' } = {}) {
-    return {
-      success: true,
-      data: {
-        range,
-        products: [
-          { id: 'PRD-001', name: 'Tai nghe Bluetooth Sony WH-1000XM5', storeName: 'MegaElectronics Store', category: 'Điện tử', sold: 1240, revenue: 8600000000 },
-          { id: 'PRD-002', name: 'Đồng hồ thông minh Samsung Galaxy Watch 6', storeName: 'TechZone VN', category: 'Thiết bị đeo', sold: 985, revenue: 5800000000 },
-          { id: 'PRD-003', name: 'Giày Chạy Bộ Nam Nike Air Zoom Pegasus 40', storeName: 'Fashion Hub Official', category: 'Thời trang', sold: 1450, revenue: 4300000000 },
-        ],
-      },
+  async getAdminBestSellingProducts(options = {}) {
+    const response = await adminService.getAdminStatisticsReport(options)
+    if (!response.success) return response
+    return { success: true, data: response.data.topProducts }
+  },
+
+  async getAdminReviews({ status = 'all', page = 1, limit = 20 } = {}) {
+    if (!USE_API) return { success: false, message: 'Review moderation chỉ khả dụng trong chế độ API.' }
+    try {
+      const result = await apiRequest('/admin/reviews' + buildQueryString({ status, page, limit }))
+      return {
+        success: true,
+        data: (result.data?.reviews || []).map((review) => ({
+          id: review.review_id,
+          customerName: review.customer?.full_name || review.customer?.email || 'Khách hàng',
+          customerEmail: review.customer?.email || '',
+          productId: review.product_id,
+          productName: review.product_name || 'Sản phẩm',
+          orderItemId: review.order_item_id,
+          skuCode: review.sku_code || '',
+          variantName: review.variant_name || '',
+          rating: Number(review.rating) || 0,
+          comment: review.comment || '',
+          status: review.status,
+          createdAt: review.created_at,
+        })),
+        meta: result.data?.pagination || {},
+      }
+    } catch (error) {
+      return { success: false, data: [], message: error.message }
+    }
+  },
+
+  async hideReview(reviewId, reason = '') {
+    if (!USE_API) return { success: false, message: 'Review moderation chỉ khả dụng trong chế độ API.' }
+    try {
+      const result = await apiRequest('/reviews/' + reviewId + '/hide', {
+        method: 'PATCH',
+        body: JSON.stringify({ reason: String(reason || '').trim() }),
+      })
+      return { success: true, data: result.data }
+    } catch (error) {
+      return { success: false, message: error.message }
     }
   },
 }

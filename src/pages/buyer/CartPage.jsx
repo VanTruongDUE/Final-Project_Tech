@@ -40,7 +40,7 @@ export default function CartPage() {
     }
 
     cartItems.forEach((item) => {
-      const product = products.find((productItem) => String(productItem.id) === String(item.productId))
+      const product = item.product || products.find((productItem) => String(productItem.id) === String(item.productId))
 
       if (!product) {
         return
@@ -49,7 +49,7 @@ export default function CartPage() {
       const maxQuantity = Math.max(1, product.stockQuantity || 1)
 
       if (item.quantity > maxQuantity) {
-        updateQuantity(item.productId, maxQuantity)
+        updateQuantity(item.cartItemId || item.productId, maxQuantity)
       }
     })
   }, [cartItems, isLoading, products, updateQuantity])
@@ -59,7 +59,7 @@ export default function CartPage() {
       cartItems
         .map((item) => ({
           item,
-          product: products.find((product) => String(product.id) === String(item.productId)),
+          product: item.product || products.find((product) => String(product.id) === String(item.productId)),
         }))
         .filter(({ product }) => Boolean(product)),
     [cartItems, products],
@@ -93,15 +93,21 @@ export default function CartPage() {
   const allSelected = detailedItems.length > 0 && detailedItems.every(({ item }) => item.selected !== false)
   const selectedCartCount = selectedItems.length
 
-  const handleQuantityChange = (productId, quantity) => {
-    const product = products.find((item) => String(item.id) === String(productId))
+  const handleQuantityChange = async (cartItemKey, quantity) => {
+    const cartItem = cartItems.find((item) => String(item.cartItemId || item.productId) === String(cartItemKey))
+    const product = cartItem?.product || products.find((item) => String(item.id) === String(cartItem?.productId))
 
     if (!product) {
       return
     }
 
     const maxQuantity = product.stockQuantity || 1
-    updateQuantity(productId, Math.min(maxQuantity, Math.max(1, quantity)))
+    try {
+      await updateQuantity(cartItemKey, Math.min(maxQuantity, Math.max(1, quantity)))
+      setCheckoutMessage('')
+    } catch (error) {
+      setCheckoutMessage(error.message || 'Không thể cập nhật số lượng giỏ hàng.')
+    }
   }
 
   const handleCheckout = () => {
@@ -117,6 +123,8 @@ export default function CartPage() {
         source: 'cart',
         checkoutItems: selectedItems.map(({ item, product }) => ({
           productId: product.id,
+          cartItemId: item.cartItemId,
+          variantId: item.variantId || product.variantId,
           skuId: item.skuId || product.skuId,
           skuCode: item.skuCode || product.skuCode,
           variantName: item.variantName || product.variantName,
@@ -131,7 +139,7 @@ export default function CartPage() {
   }
 
   const handleToggleStore = (storeItems, checked) => {
-    storeItems.forEach(({ product }) => updateSelected(product.id, checked))
+    storeItems.forEach(({ item, product }) => updateSelected(item.cartItemId || product.id, checked))
   }
 
   if (isLoading) {
@@ -217,7 +225,7 @@ export default function CartPage() {
                 <div className="space-y-5 p-6">
                   {group.items.map(({ item, product }) => (
                     <CartItem
-                      key={item.productId}
+                      key={item.cartItemId || `${item.productId}-${item.variantId || item.skuCode || 'default'}`}
                       item={item}
                       product={product}
                       onQuantityChange={handleQuantityChange}

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import AdminIcon from '../../components/admin/AdminIcon'
 import { useAuth } from '../../contexts/useAuth'
 import { adminService } from '../../services/adminService'
@@ -50,7 +50,7 @@ function UserStatusBadge({ status }) {
   )
 }
 
-function RoleChangeModal({ user, role, error, onRoleChange, onClose, onSave }) {
+function RoleChangeModal({ user, role, error, isSaving, onRoleChange, onClose, onSave, onRevoke }) {
   if (!user) {
     return null
   }
@@ -69,7 +69,7 @@ function RoleChangeModal({ user, role, error, onRoleChange, onClose, onSave }) {
       >
         <header className="flex items-start justify-between gap-4 border-b border-[#e3e2e2] px-5 py-4">
           <div>
-            <h2 id="role-change-title" className="text-xl font-bold text-[#1b1c1c]">Đổi vai trò tài khoản</h2>
+            <h2 id="role-change-title" className="text-xl font-bold text-[#1b1c1c]">Quản lý vai trò tài khoản</h2>
             <p className="mt-1 text-sm text-[#5b403b]">{user.fullName} · {user.email}</p>
           </div>
           <button
@@ -84,7 +84,22 @@ function RoleChangeModal({ user, role, error, onRoleChange, onClose, onSave }) {
 
         <div className="space-y-4 p-5">
           <div>
-            <label htmlFor="account-role" className="mb-2 block text-sm font-semibold text-[#1b1c1c]">Vai trò mới</label>
+            <p className="mb-2 text-sm font-semibold text-[#1b1c1c]">Vai trò hiện tại</p>
+            <div className="flex flex-wrap gap-2">
+              {(user.roles || [user.role]).map((currentRole) => {
+                const assignment = user.roleAssignments?.find((item) => item.roleCode === currentRole)
+                const canRevoke = ['SELLER', 'SHIPPER'].includes(currentRole) && assignment
+                return (
+                  <span key={currentRole} className="inline-flex items-center gap-2 rounded-full bg-[#f5f3f3] px-3 py-1.5 text-xs font-semibold text-[#1b1c1c]">
+                    {currentRole}
+                    {canRevoke ? <button type="button" disabled={isSaving} onClick={() => onRevoke(assignment)} className="text-[#ba1a1a] hover:underline">Thu hồi</button> : null}
+                  </span>
+                )
+              })}
+            </div>
+          </div>
+          <div>
+            <label htmlFor="account-role" className="mb-2 block text-sm font-semibold text-[#1b1c1c]">Gán thêm vai trò</label>
             <div className="relative">
               <select
                 id="account-role"
@@ -114,11 +129,11 @@ function RoleChangeModal({ user, role, error, onRoleChange, onClose, onSave }) {
           </button>
           <button
             type="submit"
-            disabled={role === user.role}
+            disabled={isSaving || user.roles?.includes(role)}
             className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#ee4d2d] px-4 text-sm font-semibold text-white transition hover:bg-[#d63c1e] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <AdminIcon name="save" className="text-[18px]" />
-            Lưu vai trò
+            {isSaving ? 'Đang cập nhật...' : 'Gán vai trò'}
           </button>
         </footer>
       </form>
@@ -297,15 +312,60 @@ export default function AdminUsersPage() {
   const [roleEditorUser, setRoleEditorUser] = useState(null)
   const [nextRole, setNextRole] = useState('CUSTOMER')
   const [roleError, setRoleError] = useState('')
-  const [, setRefreshKey] = useState(0)
+  const [isRoleSaving, setIsRoleSaving] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [usersResponse, setUsersResponse] = useState({ success: false, isLoading: true })
+  const [selectedUserResponse, setSelectedUserResponse] = useState(null)
 
-  const usersResponse = adminService.getAdminUsers({ keyword, role, status })
-  const selectedUserResponse = selectedUserId ? adminService.getAdminUserById(selectedUserId) : null
+  useEffect(() => {
+    let isMounted = true
+
+    setUsersResponse({ success: false, isLoading: true })
+    Promise.resolve(adminService.getAdminUsers({ keyword, role, status }))
+      .then((response) => {
+        if (isMounted) setUsersResponse(response)
+      })
+      .catch((error) => {
+        if (isMounted) setUsersResponse({ success: false, message: error.message })
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [keyword, role, status, refreshKey])
+
+  useEffect(() => {
+    let isMounted = true
+
+    if (!selectedUserId) {
+      setSelectedUserResponse(null)
+      return () => {
+        isMounted = false
+      }
+    }
+
+    Promise.resolve(adminService.getAdminUserById(selectedUserId))
+      .then((response) => {
+        if (isMounted) setSelectedUserResponse(response)
+      })
+      .catch((error) => {
+        if (isMounted) setSelectedUserResponse({ success: false, message: error.message })
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [selectedUserId, refreshKey])
+
   const selectedUser = selectedUserResponse?.success ? selectedUserResponse.data : null
 
-  const handleToggleStatus = (user) => {
+  const handleToggleStatus = async (user) => {
     const nextStatus = user.status === 'LOCKED' ? 'ACTIVE' : 'LOCKED'
-    adminService.updateUserStatus(user.id, nextStatus)
+    const response = await Promise.resolve(adminService.updateUserStatus(user.id, nextStatus))
+    if (!response.success) {
+      window.alert(response.message || 'Không thể cập nhật trạng thái tài khoản.')
+      return
+    }
     setRefreshKey((current) => current + 1)
   }
 
@@ -317,7 +377,7 @@ export default function AdminUsersPage() {
     }
 
     setRoleEditorUser(user)
-    setNextRole(user.role)
+    setNextRole(['SHIPPER', 'SELLER', 'ADMIN'].find((item) => !user.roles?.includes(item)) || 'SHIPPER')
     setRoleError('')
   }
 
@@ -326,12 +386,15 @@ export default function AdminUsersPage() {
     setRoleError('')
   }
 
-  const handleSaveRole = () => {
+  const handleSaveRole = async () => {
     if (!roleEditorUser) {
       return
     }
 
-    const response = adminService.updateUserRole(roleEditorUser.id, nextRole)
+    if (!window.confirm(`Gán vai trò ${nextRole} cho ${roleEditorUser.email}?`)) return
+    setIsRoleSaving(true)
+    const response = await Promise.resolve(adminService.updateUserRole(roleEditorUser.id, nextRole))
+    setIsRoleSaving(false)
 
     if (!response.success) {
       setRoleError(response.message || 'Không thể cập nhật vai trò.')
@@ -342,9 +405,40 @@ export default function AdminUsersPage() {
     setRefreshKey((current) => current + 1)
   }
 
+  const handleRevokeRole = async (assignment) => {
+    if (!roleEditorUser || !window.confirm(`Thu hồi vai trò ${assignment.roleCode} khỏi ${roleEditorUser.email}?`)) return
+    setRoleError('')
+    setIsRoleSaving(true)
+    const response = await Promise.resolve(adminService.revokeUserRole(roleEditorUser.id, assignment.roleId))
+    setIsRoleSaving(false)
+    if (!response.success) {
+      setRoleError(response.message || 'Không thể thu hồi vai trò.')
+      return
+    }
+    const refreshed = await Promise.resolve(adminService.getAdminUserById(roleEditorUser.id))
+    if (refreshed.success) setRoleEditorUser(refreshed.data)
+    setRefreshKey((current) => current + 1)
+  }
+
   const users = usersResponse.success ? usersResponse.data : []
   const totalCount = usersResponse.meta?.totalCount || 0
   const allCount = usersResponse.meta?.allCount || 0
+
+  if (usersResponse.isLoading) {
+    return (
+      <section className="mx-auto flex w-full max-w-[1600px] flex-col gap-5 p-3 md:p-6">
+        <div className="rounded-xl border border-[#e3e2e2] bg-white p-5 text-sm text-[#5b403b] shadow-sm">Đang tải tài khoản Admin...</div>
+      </section>
+    )
+  }
+
+  if (!usersResponse.success) {
+    return (
+      <section className="mx-auto flex w-full max-w-[1600px] flex-col gap-5 p-3 md:p-6">
+        <div className="rounded-xl border border-[#ffdad6] bg-white p-5 text-sm text-[#ba1a1a] shadow-sm">{usersResponse.message || 'Không thể tải tài khoản Admin.'}</div>
+      </section>
+    )
+  }
 
   return (
     <section className="mx-auto flex w-full max-w-[1600px] flex-col gap-5 p-3 md:p-6">
@@ -424,7 +518,6 @@ export default function AdminUsersPage() {
             <tbody className="divide-y divide-[#e3e2e2]">
               {users.length ? (
                 users.map((user) => {
-                  const roleInfo = roleMeta[user.role] || roleMeta.CUSTOMER
                   const isLocked = user.status === 'LOCKED'
 
                   return (
@@ -450,7 +543,12 @@ export default function AdminUsersPage() {
                           className="inline-flex items-center gap-1.5 rounded-full transition hover:ring-2 hover:ring-[#ee4d2d]/20 disabled:cursor-not-allowed disabled:hover:ring-0"
                           title={isCurrentUser(user) ? 'Vai trò của tài khoản đang đăng nhập' : 'Nhấn để đổi vai trò'}
                         >
-                          <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${roleInfo.className}`}>{roleInfo.label}</span>
+                          <span className="flex flex-wrap gap-1">
+                            {(user.roles || [user.role]).map((userRole) => {
+                              const meta = roleMeta[userRole] || roleMeta.CUSTOMER
+                              return <span key={userRole} className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${meta.className}`}>{meta.label}</span>
+                            })}
+                          </span>
                           {!isCurrentUser(user) ? <AdminIcon name="edit" className="text-[16px] text-[#8f7069]" /> : null}
                         </button>
                       </td>
@@ -525,12 +623,14 @@ export default function AdminUsersPage() {
         user={roleEditorUser}
         role={nextRole}
         error={roleError}
+        isSaving={isRoleSaving}
         onRoleChange={(value) => {
           setNextRole(value)
           setRoleError('')
         }}
         onClose={closeRoleEditor}
         onSave={handleSaveRole}
+        onRevoke={handleRevokeRole}
       />
     </section>
   )

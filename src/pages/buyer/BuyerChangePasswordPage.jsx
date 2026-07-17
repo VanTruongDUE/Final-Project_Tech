@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useAuth } from '../../contexts/useAuth'
 import { authService } from '../../services/authService'
 
 function PasswordField({ id, label, value, onChange, children }) {
@@ -24,18 +23,19 @@ function PasswordField({ id, label, value, onChange, children }) {
 }
 
 export default function BuyerChangePasswordPage() {
-  const { currentUser } = useAuth()
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [feedback, setFeedback] = useState({ type: '', message: '' })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
+    setIsSubmitting(true)
+    setFeedback({ type: '', message: '' })
 
     try {
-      const result = authService.changePassword({
-        email: currentUser.email,
+      const result = await authService.changePassword({
         currentPassword,
         newPassword,
         confirmPassword,
@@ -53,6 +53,8 @@ export default function BuyerChangePasswordPage() {
         type: 'error',
         message: error.message,
       })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -87,8 +89,8 @@ export default function BuyerChangePasswordPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-[180px_minmax(0,400px)]">
           <div className="hidden md:block" />
-          <button type="submit" className="h-10 w-fit rounded bg-[#ee4d2d] px-8 text-sm font-semibold text-white transition hover:bg-[#d73211]">
-            Xác nhận
+          <button type="submit" disabled={isSubmitting} className="h-10 w-fit rounded bg-[#ee4d2d] px-8 text-sm font-semibold text-white transition hover:bg-[#d73211] disabled:cursor-not-allowed disabled:opacity-60">
+            {isSubmitting ? 'Đang cập nhật' : 'Xác nhận'}
           </button>
         </div>
       </form>

@@ -49,6 +49,17 @@ export default function OrderSummaryBox({ order }) {
             <span>Giảm giá</span>
             <span className="text-[#ee4d2d]">- {formatCurrency(order.discountAmount)}</span>
           </div>
+          {order.vouchers?.map((voucher) => (
+            <div key={`${voucher.id}-${voucher.code}`} className="rounded border border-[#f0d6cf] bg-[#fff8f6] px-3 py-2 text-xs">
+              <div className="flex items-center justify-between gap-3">
+                <strong className="text-[#b22204]">{voucher.code}</strong>
+                <span>{voucher.applicationStatus}</span>
+              </div>
+              <p className="mt-1">
+                {voucher.discountType} {voucher.discountValue} · Giảm {formatCurrency(voucher.discountAmount)}
+              </p>
+            </div>
+          ))}
           <div className="flex items-center justify-between gap-4">
             <span>Phương thức vận chuyển</span>
             <span className="text-right">{shippingMethodLabels[order.shippingMethod] || order.shippingMethod}</span>

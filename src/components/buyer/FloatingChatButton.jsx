@@ -1,5 +1,4 @@
 import { Link, useLocation } from 'react-router-dom'
-import { conversationService } from '../../services/conversationService'
 import { ROLES } from '../../utils/roles'
 
 function ChatIcon() {
@@ -13,9 +12,7 @@ function ChatIcon() {
 
 export default function FloatingChatButton({ currentUser }) {
   const location = useLocation()
-  const canUseBuyerChat = currentUser?.role === ROLES.CUSTOMER || currentUser?.role === ROLES.SELLER
-  const conversations = canUseBuyerChat ? conversationService.getConversationsByCustomer(currentUser?.id) : []
-  const targetPath = conversations.length ? `/messages/${encodeURIComponent(conversations[0].id)}` : '/messages'
+  const canUseBuyerChat = currentUser?.role === ROLES.CUSTOMER
 
   if (!canUseBuyerChat || location.pathname.startsWith('/messages')) {
     return null
@@ -23,7 +20,7 @@ export default function FloatingChatButton({ currentUser }) {
 
   return (
     <Link
-      to={targetPath}
+      to="/messages"
       className="fixed bottom-6 right-6 z-50 inline-flex items-center gap-2 rounded-full border border-[#f1d7d0] bg-white px-4 py-3 text-sm font-bold text-[#ee4d2d] shadow-[0_8px_24px_rgba(0,0,0,0.16)] transition hover:-translate-y-0.5 hover:border-[#ee4d2d] hover:shadow-[0_12px_28px_rgba(238,77,45,0.22)] focus:outline-none focus:ring-2 focus:ring-[#ee4d2d]/40"
       aria-label="Mở lịch sử tin nhắn"
       title="Mở lịch sử tin nhắn"

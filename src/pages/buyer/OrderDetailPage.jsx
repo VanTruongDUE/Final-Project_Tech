@@ -21,14 +21,20 @@ const formatDateTime = (value) => {
   }).format(new Date(value))
 }
 
-const getReviewedProductIds = (orderId, customerId) => {
-  if (!orderId || !customerId) {
-    return []
-  }
+const getReviewedOrderItemIds = async (order, customerId) => {
+  const items = order?.items || []
+  const productIds = [...new Set(items.map((item) => item.productId).filter(Boolean))]
+  const responses = await Promise.all(productIds.map((productId) => reviewService.getProductReviews(productId)))
+  const orderItemIds = new Set(items.map((item) => String(item.orderItemId)))
 
-  return reviewService
-    .getReviewsByOrderId(orderId, customerId)
-    .map((review) => String(review.productId))
+  return responses
+    .flatMap((response) => response.data)
+    .filter(
+      (review) =>
+        String(review.reviewerId) === String(customerId) &&
+        orderItemIds.has(String(review.orderItemId)),
+    )
+    .map((review) => String(review.orderItemId))
 }
 
 const statusMetaMap = {
@@ -77,55 +83,75 @@ export default function OrderDetailPage() {
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [submitError, setSubmitError] = useState('')
   const [selectedReviewItem, setSelectedReviewItem] = useState(null)
-  const [reviewedProductIds, setReviewedProductIds] = useState([])
+  const [reviewedOrderItemIds, setReviewedOrderItemIds] = useState([])
   const [isSubmittingReview, setIsSubmittingReview] = useState(false)
 
   useEffect(() => {
+    let isMounted = true
+
     if (!currentUser?.id) {
       setOrder(null)
       setErrorMessage('Không tìm thấy đơn hàng')
-      setReviewedProductIds([])
+      setReviewedOrderItemIds([])
       setIsLoading(false)
-      return
+      return undefined
     }
 
     setIsLoading(true)
-    const response = orderService.getOrderById(id, currentUser.id)
 
-    if (!response.success) {
-      setOrder(null)
-      setErrorMessage(response.message || 'Không tìm thấy đơn hàng')
-      setReviewedProductIds([])
-      setIsLoading(false)
-      return
+    const loadOrder = async () => {
+      const response = await orderService.getOrderById(id, currentUser.id)
+      if (!isMounted) return
+
+      if (!response.success) {
+        setOrder(null)
+        setErrorMessage(response.message || 'Không tìm thấy đơn hàng')
+        setReviewedOrderItemIds([])
+        setIsLoading(false)
+        return
+      }
+
+      setOrder(response.data)
+      setErrorMessage('')
+      try {
+        const reviewedIds = await getReviewedOrderItemIds(response.data, currentUser.id)
+        if (isMounted) setReviewedOrderItemIds(reviewedIds)
+      } catch (error) {
+        if (isMounted) {
+          setReviewedOrderItemIds([])
+          setSubmitError(error.message)
+        }
+      }
+      if (isMounted) setIsLoading(false)
     }
 
-    setOrder(response.data)
-    setErrorMessage('')
-    setReviewedProductIds(getReviewedProductIds(response.data.id, currentUser.id))
-    setIsLoading(false)
+    loadOrder()
+
+    return () => {
+      isMounted = false
+    }
   }, [currentUser?.id, id])
 
-  const reloadOrder = () => {
+  const reloadOrder = async () => {
     if (!currentUser?.id) {
       return
     }
 
-    const response = orderService.getOrderById(id, currentUser.id)
+    const response = await orderService.getOrderById(id, currentUser.id)
 
     if (!response.success) {
       setOrder(null)
       setErrorMessage(response.message || 'Không tìm thấy đơn hàng')
-      setReviewedProductIds([])
+      setReviewedOrderItemIds([])
       return
     }
 
     setOrder(response.data)
     setErrorMessage('')
-    setReviewedProductIds(getReviewedProductIds(response.data.id, currentUser.id))
+    setReviewedOrderItemIds(await getReviewedOrderItemIds(response.data, currentUser.id))
   }
 
-  const handleCancelOrder = () => {
+  const handleCancelOrder = async () => {
     if (!order || !currentUser?.id) {
       return
     }
@@ -136,7 +162,7 @@ export default function OrderDetailPage() {
       return
     }
 
-    const response = orderService.cancelOrder(order.id, currentUser.id)
+    const response = await orderService.cancelOrder(order.id, currentUser.id)
 
     if (!response.success) {
       setFeedbackMessage(response.message || 'Không thể hủy đơn hàng.')
@@ -144,7 +170,7 @@ export default function OrderDetailPage() {
     }
 
     setFeedbackMessage(`Đơn hàng ${order.id} đã được hủy thành công.`)
-    reloadOrder()
+    await reloadOrder()
   }
 
   const handleOpenReview = (item) => {
@@ -157,7 +183,7 @@ export default function OrderDetailPage() {
     setSubmitError('')
   }
 
-  const handleSubmitReview = ({ rating, content }) => {
+  const handleSubmitReview = async ({ rating, content }) => {
     if (!order || !selectedReviewItem || !currentUser?.id) {
       setSubmitError('Không thể tạo đánh giá cho sản phẩm này.')
       return
@@ -165,28 +191,23 @@ export default function OrderDetailPage() {
 
     setIsSubmittingReview(true)
 
-    const response = reviewService.createReview({
-      orderId: order.id,
-      productId: selectedReviewItem.productId,
-      customerId: currentUser.id,
-      customerName: currentUser.fullName,
-      rating,
-      content,
-    })
-
-    if (!response.success) {
-      setSubmitError(response.message || 'Không thể gửi đánh giá. Vui lòng thử lại.')
+    try {
+      await reviewService.createReview({
+        orderItemId: selectedReviewItem.orderItemId,
+        rating,
+        content,
+      })
+      setReviewedOrderItemIds((current) => [...new Set([...current, String(selectedReviewItem.orderItemId)])])
+      setFeedbackMessage(`Bạn đã đánh giá sản phẩm "${selectedReviewItem.product?.name || 'đã mua'}" thành công.`)
+      handleCloseReview()
+    } catch (error) {
+      setSubmitError(error.message || 'Không thể gửi đánh giá. Vui lòng thử lại.')
+    } finally {
       setIsSubmittingReview(false)
-      return
     }
-
-    setReviewedProductIds(getReviewedProductIds(order.id, currentUser.id))
-    setFeedbackMessage(`Bạn đã đánh giá sản phẩm "${selectedReviewItem.product?.name || 'đã mua'}" thành công.`)
-    setIsSubmittingReview(false)
-    handleCloseReview()
   }
 
-  const handleContactShop = () => {
+  const handleContactShop = async () => {
     const firstOrderItem = order?.items?.[0]
     const firstProduct = firstOrderItem?.product
 
@@ -194,22 +215,15 @@ export default function OrderDetailPage() {
       return
     }
 
-    const response = conversationService.findOrCreateConversation({
-      customerId: currentUser.id,
-      customerName: currentUser.fullName,
-      storeId: firstProduct.storeId || firstOrderItem.productId,
-      storeName: firstProduct.storeName || 'TechToShop Mall',
-      productId: firstOrderItem.productId,
-      productName: firstProduct.name || '',
-      orderId: order.id,
-    })
-
-    if (!response.success) {
-      setFeedbackMessage(response.message || 'Không thể mở cuộc trò chuyện với shop.')
-      return
+    try {
+      const response = await conversationService.createConversation({
+        storeId: firstProduct.storeId,
+        orderId: order.id,
+      })
+      navigate(`/messages/${encodeURIComponent(response.data.id)}`)
+    } catch (error) {
+      setFeedbackMessage(error.message || 'Không thể mở cuộc trò chuyện với shop.')
     }
-
-    navigate(`/messages/${encodeURIComponent(response.data.id)}`)
   }
 
   const orderItems = useMemo(() => order?.items || [], [order])
@@ -217,8 +231,8 @@ export default function OrderDetailPage() {
   const shopName = firstProduct?.storeName || 'TechToShop Mall'
   const statusMeta = statusMetaMap[order?.status] || statusMetaMap[ORDER_STATUS.PENDING]
   const reviewableItem = useMemo(
-    () => orderItems.find((item) => !reviewedProductIds.includes(String(item.productId))),
-    [orderItems, reviewedProductIds],
+    () => orderItems.find((item) => !reviewedOrderItemIds.includes(String(item.orderItemId))),
+    [orderItems, reviewedOrderItemIds],
   )
 
   const shopInitials = shopName
@@ -316,7 +330,7 @@ export default function OrderDetailPage() {
           <OrderItemList
             items={order.items}
             renderExtra={(item) => {
-              const hasReviewed = reviewedProductIds.includes(String(item.productId))
+              const hasReviewed = reviewedOrderItemIds.includes(String(item.orderItemId))
 
               if (order.status !== ORDER_STATUS.COMPLETED) {
                 return null

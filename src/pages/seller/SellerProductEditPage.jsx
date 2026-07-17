@@ -45,11 +45,28 @@ function normalizeProductAttributes(product) {
     }))
   }
 
-  if (Array.isArray(product.skus) && product.skus.length) {
+  const productVariants = Array.isArray(product.variants) && product.variants.length ? product.variants : product.skus
+
+  if (Array.isArray(productVariants) && productVariants.some((variant) => variant.option1Name || variant.option2Name)) {
+    return [1, 2]
+      .map((optionIndex) => {
+        const nameKey = `option${optionIndex}Name`
+        const valueKey = `option${optionIndex}Value`
+        const name = productVariants.find((variant) => variant[nameKey])?.[nameKey]
+        const values = Array.from(new Set(productVariants.map((variant) => variant[valueKey]).filter(Boolean)))
+
+        return name && values.length
+          ? { id: `option-${optionIndex}`, name, values }
+          : null
+      })
+      .filter(Boolean)
+  }
+
+  if (Array.isArray(productVariants) && productVariants.length) {
     return [{
       id: 'legacy-variant',
       name: 'Biến thể',
-      values: product.skus.map((sku) => sku.variantName).filter(Boolean),
+      values: productVariants.map((sku) => sku.variantName).filter(Boolean),
     }]
   }
 
@@ -62,27 +79,21 @@ export default function SellerProductEditPage() {
   const [searchParams] = useSearchParams()
   const selectedSku = searchParams.get('sku') || ''
   const { currentUser } = useAuth()
-  const productResponse = useMemo(() => sellerService.getSellerProductById(currentUser, productId), [currentUser, productId])
+  const [productResponse, setProductResponse] = useState({ success: false, isLoading: true })
   const [error, setError] = useState('')
-  const [form, setForm] = useState(() => {
-    const product = productResponse.data || {}
-
-    return {
-      name: product.name || '',
-      sku: product.skuCode || '',
-      description: product.description || '',
-      category: product.category || '',
-      price: String(product.price || ''),
-      stockQuantity: String(product.stockQuantity ?? ''),
-      status: product.status || PRODUCT_STATUSES.ACTIVE,
-      imageUrl: product.imageUrl || '/images/products/headphones.png',
-    }
+  const [form, setForm] = useState({
+    name: '',
+    sku: '',
+    description: '',
+    category: '',
+    price: '',
+    stockQuantity: '',
+    status: PRODUCT_STATUSES.ACTIVE,
+    imageUrl: '/images/products/headphones.png',
   })
-  const [attributes, setAttributes] = useState(() => normalizeProductAttributes(productResponse.data || {}))
-  const [variantData, setVariantData] = useState(() => Object.fromEntries(
-    (productResponse.data?.skus || []).map((sku) => [sku.variantName, { ...sku }]),
-  ))
-  const [variantImages, setVariantImages] = useState(() => productResponse.data?.variantImages || {})
+  const [attributes, setAttributes] = useState([])
+  const [variantData, setVariantData] = useState({})
+  const [variantImages, setVariantImages] = useState({})
   const [attributeDrafts, setAttributeDrafts] = useState({})
   const hasVariants = attributes.length > 0
   const variantCombinations = useMemo(() => createCombinations(attributes), [attributes])
@@ -101,16 +112,60 @@ export default function SellerProductEditPage() {
       .find(Boolean)
 
     return {
+      variantId: storedVariant.variantId || null,
       skuId: storedVariant.skuId || variantPreviews[index]?.skuId || `SKU-EDIT-${index + 1}`,
       skuCode: storedVariant.skuCode || variantPreviews[index]?.skuCode || '',
       variantName,
+      option1Name: attributes[0]?.name || '',
+      option1Value: values[0] || '',
+      option2Name: attributes[1]?.name || '',
+      option2Value: values[1] || '',
       price: Number(storedVariant.price ?? form.price),
       originalPrice: Number(storedVariant.originalPrice ?? storedVariant.price ?? form.price),
       stockQuantity: Number(storedVariant.stockQuantity ?? form.stockQuantity),
       status: storedVariant.status || PRODUCT_STATUSES.ACTIVE,
+      isDefault: storedVariant.isDefault ?? index === 0,
       imageUrl: variantImage || storedVariant.imageUrl || form.imageUrl,
     }
   })
+
+  useEffect(() => {
+    let isMounted = true
+
+    setProductResponse({ success: false, isLoading: true })
+    Promise.resolve(sellerService.getSellerProductById(currentUser, productId))
+      .then((response) => {
+        if (isMounted) setProductResponse(response)
+      })
+      .catch((loadError) => {
+        if (isMounted) {
+          setProductResponse({ success: false, message: loadError.message || 'Không thể tải sản phẩm.' })
+        }
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [currentUser, productId])
+
+  useEffect(() => {
+    if (!productResponse.success) return
+
+    const product = productResponse.data || {}
+    setForm({
+      name: product.name || '',
+      sku: product.skuCode || '',
+      description: product.description || '',
+      category: product.category || '',
+      price: String(product.price || ''),
+      stockQuantity: String(product.stockQuantity ?? ''),
+      status: product.status || PRODUCT_STATUSES.ACTIVE,
+      imageUrl: product.imageUrl || '/images/products/headphones.png',
+    })
+    setAttributes(normalizeProductAttributes(product))
+    setVariantData(Object.fromEntries((product.variants || product.skus || []).map((sku) => [sku.variantName, { ...sku }])))
+    setVariantImages(product.variantImages || {})
+  }, [productResponse])
 
   useEffect(() => {
     if (!selectedSku || !variantRows.length) return
@@ -166,7 +221,7 @@ export default function SellerProductEditPage() {
     reader.readAsDataURL(file)
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
 
     const payload = hasVariants
@@ -174,13 +229,14 @@ export default function SellerProductEditPage() {
           ...form,
           attributes,
           variantImages,
+          variants: variantRows,
           skus: variantRows,
           price: Math.min(...variantRows.map((sku) => sku.price)),
           originalPrice: Math.min(...variantRows.map((sku) => sku.originalPrice)),
           stockQuantity: variantRows.reduce((total, sku) => total + sku.stockQuantity, 0),
         }
       : form
-    const response = sellerService.updateSellerProduct(currentUser, productId, payload)
+    const response = await Promise.resolve(sellerService.updateSellerProduct(currentUser, productId, payload))
 
     if (!response.success) {
       setError(response.message || 'Không thể cập nhật sản phẩm.')
@@ -188,6 +244,16 @@ export default function SellerProductEditPage() {
     }
 
     navigate('/seller/products', { replace: true })
+  }
+
+  if (productResponse.isLoading) {
+    return (
+      <section className="min-h-screen bg-[#f5f3f3] p-4 md:p-6">
+        <div className="rounded-xl border border-[#e3beb6] bg-white p-6 text-sm text-[#5b403b] shadow-sm">
+          Đang tải sản phẩm seller...
+        </div>
+      </section>
+    )
   }
 
   if (!productResponse.success) {

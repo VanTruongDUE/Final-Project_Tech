@@ -233,7 +233,7 @@ CREATE TABLE stores (
     CONSTRAINT UX_stores_store_code UNIQUE (store_code),
     CONSTRAINT UX_stores_slug UNIQUE (slug),
     CONSTRAINT CK_stores_total_products CHECK (total_products >= 0),
-    CONSTRAINT CK_stores_status CHECK (status IN ('ACTIVE','INACTIVE','SUSPENDED'))
+    CONSTRAINT CK_stores_status CHECK (status IN ('PENDING','ACTIVE','INACTIVE','SUSPENDED'))
 );
 GO
 

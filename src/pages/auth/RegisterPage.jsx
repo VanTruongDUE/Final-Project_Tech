@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/useAuth'
 import { authService } from '../../services/authService'
 import { resolveRoleHome } from '../../utils/roles'
@@ -15,16 +15,21 @@ const initialForm = {
 
 export default function RegisterPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { currentUser } = useAuth()
   const [formData, setFormData] = useState(initialForm)
   const [errorMessage, setErrorMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const sellerIntent = Boolean(location.state?.sellerIntent)
+  const sellerOnboardingLocation = { pathname: '/seller-onboarding', search: '', state: null }
 
   useEffect(() => {
     if (currentUser) {
-      navigate(resolveRoleHome(currentUser.role), { replace: true })
+      navigate(sellerIntent ? '/seller-onboarding' : resolveRoleHome(currentUser.role), {
+        replace: true,
+      })
     }
-  }, [currentUser, navigate])
+  }, [currentUser, navigate, sellerIntent])
 
   const handleChange = (event) => {
     const { name, type, checked, value } = event.target
@@ -58,8 +63,11 @@ export default function RegisterPage() {
       navigate('/login', {
         replace: true,
         state: {
-          registerSuccessMessage: result.message,
+          registerSuccessMessage: sellerIntent
+            ? 'Tạo tài khoản thành công. Hãy đăng nhập để tiếp tục gửi hồ sơ người bán.'
+            : result.message,
           prefillEmail: formData.email.trim().toLowerCase(),
+          ...(sellerIntent ? { from: sellerOnboardingLocation } : {}),
         },
       })
     } catch (error) {
@@ -77,10 +85,12 @@ export default function RegisterPage() {
             TechToShop
           </Link>
           <h1 className="mt-4 text-[30px] font-bold leading-tight text-[#1b1c1c] sm:text-[32px]">
-            Tạo tài khoản mới
+            {sellerIntent ? 'Tạo tài khoản để bán hàng' : 'Tạo tài khoản mới'}
           </h1>
           <p className="mt-2 text-sm text-[#5b403b]">
-            Điền thông tin bên dưới để bắt đầu
+            {sellerIntent
+              ? 'Bạn sẽ tạo tài khoản Customer trước, sau đó gửi hồ sơ cửa hàng để Admin duyệt.'
+              : 'Điền thông tin bên dưới để bắt đầu'}
           </p>
         </div>
 
@@ -186,9 +196,28 @@ export default function RegisterPage() {
 
         <div className="mt-6 border-t border-[#e3beb6] pt-6 text-center text-sm text-[#5b403b]">
           Đã có tài khoản?
-          <Link to="/login" className="ml-1 font-bold text-[#ee4d2d] transition hover:underline">
+          <Link
+            to="/login"
+            state={sellerIntent ? { from: sellerOnboardingLocation } : undefined}
+            className="ml-1 font-bold text-[#ee4d2d] transition hover:underline"
+          >
             Đăng nhập ngay
           </Link>
+        </div>
+        <div className="mt-4 rounded-lg bg-[#fff4f1] px-4 py-3 text-center text-sm text-[#5b403b]">
+          Bạn muốn bán hàng?
+          {sellerIntent ? (
+            <span className="ml-1 font-bold text-[#ee4d2d]">Hãy hoàn tất form phía trên</span>
+          ) : (
+            <Link
+              to="/register"
+              replace
+              state={{ sellerIntent: true }}
+              className="ml-1 font-bold text-[#ee4d2d] hover:underline"
+            >
+              Đăng ký trở thành người bán
+            </Link>
+          )}
         </div>
       </main>
     </div>

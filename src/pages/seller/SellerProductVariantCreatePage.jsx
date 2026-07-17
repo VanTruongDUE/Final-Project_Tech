@@ -73,13 +73,18 @@ export default function SellerProductVariantCreatePage() {
   )
   const variantNames = variantCombinations.map((values) => values.join(' / '))
   const defaultSku = sellerService.previewSellerProductSku(currentUser, form).data?.skuCode || 'SKU sẽ hiển thị khi có tên và danh mục'
-  const previewPayload = variantCombinations.map((values) => ({
+  const previewPayload = variantCombinations.map((values, index) => ({
     variantName: values.join(' / '),
+    option1Name: attributes[0]?.name || '',
+    option1Value: values[0] || '',
+    option2Name: attributes[1]?.name || '',
+    option2Value: values[1] || '',
     price: Number(variantData[values.join(' / ')]?.price ?? form.price),
     originalPrice: Number(variantData[values.join(' / ')]?.originalPrice ?? form.originalPrice),
     stockQuantity: Number(variantData[values.join(' / ')]?.stockQuantity ?? form.stockQuantity),
     status: variantData[values.join(' / ')]?.hidden ? 'HIDDEN' : 'ACTIVE',
     imageUrl: values.map((value, index) => variantImages[`${attributes[index]?.id}:${value}`]).find(Boolean) || images[0] || '',
+    isDefault: index === 0,
   }))
   const previewSkus = sellerService.previewSellerProductVariantSkus(currentUser, { ...form, skus: previewPayload }).data || []
   const rows = previewPayload.map((row, index) => ({ ...row, skuId: previewSkus[index]?.skuId, skuCode: previewSkus[index]?.skuCode || defaultSku }))
@@ -146,7 +151,7 @@ export default function SellerProductVariantCreatePage() {
     setError('')
   }
 
-  const submit = (event) => {
+  const submit = async (event) => {
     event.preventDefault()
     if (!form.name.trim() || !form.category) return setError('Vui lòng nhập tên và danh mục sản phẩm.')
     if (hasVariants && !rows.length) return setError('Sản phẩm cần có ít nhất một SKU.')
@@ -159,10 +164,11 @@ export default function SellerProductVariantCreatePage() {
           price: Math.min(...rows.map((row) => row.price)),
           originalPrice: Math.min(...rows.map((row) => row.originalPrice)),
           stockQuantity: rows.reduce((total, row) => total + row.stockQuantity, 0),
+          variants: rows,
           skus: rows,
         }
       : { ...form, imageUrl: images[0] || '/images/products/headphones.png' }
-    const response = sellerService.createSellerProduct(currentUser, payload)
+    const response = await Promise.resolve(sellerService.createSellerProduct(currentUser, payload))
     if (!response.success) return setError(response.message || 'Không thể lưu sản phẩm.')
     navigate('/seller/products', { replace: true })
   }

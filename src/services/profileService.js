@@ -1,70 +1,46 @@
-const PROFILE_STORAGE_KEY = 'techtonic_buyer_profiles'
+import { apiRequest } from './apiClient'
 
-const readProfiles = () => {
-  const rawValue = localStorage.getItem(PROFILE_STORAGE_KEY)
-
-  if (!rawValue) {
-    return {}
-  }
-
-  try {
-    const parsedValue = JSON.parse(rawValue)
-    return parsedValue && typeof parsedValue === 'object' && !Array.isArray(parsedValue) ? parsedValue : {}
-  } catch {
-    return {}
-  }
-}
-
-const writeProfiles = (profiles) => {
-  localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profiles))
-}
-
-const buildDefaultProfile = (user) => ({
-  username: user?.email?.split('@')[0] || 'techtonic_user',
-  fullName: user?.fullName || '',
-  email: user?.email || '',
-  phone: '',
-  gender: 'male',
-  birthDay: '15',
-  birthMonth: 'Tháng 8',
-  birthYear: '1990',
-  avatarInitials: '',
+const normalizeProfile = (profile = {}) => ({
+  id: profile.user_id,
+  userId: profile.user_id,
+  fullName: profile.full_name || '',
+  email: profile.email || '',
+  phone: profile.phone || '',
+  avatarUrl: profile.avatar_url || '',
+  gender: profile.gender || '',
+  birthDate: profile.birth_date || '',
+  roles: Array.isArray(profile.roles) ? profile.roles : [],
 })
 
 export const profileService = {
-  getProfile(user) {
-    if (!user?.id) {
-      return buildDefaultProfile(user)
-    }
-
-    const profiles = readProfiles()
+  async getProfile() {
+    const result = await apiRequest('/users/me')
     return {
-      ...buildDefaultProfile(user),
-      ...(profiles[user.id] || {}),
+      success: true,
+      data: normalizeProfile(result.data),
+      message: result.message || 'Lấy thông tin hồ sơ thành công.',
     }
   },
 
-  updateProfile(userId, profileData) {
-    if (!userId) {
-      throw new Error('Không tìm thấy tài khoản để cập nhật hồ sơ.')
+  async updateProfile(profileData) {
+    const payload = {
+      full_name: profileData.fullName.trim(),
+      phone: profileData.phone.trim() || null,
+      gender: profileData.gender || null,
+      birth_date: profileData.birthDate || null,
     }
 
-    const profiles = readProfiles()
-    const nextProfile = {
-      ...(profiles[userId] || {}),
-      ...profileData,
-      updatedAt: new Date().toISOString(),
-    }
+    if (profileData.avatarUrl !== undefined) payload.avatar_url = profileData.avatarUrl || null
 
-    writeProfiles({
-      ...profiles,
-      [userId]: nextProfile,
+    const result = await apiRequest('/users/me', {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
     })
+    const refreshedProfile = await this.getProfile()
 
-    return nextProfile
-  },
-
-  getStorageKey() {
-    return PROFILE_STORAGE_KEY
+    return {
+      ...refreshedProfile,
+      message: result.message || 'Cập nhật thông tin thành công.',
+    }
   },
 }

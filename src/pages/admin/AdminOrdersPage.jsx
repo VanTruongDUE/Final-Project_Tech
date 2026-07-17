@@ -348,16 +348,65 @@ export default function AdminOrdersPage() {
   const [pendingAction, setPendingAction] = useState(null)
   const [actionError, setActionError] = useState('')
   const [exportMessage, setExportMessage] = useState('')
-  const [, setRefreshKey] = useState(0)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [statsResponse, setStatsResponse] = useState({ success: false, isLoading: true })
+  const [ordersResponse, setOrdersResponse] = useState({ success: false, isLoading: true })
+  const [selectedOrderResponse, setSelectedOrderResponse] = useState(null)
 
-  const statsResponse = adminService.getAdminOrderStats()
-  const ordersResponse = adminService.getAdminOrders({ keyword, status, paymentStatus, store, dateFrom, dateTo })
+  useEffect(() => {
+    let isMounted = true
+
+    setOrdersResponse({ success: false, isLoading: true })
+    Promise.all([
+      Promise.resolve(adminService.getAdminOrderStats()),
+      Promise.resolve(adminService.getAdminOrders({ keyword, status, paymentStatus, store, dateFrom, dateTo })),
+    ])
+      .then(([statsResult, ordersResult]) => {
+        if (isMounted) {
+          setStatsResponse(statsResult)
+          setOrdersResponse(ordersResult)
+        }
+      })
+      .catch((error) => {
+        if (isMounted) {
+          setStatsResponse({ success: false, message: error.message })
+          setOrdersResponse({ success: false, message: error.message })
+        }
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [keyword, status, paymentStatus, store, dateFrom, dateTo, refreshKey])
+
+  useEffect(() => {
+    let isMounted = true
+
+    if (!selectedOrderId) {
+      setSelectedOrderResponse(null)
+      return () => {
+        isMounted = false
+      }
+    }
+
+    Promise.resolve(adminService.getAdminOrderById(selectedOrderId))
+      .then((response) => {
+        if (isMounted) setSelectedOrderResponse(response)
+      })
+      .catch((error) => {
+        if (isMounted) setSelectedOrderResponse({ success: false, message: error.message })
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [selectedOrderId, refreshKey])
+
   const stats = statsResponse.success ? statsResponse.data : { pending: 0, shipping: 0, completed: 0, cancelled: 0 }
   const filteredOrders = ordersResponse.success ? ordersResponse.data : []
   const stores = ordersResponse.meta?.stores || []
   const totalCount = ordersResponse.meta?.totalCount || 0
   const allCount = ordersResponse.meta?.allCount || 0
-  const selectedOrderResponse = selectedOrderId ? adminService.getAdminOrderById(selectedOrderId) : null
   const selectedOrder = selectedOrderResponse?.success ? selectedOrderResponse.data : null
   const totalPages = Math.max(1, Math.ceil(filteredOrders.length / ITEMS_PER_PAGE))
   const safePage = Math.min(page, totalPages)
@@ -387,9 +436,9 @@ export default function AdminOrdersPage() {
     setActionError('')
   }
 
-  const confirmOrderStatus = () => {
+  const confirmOrderStatus = async () => {
     if (!pendingAction) return
-    const response = adminService.updateAdminOrderStatus(pendingAction.order.id, pendingAction.nextStatus)
+    const response = await Promise.resolve(adminService.updateAdminOrderStatus(pendingAction.order.id, pendingAction.nextStatus))
     if (!response.success) return setActionError(response.message)
     setPendingAction(null)
     setActionError('')
@@ -428,6 +477,22 @@ export default function AdminOrdersPage() {
     secondary: 'bg-[#db3514] text-white',
     neutral: 'bg-[#dbdad9] text-[#1b1c1c]',
     error: 'bg-[#ffdad6] text-[#93000a]',
+  }
+
+  if (ordersResponse.isLoading) {
+    return (
+      <section className="flex w-full min-w-0 flex-col p-3 md:p-6">
+        <div className="rounded-xl border border-[#e3e2e2] bg-white p-5 text-sm text-[#5b403b] shadow-sm">Đang tải đơn hàng Admin...</div>
+      </section>
+    )
+  }
+
+  if (!ordersResponse.success) {
+    return (
+      <section className="flex w-full min-w-0 flex-col p-3 md:p-6">
+        <div className="rounded-xl border border-[#ffdad6] bg-white p-5 text-sm text-[#ba1a1a] shadow-sm">{ordersResponse.message || 'Không thể tải đơn hàng Admin.'}</div>
+      </section>
+    )
   }
 
   return (

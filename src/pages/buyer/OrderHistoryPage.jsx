@@ -33,12 +33,33 @@ export default function OrderHistoryPage() {
   const [feedback, setFeedback] = useState({ type: '', message: '' })
 
   useEffect(() => {
+    let isMounted = true
+
     if (!currentUser?.id) {
       setOrders([])
       return
     }
 
-    setOrders(orderService.getOrders(currentUser.id))
+    orderService
+      .getOrders(currentUser.id)
+      .then((nextOrders) => {
+        if (isMounted) {
+          setOrders(nextOrders)
+        }
+      })
+      .catch((error) => {
+        if (isMounted) {
+          setOrders([])
+          setFeedback({
+            type: 'error',
+            message: error.message || 'Không thể tải danh sách đơn hàng.',
+          })
+        }
+      })
+
+    return () => {
+      isMounted = false
+    }
   }, [currentUser?.id])
 
   useEffect(() => {
@@ -80,7 +101,7 @@ export default function OrderHistoryPage() {
     setCurrentPage(1)
   }, [activeStatus, searchKeyword])
 
-  const handleCancelOrder = (orderId) => {
+  const handleCancelOrder = async (orderId) => {
     if (!currentUser?.id) {
       setFeedback({
         type: 'error',
@@ -89,7 +110,7 @@ export default function OrderHistoryPage() {
       return
     }
 
-    const response = orderService.cancelOrder(orderId, currentUser.id)
+    const response = await orderService.cancelOrder(orderId, currentUser.id)
 
     if (!response.success) {
       setFeedback({
@@ -99,7 +120,7 @@ export default function OrderHistoryPage() {
       return
     }
 
-    setOrders(orderService.getOrders(currentUser.id))
+    setOrders(await orderService.getOrders(currentUser.id))
     setFeedback({
       type: 'success',
       message: `Đơn hàng ${orderId} đã được hủy thành công.`,

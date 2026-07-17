@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import ShipperIcon from '../../components/shipper/ShipperIcon'
 import { useAuth } from '../../contexts/useAuth'
@@ -17,8 +17,36 @@ export default function ShipperShipmentsPage() {
   const { currentUser } = useAuth()
   const [keyword, setKeyword] = useState('')
   const [status, setStatus] = useState('all')
+  const [shipmentsResponse, setShipmentsResponse] = useState({ success: true, data: [], meta: {} })
+  const [isLoading, setIsLoading] = useState(true)
 
-  const shipmentsResponse = shipperService.getShipperShipments(currentUser, { keyword, status })
+  useEffect(() => {
+    let isMounted = true
+
+    setIsLoading(true)
+    shipperService
+      .getShipperShipments(currentUser, { keyword, status })
+      .then((response) => {
+        if (isMounted) {
+          setShipmentsResponse(response)
+        }
+      })
+      .catch((error) => {
+        if (isMounted) {
+          setShipmentsResponse({ success: false, data: [], message: error.message, meta: {} })
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [currentUser, keyword, status])
+
   const shipments = shipmentsResponse.success ? shipmentsResponse.data : []
   const counts = shipmentsResponse.meta?.counts || {}
   const totalCount = shipmentsResponse.meta?.totalCount || 0
@@ -128,7 +156,7 @@ export default function ShipperShipmentsPage() {
               {shipments.length === 0 ? (
                 <tr>
                   <td colSpan="7" className="px-4 py-10 text-center text-sm font-medium text-[#5b403b]">
-                    Không tìm thấy đơn giao phù hợp.
+                    {isLoading ? 'Đang tải dữ liệu giao hàng...' : shipmentsResponse.message || 'Không tìm thấy đơn giao phù hợp.'}
                   </td>
                 </tr>
               ) : null}

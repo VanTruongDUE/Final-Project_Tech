@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useEffect } from 'react'
 import SellerConfirmDialog from '../../components/seller/SellerConfirmDialog'
 import SellerIcon from '../../components/seller/SellerIcon'
 import { useAuth } from '../../contexts/useAuth'
@@ -17,6 +18,12 @@ const statusActions = {
   SHIPPING: [{ nextStatus: 'COMPLETED', label: 'Hoàn thành đơn hàng', icon: 'task_alt' }],
 }
 
+const apiStatusActions = {
+  PENDING: [{ nextStatus: 'CONFIRMED', label: 'Xác nhận đơn hàng', icon: 'check_circle' }],
+  CONFIRMED: [{ nextStatus: 'PROCESSING', label: 'Chuyển sang xử lý', icon: 'inventory' }],
+  PROCESSING: [{ nextStatus: 'PACKING', label: 'Sẵn sàng giao hàng', icon: 'inventory_2' }],
+}
+
 function formatHistoryTime(value) {
   return new Intl.DateTimeFormat('vi-VN', {
     day: '2-digit',
@@ -32,20 +39,39 @@ export default function SellerOrderDetailPage() {
   const { orderId = '' } = useParams()
   const navigate = useNavigate()
   const { currentUser } = useAuth()
-  const [, setVersion] = useState(0)
+  const [version, setVersion] = useState(0)
   const [pendingAction, setPendingAction] = useState(null)
   const [actionError, setActionError] = useState('')
   const decodedOrderId = decodeURIComponent(orderId)
-  const orderResponse = sellerService.getSellerOrderById(currentUser, decodedOrderId)
+  const [orderResponse, setOrderResponse] = useState({ success: false, isLoading: true })
+
+  useEffect(() => {
+    let isMounted = true
+
+    setOrderResponse({ success: false, isLoading: true })
+    Promise.resolve(sellerService.getSellerOrderById(currentUser, decodedOrderId))
+      .then((response) => {
+        if (isMounted) setOrderResponse(response)
+      })
+      .catch((error) => {
+        if (isMounted) {
+          setOrderResponse({ success: false, message: error.message || 'Không thể tải chi tiết đơn hàng.' })
+        }
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [currentUser, decodedOrderId, version])
 
   const handleStatusChange = (action) => {
     setActionError('')
     setPendingAction(action)
   }
 
-  const confirmStatusChange = () => {
+  const confirmStatusChange = async () => {
     if (!pendingAction) return
-    const response = sellerService.updateSellerOrderStatus(currentUser, decodedOrderId, pendingAction.nextStatus)
+    const response = await Promise.resolve(sellerService.updateSellerOrderStatus(currentUser, decodedOrderId, pendingAction.nextStatus))
 
     if (!response.success) {
       setActionError(response.message || 'Không thể cập nhật trạng thái đơn hàng.')
@@ -55,6 +81,16 @@ export default function SellerOrderDetailPage() {
     setPendingAction(null)
     setActionError('')
     setVersion((currentVersion) => currentVersion + 1)
+  }
+
+  if (orderResponse.isLoading) {
+    return (
+      <section className="min-h-screen bg-[#f5f3f3] p-4 md:p-6">
+        <div className="rounded-xl border border-[#e3beb6] bg-white p-6 text-sm text-[#5b403b] shadow-sm">
+          Đang tải chi tiết đơn hàng seller...
+        </div>
+      </section>
+    )
   }
 
   if (!orderResponse.success) {
@@ -72,7 +108,8 @@ export default function SellerOrderDetailPage() {
   }
 
   const order = orderResponse.data
-  const availableActions = statusActions[order.status] || []
+  const actionMap = sellerService.isApiMode() ? apiStatusActions : statusActions
+  const availableActions = actionMap[order.status] || []
   const progressIndex = Math.max(0, order.timeline.findIndex((step) => step.state === 'current'))
   const progressWidth = order.status === 'CANCELLED' ? 100 : (progressIndex / Math.max(order.timeline.length - 1, 1)) * 100
 

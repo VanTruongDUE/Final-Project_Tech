@@ -13,7 +13,7 @@ export default function VerifyOtpPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { currentUser } = useAuth()
-  const [email, setEmail] = useState(location.state?.email || '')
+  const [identifier, setIdentifier] = useState(location.state?.identifier || '')
   const [otpDigits, setOtpDigits] = useState(buildOtpArray())
   const [errorMessage, setErrorMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -27,15 +27,15 @@ export default function VerifyOtpPage() {
 
   const otpValue = useMemo(() => otpDigits.join(''), [otpDigits])
 
-  const maskedEmail = useMemo(() => {
-    if (!email.includes('@')) {
-      return email || 'email của bạn'
+  const maskedIdentifier = useMemo(() => {
+    if (!identifier.includes('@')) {
+      return identifier || 'email hoặc số điện thoại của bạn'
     }
 
-    const [name, domain] = email.split('@')
+    const [name, domain] = identifier.split('@')
     const visibleName = name.slice(0, 2)
     return `${visibleName}${'*'.repeat(Math.max(name.length - 2, 2))}@${domain}`
-  }, [email])
+  }, [identifier])
 
   const updateDigit = (index, value) => {
     const nextCharacter = value.replace(/\D/g, '').slice(-1)
@@ -75,15 +75,15 @@ export default function VerifyOtpPage() {
     setIsSubmitting(true)
 
     try {
-      const result = await authService.verifyResetOtp({
-        email,
+      const result = authService.preparePasswordReset({
+        identifier,
         otp: otpValue,
       })
 
       navigate('/reset-password', {
         replace: true,
         state: {
-          email: result.data.email,
+          identifier: result.data.email || result.data.phone,
           otp: result.data.otp,
         },
       })
@@ -96,7 +96,7 @@ export default function VerifyOtpPage() {
 
   const handleResendOtp = async () => {
     try {
-      await authService.requestPasswordReset(email)
+      await authService.requestPasswordReset(identifier)
       setOtpDigits(buildOtpArray())
       setErrorMessage('')
       inputRefs.current[0]?.focus()
@@ -118,24 +118,25 @@ export default function VerifyOtpPage() {
           </div>
           <h1 className="text-[32px] font-bold leading-tight text-[#1b1c1c]">Xác minh OTP</h1>
           <p className="mt-3 text-sm leading-6 text-[#5b403b]">
-            Mã xác minh đã được gửi đến email
+            Mã xác minh đã được gửi đến
             <br />
-            <strong className="font-medium text-[#1b1c1c]">{maskedEmail}</strong>
+            <strong className="font-medium text-[#1b1c1c]">{maskedIdentifier}</strong>
           </p>
         </div>
 
         <form className="mt-8 flex flex-col gap-5" onSubmit={handleSubmit}>
+          {location.state?.successMessage ? <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{location.state.successMessage}</div> : null}
           <label className="block">
-            <span className="mb-2 block text-sm font-medium text-[#1b1c1c]">Email</span>
+            <span className="mb-2 block text-sm font-medium text-[#1b1c1c]">Email hoặc số điện thoại</span>
             <input
-              type="email"
-              value={email}
+              type="text"
+              value={identifier}
               onChange={(event) => {
-                setEmail(event.target.value)
+                setIdentifier(event.target.value)
                 setErrorMessage('')
               }}
               className="h-11 w-full rounded-lg border border-[#e3beb6] bg-[#f5f3f3] px-4 text-sm outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/20"
-              placeholder="Nhập email nhận OTP"
+              placeholder="Nhập email hoặc số điện thoại nhận OTP"
               required
             />
           </label>
@@ -185,7 +186,7 @@ export default function VerifyOtpPage() {
             disabled={isSubmitting}
             className="mt-1 h-11 rounded-lg bg-[#ee4d2d] text-sm font-medium text-white transition hover:bg-[#d63c1e] disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {isSubmitting ? 'Đang xác minh' : 'Xác nhận'}
+            {isSubmitting ? 'Đang tiếp tục' : 'Tiếp tục'}
           </button>
         </form>
 

@@ -6,12 +6,9 @@ import SellerMessageBubble from './SellerMessageBubble'
 import SellerMessageComposer from './SellerMessageComposer'
 import { useAuth } from '../../contexts/useAuth'
 import { conversationService } from '../../services/conversationService'
-import { sellerService } from '../../services/sellerService'
 
 const filterTabs = [
   { value: 'all', label: 'Tất cả' },
-  { value: 'unread', label: 'Chưa đọc' },
-  { value: 'pinned', label: 'Ghim' },
 ]
 
 const quickReplies = [
@@ -19,11 +16,6 @@ const quickReplies = [
   'Có ship hỏa tốc không?',
   'Bảo hành thế nào?',
 ]
-
-const buildEmptyState = (message) => ({
-  success: false,
-  message,
-})
 
 export default function SellerMessagesWorkspace({ conversationId = null }) {
   const { currentUser } = useAuth()
@@ -33,32 +25,34 @@ export default function SellerMessagesWorkspace({ conversationId = null }) {
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [refreshKey, setRefreshKey] = useState(0)
   const [conversations, setConversations] = useState([])
-
-  const storeResponse = sellerService.getSellerStore(currentUser)
-  const store = storeResponse.success ? storeResponse.data : null
+  const [conversationResponse, setConversationResponse] = useState({ success: false, message: 'Đang tải hội thoại.' })
+  const [isSending, setIsSending] = useState(false)
 
   useEffect(() => {
-    if (!store?.storeId) {
-      setConversations([])
-      return
+    let isMounted = true
+    const loadWorkspace = async () => {
+      try {
+        const listResponse = await conversationService.getConversations()
+        if (!isMounted) return
+        setConversations(listResponse.data)
+        const targetId = conversationId || listResponse.data[0]?.id
+        if (!targetId) {
+          setConversationResponse({ success: false, message: 'Chưa có cuộc trò chuyện nào phù hợp.' })
+          return
+        }
+        const detailResponse = await conversationService.getConversation(targetId, currentUser)
+        if (isMounted) setConversationResponse(detailResponse)
+      } catch (error) {
+        if (isMounted) setConversationResponse({ success: false, message: error.message })
+      }
     }
-
-    setConversations(conversationService.getConversationsByStore(store.storeId))
-  }, [refreshKey, store?.storeId])
+    loadWorkspace()
+    return () => { isMounted = false }
+  }, [conversationId, currentUser, refreshKey])
 
   const filteredConversations = useMemo(() => {
     const normalizedKeyword = keyword.trim().toLowerCase()
     let nextConversations = conversations
-
-    if (activeFilter === 'unread') {
-      nextConversations = nextConversations.filter(
-        (conversation) => conversation.lastMessageSenderRole === 'CUSTOMER',
-      )
-    }
-
-    if (activeFilter === 'pinned') {
-      nextConversations = []
-    }
 
     if (!normalizedKeyword) {
       return nextConversations
@@ -77,26 +71,7 @@ export default function SellerMessagesWorkspace({ conversationId = null }) {
 
       return searchableText.includes(normalizedKeyword)
     })
-  }, [activeFilter, conversations, keyword])
-
-  const conversationResponse = useMemo(() => {
-    if (!store?.storeId) {
-      return buildEmptyState(storeResponse.message || 'Không tìm thấy thông tin gian hàng.')
-    }
-
-    if (conversationId) {
-      return conversationService.getConversationByIdForSeller(conversationId, store.storeId)
-    }
-
-    if (filteredConversations.length) {
-      return {
-        success: true,
-        data: filteredConversations[0],
-      }
-    }
-
-    return buildEmptyState('Chưa có cuộc trò chuyện nào phù hợp.')
-  }, [conversationId, filteredConversations, store?.storeId, storeResponse.message])
+  }, [conversations, keyword])
 
   const selectedConversationId = conversationResponse.success ? conversationResponse.data.id : null
   const isConversationRoute = Boolean(conversationId)
@@ -106,29 +81,24 @@ export default function SellerMessagesWorkspace({ conversationId = null }) {
     setFeedbackMessage('')
   }, [selectedConversationId])
 
-  const handleSubmitMessage = (event) => {
+  const handleSubmitMessage = async (event) => {
     event.preventDefault()
 
-    if (!store?.storeId || !conversationResponse.success || !conversationResponse.data) {
+    if (!conversationResponse.success || !conversationResponse.data || isSending) {
       return
     }
 
-    const sendResponse = conversationService.sendSellerMessage({
-      conversationId: conversationResponse.data.id,
-      storeId: store.storeId,
-      senderId: currentUser?.id || store.storeId,
-      senderName: store.storeName,
-      content: messageInput,
-    })
-
-    if (!sendResponse.success) {
-      setFeedbackMessage(sendResponse.message || 'Không thể gửi tin nhắn.')
-      return
+    setIsSending(true)
+    try {
+      await conversationService.sendMessage(conversationResponse.data.id, messageInput)
+      setMessageInput('')
+      setFeedbackMessage('')
+      setRefreshKey((currentKey) => currentKey + 1)
+    } catch (error) {
+      setFeedbackMessage(error.message || 'Không thể gửi tin nhắn.')
+    } finally {
+      setIsSending(false)
     }
-
-    setMessageInput('')
-    setFeedbackMessage('')
-    setRefreshKey((currentKey) => currentKey + 1)
   }
 
   return (
@@ -281,6 +251,7 @@ export default function SellerMessagesWorkspace({ conversationId = null }) {
                   onSubmit={handleSubmitMessage}
                   quickReplies={quickReplies}
                   onQuickReply={setMessageInput}
+                  disabled={isSending}
                 />
               </div>
             </>

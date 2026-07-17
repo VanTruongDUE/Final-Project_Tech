@@ -5,6 +5,10 @@
   mockProducts,
   PRODUCT_STATUSES,
 } from '../mocks/products.mock'
+import { apiRequest } from './apiClient'
+
+const USE_API = import.meta.env.VITE_DATA_SOURCE === 'api'
+const FALLBACK_IMAGE = '/images/products/headphones.png'
 
 const sellerStoreFallbackMap = {
   'seller@techtonic.vn': {
@@ -57,7 +61,6 @@ const statusMeta = {
 const SELLER_ORDER_STORAGE_KEY = 'techtonic_seller_order_status_overrides'
 const SELLER_PRODUCT_STORAGE_KEY = 'techtonic_seller_products'
 const SELLER_DELETED_PRODUCT_STORAGE_KEY = 'techtonic_seller_deleted_product_ids'
-const SELLER_SETTINGS_STORAGE_KEY = 'techtonic_seller_settings'
 const SELLER_PROMOTIONS_STORAGE_KEY = 'techtonic_seller_promotions'
 
 const sellerOrderStatusTransitions = {
@@ -73,7 +76,6 @@ const sellerOrderStatusTransitions = {
 let sellerOrderStatusMemoryOverrides = {}
 let sellerProductMemoryItems = []
 let sellerDeletedProductMemoryIds = []
-let sellerSettingsMemory = {}
 let sellerPromotionsMemory = {}
 
 const productStatusMeta = {
@@ -412,29 +414,6 @@ function writeSellerDeletedProductIds(productIds) {
   }
 
   window.localStorage.setItem(SELLER_DELETED_PRODUCT_STORAGE_KEY, JSON.stringify(productIds))
-}
-
-function readSellerSettings() {
-  if (!canUseLocalStorage()) {
-    return sellerSettingsMemory
-  }
-
-  try {
-    const storedValue = window.localStorage.getItem(SELLER_SETTINGS_STORAGE_KEY)
-    return storedValue ? JSON.parse(storedValue) : {}
-  } catch {
-    return {}
-  }
-}
-
-function writeSellerSettings(settings) {
-  sellerSettingsMemory = settings
-
-  if (!canUseLocalStorage()) {
-    return
-  }
-
-  window.localStorage.setItem(SELLER_SETTINGS_STORAGE_KEY, JSON.stringify(settings))
 }
 
 function readSellerPromotions() {
@@ -784,8 +763,308 @@ function resolveShippingStatus(orderStatus) {
   return 'WAITING_PICKUP'
 }
 
+const normalizeApiStatus = (status) => {
+  if (status === 'READY_TO_SHIP') return 'PACKING'
+  if (status === 'DELIVERED') return 'COMPLETED'
+  if (['PENDING', 'CONFIRMED', 'PROCESSING', 'PACKING', 'SHIPPING', 'COMPLETED', 'CANCELLED'].includes(status)) {
+    return status
+  }
+  return status || 'PENDING'
+}
+
+const toApiStatus = (status) => {
+  if (status === PRODUCT_STATUSES.HIDDEN || status === PRODUCT_STATUSES.OUT_OF_STOCK) return 'INACTIVE'
+  return status || 'ACTIVE'
+}
+
+const fromApiProductStatus = (status, stockQuantity) => {
+  if (status === 'INACTIVE') return PRODUCT_STATUSES.HIDDEN
+  if (Number(stockQuantity) <= 0) return PRODUCT_STATUSES.OUT_OF_STOCK
+  return PRODUCT_STATUSES.ACTIVE
+}
+
+const mapApiStore = (store = {}) => ({
+  storeId: store.store_id,
+  storeCode: store.store_code || String(store.store_id || ''),
+  storeName: store.store_name || 'TechToShop',
+  description: store.description || '',
+  status: store.status || 'ACTIVE',
+  logoUrl: store.logo_url || '',
+  contactEmail: store.contact_email || '',
+  contactPhone: store.contact_phone || '',
+  addressLine: store.address_line || '',
+  ward: store.ward || '',
+  district: store.district || '',
+  province: store.province || '',
+  totalProducts: Number(store.total_products) || 0,
+  createdAt: store.created_at || '',
+  updatedAt: store.updated_at || '',
+})
+
+const pickPrimaryImage = (images = []) => {
+  const primaryImage = images.find((image) => image.is_primary) || images[0]
+  return primaryImage?.image_url || FALLBACK_IMAGE
+}
+
+const mapApiSellerVariant = (variant = {}) => ({
+  variantId: variant.variant_id ?? variant.variantId ?? null,
+  skuId: variant.sku_id || variant.skuId || variant.sku_code || variant.skuCode || '',
+  skuCode: variant.sku_code || variant.skuCode || '',
+  variantName: variant.variant_name || variant.variantName || 'Mặc định',
+  option1Name: variant.option1_name || variant.option1Name || '',
+  option1Value: variant.option1_value || variant.option1Value || '',
+  option2Name: variant.option2_name || variant.option2Name || '',
+  option2Value: variant.option2_value || variant.option2Value || '',
+  price: Number(variant.price) || 0,
+  originalPrice: Number(variant.original_price ?? variant.originalPrice ?? variant.price) || 0,
+  stockQuantity: Number(variant.stock_quantity ?? variant.stockQuantity) || 0,
+  status: variant.status || PRODUCT_STATUSES.ACTIVE,
+  isDefault: Boolean(variant.is_default ?? variant.isDefault),
+})
+
+const mapApiSellerProduct = (product = {}, store = {}) => {
+  const variants = Array.isArray(product.variants)
+    ? product.variants.map(mapApiSellerVariant).filter((variant) => variant.variantId || variant.skuCode)
+    : []
+  const defaultVariantId = product.default_variant_id ?? product.defaultVariantId ?? null
+  const defaultVariant =
+    variants.find((variant) => String(variant.variantId) === String(defaultVariantId))
+    || variants.find((variant) => variant.isDefault)
+    || variants[0]
+  const stockQuantity = Number(defaultVariant?.stockQuantity ?? product.stock_quantity) || 0
+  const price = Number(defaultVariant?.price ?? product.price) || 0
+  const skuCode = defaultVariant?.skuCode || product.sku || product.sku_code || product.skuCode || ''
+
+  return {
+    id: product.product_id,
+    name: product.product_name || '',
+    slug: product.slug || '',
+    defaultVariantId,
+    variantId: defaultVariant?.variantId || defaultVariantId || null,
+    skuId: product.sku_id || skuCode || buildDefaultSkuId(product.product_id),
+    skuCode: skuCode || buildDefaultSkuCode({ id: product.product_id, name: product.product_name }),
+    variantName: defaultVariant?.variantName || product.variant_name || 'Mặc định',
+    variantCount: Number(product.variant_count ?? variants.length) || variants.length,
+    variants,
+    skus: variants,
+    description: product.description || '',
+    price,
+    originalPrice: price,
+    discountPercent: 0,
+    imageUrl: pickPrimaryImage(product.images || []),
+    category: product.category?.category_name || product.category_name || product.category || '',
+    categoryId: product.category?.category_id || product.category_id || '',
+    storeId: store.storeId || product.store_id || '',
+    storeName: store.storeName || product.store_name || 'TechToShop',
+    rating: Number(product.avg_rating) || 0,
+    reviewCount: Number(product.review_count) || 0,
+    soldQuantity: Number(product.sold_quantity) || 0,
+    stockQuantity,
+    location: store.province || 'Việt Nam',
+    status: fromApiProductStatus(product.status, stockQuantity),
+    createdAt: product.created_at || '',
+    updatedAt: product.updated_at || '',
+  }
+}
+
+const mapApiSellerOrder = (order = {}) => {
+  const status = normalizeApiStatus(order.order_status)
+  const orderedAt = order.created_at || new Date().toISOString()
+  const id = String(order.order_id)
+
+  return {
+    id,
+    code: order.order_code,
+    customerName: order.customer_name || order.recipient_name || 'Khách hàng',
+    customerInitials: (order.customer_name || order.recipient_name || 'KH')
+      .split(' ')
+      .map((part) => part[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase(),
+    orderedAt,
+    totalAmount: Number(order.total_amount) || 0,
+    status,
+    paymentLabel: order.payment_method || 'COD',
+    productName: order.first_item || order.product_name || 'Đơn hàng mua sắm',
+    items: Array.isArray(order.items) ? order.items : [],
+    dateMeta: formatOrderDate(orderedAt),
+    statusMeta: statusMeta[status] || statusMeta.PENDING,
+  }
+}
+
+const mapApiSellerOrderDetail = (order = {}) => {
+  const status = normalizeApiStatus(order.order_status)
+  const orderedAt = order.created_at || new Date().toISOString()
+  const address = [order.shipping_address_line, order.shipping_ward, order.shipping_district, order.shipping_province]
+    .filter(Boolean)
+    .join(', ')
+  const items = (order.items || []).map((item) => {
+    const unitPrice = Number(item.unit_price) || 0
+    const quantity = Number(item.quantity) || 1
+
+    return {
+      productId: item.product_id,
+      productName: item.product_name_snapshot || 'Sản phẩm đã mua',
+      imageUrl: item.product_image_url_snapshot || FALLBACK_IMAGE,
+      quantity,
+      unitPrice,
+      totalPrice: unitPrice * quantity,
+      variantLabel: item.variant_name || 'Mặc định',
+      skuCode: item.sku_code || '',
+    }
+  })
+  const activeIndex = sellerOrderTimelineSteps.findIndex((step) => step.status === status)
+  const timeline = status === 'CANCELLED'
+    ? [
+        { status: 'PENDING', label: 'Chờ xác nhận', icon: 'hourglass_top', state: 'done' },
+        { status: 'CANCELLED', label: 'Đã hủy', icon: 'cancel', state: 'current' },
+      ]
+    : sellerOrderTimelineSteps.map((step, index) => ({
+        ...step,
+        state: index < activeIndex ? 'done' : index === activeIndex ? 'current' : 'pending',
+      }))
+  const history = timeline
+    .filter((step) => step.state === 'done' || step.state === 'current')
+    .map((step, index) => ({
+      ...step,
+      time: new Date(new Date(orderedAt).getTime() + index * 60 * 60 * 1000).toISOString(),
+      note: `Đơn hàng chuyển sang trạng thái ${step.label.toLowerCase()}.`,
+    }))
+
+  return {
+    id: String(order.order_id),
+    code: order.order_code,
+    orderedAt,
+    status,
+    dateMeta: formatOrderDate(orderedAt),
+    statusMeta: statusMeta[status] || statusMeta.PENDING,
+    items,
+    timeline,
+    history,
+    customer: {
+      name: order.customer?.full_name || order.recipient_name || 'Khách hàng',
+      tier: 'Khách hàng',
+      phone: order.customer?.phone || order.recipient_phone || '--',
+      address: address || '--',
+    },
+    payment: {
+      subtotal: Number(order.subtotal) || items.reduce((total, item) => total + item.totalPrice, 0),
+      discount: Number(order.discount_amount) || 0,
+      shippingFee: Number(order.shipping_fee) || 0,
+      total: Number(order.total_amount) || 0,
+      method: order.payment_method || 'COD',
+    },
+    shipment: order.shipment,
+  }
+}
+
+let apiCategoryCache = null
+
+const flattenApiCategories = (categories = []) =>
+  categories.flatMap((category) => {
+    const current = {
+      id: category.category_id,
+      name: category.category_name,
+    }
+    const children = Array.isArray(category.children) ? flattenApiCategories(category.children) : []
+    return [current, ...children].filter((item) => item.id && item.name)
+  })
+
+const normalizeCategoryText = (value) =>
+  String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/gi, 'd')
+    .trim()
+    .toLowerCase()
+
+const getApiCategories = async () => {
+  if (apiCategoryCache) return apiCategoryCache
+  const result = await apiRequest('/categories')
+  apiCategoryCache = flattenApiCategories(result.data?.categories || [])
+  return apiCategoryCache
+}
+
+const resolveCategoryId = async (category) => {
+  if (/^\d+$/.test(String(category || ''))) return Number(category)
+
+  const categories = await getApiCategories()
+  const normalizedCategory = normalizeCategoryText(category)
+  const matchedCategory = categories.find((item) => normalizeCategoryText(item.name) === normalizedCategory)
+
+  if (matchedCategory) return Number(matchedCategory.id)
+  if (categories[0]?.id) return Number(categories[0].id)
+
+  throw new Error('Backend chưa có danh mục hợp lệ để tạo/cập nhật sản phẩm.')
+}
+
+const buildApiVariantPayload = (variant = {}, index = 0) => ({
+  variant_id: variant.variantId ? Number(variant.variantId) : undefined,
+  sku_code: String(variant.sku_code || variant.skuCode || '').trim() || undefined,
+  variant_name: String(variant.variant_name || variant.variantName || `Biến thể ${index + 1}`).trim(),
+  option1_name: String(variant.option1_name || variant.option1Name || '').trim() || undefined,
+  option1_value: String(variant.option1_value || variant.option1Value || '').trim() || undefined,
+  option2_name: String(variant.option2_name || variant.option2Name || '').trim() || undefined,
+  option2_value: String(variant.option2_value || variant.option2Value || '').trim() || undefined,
+  price: Number(variant.price),
+  stock_quantity: Math.max(0, Math.floor(Number(variant.stock_quantity ?? variant.stockQuantity) || 0)),
+  status: variant.status === PRODUCT_STATUSES.HIDDEN ? 'INACTIVE' : 'ACTIVE',
+  is_default: Boolean(variant.is_default ?? variant.isDefault ?? index === 0),
+})
+
+const buildApiProductPayload = async (productPayload = {}) => {
+  const categoryId = await resolveCategoryId(productPayload.categoryId || productPayload.category)
+  const imageUrl = String(productPayload.imageUrl || '').trim()
+  const requestedVariants = Array.isArray(productPayload.variants)
+    ? productPayload.variants
+    : Array.isArray(productPayload.skus)
+      ? productPayload.skus
+      : []
+  const variants = requestedVariants
+    .map(buildApiVariantPayload)
+    .filter((variant) => variant.variant_name && Number(variant.price) > 0)
+
+  if (variants.length && !variants.some((variant) => variant.is_default)) {
+    variants[0].is_default = true
+  }
+
+  const payload = {
+    category_id: categoryId,
+    product_name: String(productPayload.name || '').trim(),
+    description: String(productPayload.description || '').trim(),
+    price: Number(productPayload.price),
+    stock_quantity: Math.max(0, Math.floor(Number(productPayload.stockQuantity) || 0)),
+    sku: String(productPayload.sku || productPayload.skuCode || '').trim(),
+    status: toApiStatus(productPayload.status),
+    image_urls: imageUrl ? [imageUrl] : [],
+  }
+
+  if (variants.length) {
+    payload.variants = variants
+  }
+
+  return payload
+}
+
 export const sellerService = {
+  isApiMode() {
+    return USE_API
+  },
+
   getSellerStore(currentUser) {
+    if (USE_API) {
+      return apiRequest('/seller/store')
+        .then((result) => ({
+          success: true,
+          data: mapApiStore(result.data),
+        }))
+        .catch((error) => ({
+          success: false,
+          message: error.message,
+        }))
+    }
+
     const store = resolveStoreFromCurrentUser(currentUser)
 
     if (!store) {
@@ -804,86 +1083,77 @@ export const sellerService = {
     }
   },
 
-  getSellerSettings(currentUser) {
-    const storeResponse = sellerService.getSellerStore(currentUser)
-
-    if (!storeResponse.success) {
-      return {
-        success: false,
-        message: 'Không tìm thấy shop để tải cài đặt cửa hàng.',
-      }
+  async getSellerSettings(currentUser) {
+    if (!USE_API) {
+      return { success: false, message: 'Cài đặt cửa hàng chỉ khả dụng trong chế độ API.' }
     }
 
-    const store = storeResponse.data
-    const settingsMap = readSellerSettings()
-    const storedSettings = settingsMap[store.storeId] || {}
+    const storeResponse = await sellerService.getSellerStore(currentUser)
+    if (!storeResponse.success) return storeResponse
 
+    const store = storeResponse.data
     return {
       success: true,
       data: {
         storeId: store.storeId,
-        storeName: storedSettings.storeName || store.storeName || 'TechToShop',
-        description:
-          storedSettings.description ||
-          'Cửa hàng chuyên cung cấp các thiết bị điện tử, phụ kiện công nghệ chính hãng với mức giá cạnh tranh và chế độ bảo hành uy tín.',
-        logoUrl: storedSettings.logoUrl || '',
-        isActive: typeof storedSettings.isActive === 'boolean' ? storedSettings.isActive : true,
-        pickupName: storedSettings.pickupName || 'Kho TechToShop Quận 1',
-        pickupAddress:
-          storedSettings.pickupAddress ||
-          '123 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh',
-        pickupPhone: storedSettings.pickupPhone || '0901234567',
+        storeName: store.storeName,
+        description: store.description,
+        logoUrl: store.logoUrl,
+        contactEmail: store.contactEmail,
+        contactPhone: store.contactPhone,
+        addressLine: store.addressLine,
+        ward: store.ward,
+        district: store.district,
+        province: store.province,
       },
-      meta: {
-        store,
-      },
+      meta: { store },
     }
   },
 
-  updateSellerSettings(currentUser, settingsPayload = {}) {
-    const settingsResponse = sellerService.getSellerSettings(currentUser)
-
-    if (!settingsResponse.success) {
-      return settingsResponse
+  async updateSellerSettings(currentUser, settingsPayload = {}) {
+    if (!USE_API) {
+      return { success: false, message: 'Cài đặt cửa hàng chỉ khả dụng trong chế độ API.' }
     }
 
     const storeName = String(settingsPayload.storeName || '').trim()
-    const description = String(settingsPayload.description || '').trim()
-    const pickupName = String(settingsPayload.pickupName || '').trim()
-    const pickupAddress = String(settingsPayload.pickupAddress || '').trim()
-    const pickupPhone = String(settingsPayload.pickupPhone || '').trim()
-    const logoUrl = String(settingsPayload.logoUrl || '').trim()
+    if (!storeName) {
+      return { success: false, message: 'Vui lòng nhập tên cửa hàng.' }
+    }
 
-    if (!storeName || !description || !pickupName || !pickupAddress || !pickupPhone) {
+    try {
+      const result = await apiRequest('/seller/store', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          store_name: storeName,
+          description: String(settingsPayload.description || '').trim(),
+          logo_url: String(settingsPayload.logoUrl || '').trim(),
+          contact_email: String(settingsPayload.contactEmail || '').trim(),
+          contact_phone: String(settingsPayload.contactPhone || '').trim(),
+          address_line: String(settingsPayload.addressLine || '').trim(),
+          ward: String(settingsPayload.ward || '').trim(),
+          district: String(settingsPayload.district || '').trim(),
+          province: String(settingsPayload.province || '').trim(),
+        }),
+      })
+      const store = mapApiStore(result.data)
       return {
-        success: false,
-        message: 'Vui lòng nhập đầy đủ tên shop, mô tả và địa chỉ lấy hàng.',
+        success: true,
+        data: {
+          storeId: store.storeId,
+          storeName: store.storeName,
+          description: store.description,
+          logoUrl: store.logoUrl,
+          contactEmail: store.contactEmail,
+          contactPhone: store.contactPhone,
+          addressLine: store.addressLine,
+          ward: store.ward,
+          district: store.district,
+          province: store.province,
+        },
+        message: 'Đã cập nhật thông tin cửa hàng.',
       }
-    }
-
-    const currentSettings = settingsResponse.data
-    const settingsMap = readSellerSettings()
-    const nextSettings = {
-      ...currentSettings,
-      storeName,
-      description,
-      logoUrl,
-      pickupName,
-      pickupAddress,
-      pickupPhone,
-      isActive: Boolean(settingsPayload.isActive),
-      updatedAt: new Date().toISOString(),
-    }
-
-    writeSellerSettings({
-      ...settingsMap,
-      [currentSettings.storeId]: nextSettings,
-    })
-
-    return {
-      success: true,
-      data: nextSettings,
-      message: 'Đã cập nhật cài đặt cửa hàng bằng mock/localStorage.',
+    } catch (error) {
+      return { success: false, message: error.message }
     }
   },
 
@@ -1206,6 +1476,18 @@ export const sellerService = {
   },
 
   previewSellerProductSku(currentUser, productPayload = {}) {
+    if (USE_API) {
+      const name = String(productPayload.name || '').trim()
+      const category = String(productPayload.category || '').trim()
+
+      return {
+        success: true,
+        data: {
+          skuCode: name && category ? 'SKU sẽ được backend tự sinh khi lưu' : '',
+        },
+      }
+    }
+
     const storeResponse = sellerService.getSellerStore(currentUser)
 
     if (!storeResponse.success) {
@@ -1226,6 +1508,13 @@ export const sellerService = {
   },
 
   previewSellerProductVariantSkus(currentUser, productPayload = {}) {
+    if (USE_API) {
+      return {
+        success: true,
+        data: [],
+      }
+    }
+
     const storeResponse = sellerService.getSellerStore(currentUser)
 
     if (!storeResponse.success) {
@@ -1245,6 +1534,23 @@ export const sellerService = {
   },
 
   createSellerProduct(currentUser, productPayload = {}) {
+    if (USE_API) {
+      return buildApiProductPayload(productPayload)
+        .then((payload) => apiRequest('/products', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        }))
+        .then((result) => ({
+          success: true,
+          data: mapApiSellerProduct(result.data),
+          message: 'Đã tạo sản phẩm bằng API thật.',
+        }))
+        .catch((error) => ({
+          success: false,
+          message: error.message,
+        }))
+    }
+
     const storeResponse = sellerService.getSellerStore(currentUser)
 
     if (!storeResponse.success) {
@@ -1329,6 +1635,36 @@ export const sellerService = {
   },
 
   getSellerProductById(currentUser, productId) {
+    if (USE_API) {
+      return Promise.all([
+        sellerService.getSellerStore(currentUser),
+        sellerService.getSellerProducts(currentUser, {}),
+      ]).then(([storeResponse, productsResponse]) => {
+        if (!storeResponse.success) return storeResponse
+        if (!productsResponse.success) return productsResponse
+
+        const product = productsResponse.data.find((item) => String(item.id) === String(productId))
+
+        if (!product) {
+          return {
+            success: false,
+            message: 'Không tìm thấy sản phẩm hoặc sản phẩm không thuộc shop hiện tại.',
+          }
+        }
+
+        return {
+          success: true,
+          data: product,
+          meta: {
+            store: storeResponse.data,
+          },
+        }
+      }).catch((error) => ({
+        success: false,
+        message: error.message,
+      }))
+    }
+
     const storeResponse = sellerService.getSellerStore(currentUser)
 
     if (!storeResponse.success) {
@@ -1357,6 +1693,31 @@ export const sellerService = {
   },
 
   updateSellerProduct(currentUser, productId, productPayload = {}) {
+    if (USE_API) {
+      return buildApiProductPayload(productPayload)
+        .then((payload) => apiRequest(`/products/${productId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            category_id: payload.category_id,
+            product_name: payload.product_name,
+            description: payload.description,
+            price: payload.price,
+            stock_quantity: payload.stock_quantity,
+            status: payload.status,
+            variants: payload.variants,
+          }),
+        }))
+        .then((result) => ({
+          success: true,
+          data: mapApiSellerProduct(result.data),
+          message: 'Đã cập nhật sản phẩm bằng API thật.',
+        }))
+        .catch((error) => ({
+          success: false,
+          message: error.message,
+        }))
+    }
+
     const productResponse = sellerService.getSellerProductById(currentUser, productId)
 
     if (!productResponse.success) {
@@ -1446,6 +1807,19 @@ export const sellerService = {
   },
 
   deleteSellerProduct(currentUser, productId) {
+    if (USE_API) {
+      return apiRequest(`/products/${productId}`, { method: 'DELETE' })
+        .then((result) => ({
+          success: true,
+          data: result.data,
+          message: result.message || 'Đã ẩn sản phẩm bằng API thật.',
+        }))
+        .catch((error) => ({
+          success: false,
+          message: error.message,
+        }))
+    }
+
     const productResponse = sellerService.getSellerProductById(currentUser, productId)
 
     if (!productResponse.success) {
@@ -1466,6 +1840,38 @@ export const sellerService = {
   },
 
   getSellerProducts(currentUser, { keyword, status, category } = {}) {
+    if (USE_API) {
+      const params = new URLSearchParams({ limit: '100' })
+      if (keyword) params.set('keyword', keyword)
+      if (status && status !== 'all') params.set('status', toApiStatus(status))
+
+      return Promise.all([
+        sellerService.getSellerStore(currentUser),
+        apiRequest(`/seller/products?${params.toString()}`),
+      ]).then(([storeResponse, result]) => {
+        if (!storeResponse.success) return { ...storeResponse, data: [] }
+
+        const normalizedCategory = normalizeText(category)
+        const rows = (result.data?.products || [])
+          .map((product) => mapApiSellerProduct(product, storeResponse.data))
+          .filter((product) => !normalizedCategory || normalizeText(product.category) === normalizedCategory)
+
+        return {
+          success: true,
+          data: rows,
+          meta: {
+            store: storeResponse.data,
+            totalCount: result.data?.pagination?.total_items ?? rows.length,
+            pagination: result.data?.pagination,
+          },
+        }
+      }).catch((error) => ({
+        success: false,
+        data: [],
+        message: error.message,
+      }))
+    }
+
     const store = resolveStoreFromCurrentUser(currentUser)
 
     if (!store) {
@@ -1698,7 +2104,7 @@ export const sellerService = {
     const product = productResponse.data
     const store = storeResponse.data
     const normalizedKeyword = normalizeText(keyword)
-    const now = new Date('2024-10-31T00:00:00')
+    const now = new Date()
     const rangeDaysMap = {
       '7d': 7,
       '30d': 30,
@@ -1769,6 +2175,86 @@ export const sellerService = {
   },
 
   getSellerDashboardStats(currentUser) {
+    if (USE_API) {
+      return Promise.all([
+        sellerService.getSellerStore(currentUser),
+        sellerService.getSellerProducts(currentUser, {}),
+        sellerService.getSellerOrders(currentUser, {}),
+        sellerService.getSellerRevenueReport(currentUser, { range: '7d' }),
+      ]).then(([storeResponse, productsResponse, ordersResponse, revenueResponse]) => {
+        if (!storeResponse.success) return storeResponse
+        if (!revenueResponse.success) return revenueResponse
+
+        const sellerProducts = productsResponse.success ? productsResponse.data : []
+        const sellerOrders = ordersResponse.success ? ordersResponse.data : []
+        const activeProducts = sellerProducts.filter((product) => product.status === PRODUCT_STATUSES.ACTIVE)
+        const lowStockProducts = sellerProducts.filter((product) => product.stockQuantity > 0 && product.stockQuantity <= 20)
+        const statistics = revenueResponse.meta.orderStatistics
+        const pendingOrders = ['PENDING', 'CONFIRMED', 'PROCESSING', 'READY_TO_SHIP']
+          .reduce((total, status) => total + Number(statistics[status] || 0), 0)
+        const completedRevenue = revenueResponse.meta.totalRevenue
+
+        return {
+          success: true,
+          data: {
+            store: storeResponse.data,
+            cards: [
+              {
+                id: 'revenue',
+                title: 'Doanh thu hoàn thành',
+                value: `${formatCompactCurrency(completedRevenue)}đ`,
+                icon: 'payments',
+                iconClassName: 'bg-primary/10 text-primary',
+                trendText: 'Tính từ đơn hàng API đã hoàn thành',
+                trendClassName: 'text-[#5b403b]',
+              },
+              {
+                id: 'orders',
+                title: 'Đơn hàng',
+                value: `${revenueResponse.meta.totalOrders}`,
+                icon: 'shopping_cart',
+                iconClassName: 'bg-[#0284C7]/10 text-[#0284C7]',
+                trendText: `${pendingOrders.length} đơn chờ xử lý`,
+                trendClassName: pendingOrders.length ? 'text-[#F59E0B]' : 'text-[#5b403b]',
+              },
+              {
+                id: 'products',
+                title: 'Sản phẩm đang bán',
+                value: `${activeProducts.length}`,
+                icon: 'inventory_2',
+                iconClassName: 'bg-[#F59E0B]/10 text-[#F59E0B]',
+                trendText: `${lowStockProducts.length} sản phẩm sắp hết hàng`,
+                trendClassName: lowStockProducts.length ? 'text-[#F59E0B]' : 'text-[#5b403b]',
+                trendIcon: lowStockProducts.length ? 'warning' : 'check_circle',
+              },
+              {
+                id: 'rating',
+                title: 'Tổng sản phẩm',
+                value: `${sellerProducts.length}`,
+                icon: 'star',
+                iconClassName: 'bg-[#F59E0B]/10 text-[#F59E0B]',
+                trendText: 'Dữ liệu từ seller products API',
+                trendClassName: 'text-[#5b403b]',
+              },
+            ],
+            quickActions: [
+              { id: 'add', label: 'Đăng sản phẩm', icon: 'add_box', accentClassName: 'bg-primary/10 text-primary' },
+              { id: 'ship', label: 'Quản lý vận chuyển', icon: 'local_shipping', accentClassName: 'bg-[#F97316]/10 text-[#F97316]' },
+              { id: 'promo', label: 'Tạo khuyến mãi', icon: 'campaign', accentClassName: 'bg-[#16A34A]/10 text-[#16A34A]' },
+            ],
+            recentOrders: sellerOrders.slice(0, 5),
+            weekRevenue: revenueResponse.data.chart.map((point) => ({
+              label: point.label.slice(0, 5),
+              value: Number((point.value / 1000000).toFixed(2)),
+            })),
+          },
+        }
+      }).catch((error) => ({
+        success: false,
+        message: error.message,
+      }))
+    }
+
     const store = resolveStoreFromCurrentUser(currentUser)
 
     if (!store) {
@@ -1854,6 +2340,50 @@ export const sellerService = {
   },
 
   getSellerOrders(currentUser, { keyword = '', status = 'all', dateFrom = '', dateTo = '' } = {}) {
+    if (USE_API) {
+      const params = new URLSearchParams({ limit: '100' })
+      if (status && status !== 'all') params.set('status', status === 'PACKING' ? 'READY_TO_SHIP' : status)
+
+      return Promise.all([
+        sellerService.getSellerStore(currentUser),
+        apiRequest(`/seller/orders?${params.toString()}`),
+      ]).then(([storeResponse, result]) => {
+        if (!storeResponse.success) return { ...storeResponse, data: [] }
+
+        const normalizedKeyword = normalizeText(keyword)
+        const rows = (result.data?.orders || [])
+          .map(mapApiSellerOrder)
+          .filter((order) => {
+            const matchesKeyword =
+              !normalizedKeyword ||
+              [order.id, order.code, order.customerName, order.productName]
+                .filter(Boolean)
+                .join(' ')
+                .toLowerCase()
+                .includes(normalizedKeyword)
+            const orderDate = order.orderedAt.slice(0, 10)
+            const matchesDateFrom = !dateFrom || orderDate >= dateFrom
+            const matchesDateTo = !dateTo || orderDate <= dateTo
+
+            return matchesKeyword && matchesDateFrom && matchesDateTo
+          })
+
+        return {
+          success: true,
+          data: rows,
+          meta: {
+            store: storeResponse.data,
+            totalCount: result.data?.pagination?.total_items ?? rows.length,
+            pagination: result.data?.pagination,
+          },
+        }
+      }).catch((error) => ({
+        success: false,
+        data: [],
+        message: error.message,
+      }))
+    }
+
     const storeResponse = sellerService.getSellerStore(currentUser)
 
     if (!storeResponse.success) {
@@ -1899,6 +2429,26 @@ export const sellerService = {
   },
 
   getSellerOrderById(currentUser, orderId) {
+    if (USE_API) {
+      return Promise.all([
+        sellerService.getSellerStore(currentUser),
+        apiRequest(`/seller/orders/${orderId}`),
+      ]).then(([storeResponse, result]) => {
+        if (!storeResponse.success) return storeResponse
+
+        return {
+          success: true,
+          data: mapApiSellerOrderDetail(result.data),
+          meta: {
+            store: storeResponse.data,
+          },
+        }
+      }).catch((error) => ({
+        success: false,
+        message: error.message,
+      }))
+    }
+
     const storeResponse = sellerService.getSellerStore(currentUser)
 
     if (!storeResponse.success) {
@@ -1928,6 +2478,27 @@ export const sellerService = {
   },
 
   updateSellerOrderStatus(currentUser, orderId, nextStatus) {
+    if (USE_API) {
+      const apiStatus = nextStatus === 'PACKING' ? 'READY_TO_SHIP' : nextStatus
+
+      return apiRequest(`/orders/${orderId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          new_status: apiStatus,
+          change_note: 'Seller cập nhật trạng thái từ giao diện quản lý.',
+        }),
+      })
+        .then((result) => ({
+          success: true,
+          data: mapApiSellerOrder(result.data),
+          message: 'Đã cập nhật trạng thái đơn hàng bằng API thật.',
+        }))
+        .catch((error) => ({
+          success: false,
+          message: error.message,
+        }))
+    }
+
     const storeResponse = sellerService.getSellerStore(currentUser)
 
     if (!storeResponse.success) {
@@ -1985,187 +2556,142 @@ export const sellerService = {
     }
   },
 
-  getSellerRevenueReport(currentUser, { keyword = '', range = '30d', dateFrom = '', dateTo = '' } = {}) {
-    const storeResponse = sellerService.getSellerStore(currentUser)
-
-    if (!storeResponse.success) {
-      return {
-        success: false,
-        message: 'Không tìm thấy dữ liệu doanh thu của seller.',
-      }
+  async getSellerRevenueReport(currentUser, { keyword = '', range = '30d', dateFrom = '', dateTo = '' } = {}) {
+    if (!USE_API) {
+      return { success: false, message: 'Báo cáo doanh thu chỉ khả dụng trong chế độ API.' }
     }
 
-    const store = storeResponse.data
-    const normalizedKeyword = normalizeText(keyword)
-    const now = new Date('2024-10-31T00:00:00')
-    const rangeStartMap = {
-      '7d': 7,
-      '30d': 30,
-      month: 31,
-      year: 365,
-    }
-    const fallbackDays = rangeStartMap[range] || rangeStartMap['30d']
-    const fallbackStart = new Date(now)
-    fallbackStart.setDate(now.getDate() - fallbackDays + 1)
+    const formatDate = (date) => [
+      date.getFullYear(),
+      String(date.getMonth() + 1).padStart(2, '0'),
+      String(date.getDate()).padStart(2, '0'),
+    ].join('-')
+    const today = new Date()
+    const start = new Date(today)
 
-    const startDate = dateFrom || fallbackStart.toISOString().slice(0, 10)
-    const endDate = dateTo || now.toISOString().slice(0, 10)
-    const storeOrders = getSellerOrdersSource().filter((order) => isOrderInStore(order, store.storeId))
-    const completedOrders = storeOrders.filter((order) => {
-      const orderDate = order.orderedAt.slice(0, 10)
-      return order.status === 'COMPLETED' && orderDate >= startDate && orderDate <= endDate
+    if (range === '7d') {
+      start.setDate(today.getDate() - 6)
+    } else if (range === 'month') {
+      start.setDate(1)
+    } else if (range === 'year') {
+      start.setMonth(0, 1)
+    } else {
+      start.setDate(today.getDate() - 29)
+    }
+
+    const fromDate = dateFrom || formatDate(start)
+    const toDate = dateTo || formatDate(today)
+    const groupBy = range === 'year' ? 'month' : 'day'
+    const params = new URLSearchParams({
+      from_date: fromDate,
+      to_date: toDate,
+      group_by: groupBy,
+      limit: '100',
     })
 
-    const getRevenueOrderItems = (order) => {
-      const orderItems = order.items?.length
-        ? order.items
-        : [{ productId: order.productId, productName: order.productName, quantity: 1, storeId: order.storeId }]
-
-      return orderItems.map((item) => ({
-        ...item,
-        productName: item.productName || order.productName,
-        quantity: item.quantity || 1,
-        storeId: item.storeId || order.storeId,
-      }))
-    }
-
-    const getSellerOrderRevenue = (order) => {
-      const orderItems = getRevenueOrderItems(order)
-      const orderQuantity = orderItems.reduce((total, item) => total + item.quantity, 0) || 1
-      const sellerQuantity = orderItems
-        .filter((item) => item.storeId === store.storeId)
-        .reduce((total, item) => total + item.quantity, 0)
-
-      return (order.totalAmount * sellerQuantity) / orderQuantity
-    }
-
-    const totalRevenue = completedOrders.reduce((total, order) => total + getSellerOrderRevenue(order), 0)
-    const orderCount = completedOrders.length
-    const averageOrderValue = orderCount ? totalRevenue / orderCount : 0
-    const skuRevenueMap = completedOrders.reduce((map, order) => {
-      const orderItems = getRevenueOrderItems(order)
-      const orderQuantity = orderItems.reduce((total, item) => total + item.quantity, 0) || 1
-
-      orderItems.forEach((item) => {
-        if (item.storeId !== store.storeId) {
-          return
-        }
-
-        const product = [...getStoredSellerProducts(), ...mockProducts].find(
-          (productItem) => String(productItem.id) === String(item.productId),
-        )
-        const matchedSku = Array.isArray(product?.skus)
-          ? product.skus.find((sku) => (
-              (item.skuId && String(sku.skuId) === String(item.skuId))
-              || (item.skuCode && String(sku.skuCode) === String(item.skuCode))
-            )) || product.skus[0]
-          : null
-        const skuCode = item.skuCode || matchedSku?.skuCode || product?.skuCode || product?.sku || 'Chưa có SKU'
-        const skuId = item.skuId || matchedSku?.skuId || product?.skuId || skuCode
-        const variantName = item.variantName || matchedSku?.variantName || product?.variantName || 'Mặc định'
-        const rowKey = `${item.productId}::${skuId || skuCode}`
-        const revenueShare = (order.totalAmount * item.quantity) / orderQuantity
-        const row = map.get(rowKey) || {
-          id: rowKey,
-          productId: String(item.productId),
-          skuId,
-          name: item.productName || product?.name || order.productName,
-          sku: skuCode,
-          variantName,
-          quantitySold: 0,
-          totalRevenue: 0,
-          imageUrl: item.imageUrl || matchedSku?.imageUrl || product?.imageUrl || '/images/products/headphones.png',
-        }
-
-        row.quantitySold += item.quantity
-        row.totalRevenue += revenueShare
-        map.set(rowKey, row)
+    try {
+      const result = await apiRequest('/seller/revenue?' + params.toString())
+      const report = result.data || {}
+      const normalizedKeyword = normalizeText(keyword)
+      const totalRevenue = Number(report.total_revenue) || 0
+      const orderCount = Number(report.completed_orders) || 0
+      const averageOrderValue = orderCount ? totalRevenue / orderCount : 0
+      const store = mapApiStore(report.store || {})
+      const chart = (report.revenue_by_period || []).map((point) => {
+        const parts = String(point.period || '').split('-')
+        const label = parts.length === 3
+          ? [parts[2], parts[1], parts[0]].join('/')
+          : parts.length === 2
+            ? [parts[1], parts[0]].join('/')
+            : String(point.period || '')
+        return { label, period: point.period, value: Number(point.revenue) || 0 }
       })
+      const rows = (report.top_products || [])
+        .map((product, index) => {
+          const quantitySold = Number(product.quantity_sold) || 0
+          const rowRevenue = Number(product.revenue) || 0
+          return {
+            id: String(product.product_id) + '::' + String(product.variant_id || 'default'),
+            productId: String(product.product_id),
+            skuId: product.variant_id,
+            name: product.product_name || 'Sản phẩm',
+            sku: product.sku_code || 'Chưa có SKU',
+            variantName: product.variant_name || 'Mặc định',
+            quantitySold,
+            totalRevenue: rowRevenue,
+            unitPrice: quantitySold ? rowRevenue / quantitySold : 0,
+            imageUrl: FALLBACK_IMAGE,
+            rank: index + 1,
+          }
+        })
+        .filter((row) => (
+          !normalizedKeyword
+          || normalizeText(row.name).includes(normalizedKeyword)
+          || normalizeText(row.sku).includes(normalizedKeyword)
+          || normalizeText(row.variantName).includes(normalizedKeyword)
+        ))
 
-      return map
-    }, new Map())
-
-    const rows = Array.from(skuRevenueMap.values())
-      .filter((row) => (
-        !normalizedKeyword
-        || normalizeText(row.name).includes(normalizedKeyword)
-        || normalizeText(row.sku).includes(normalizedKeyword)
-        || normalizeText(row.variantName).includes(normalizedKeyword)
-      ))
-      .sort((first, second) => second.totalRevenue - first.totalRevenue)
-      .map((row, index) => ({
-        ...row,
-        rank: index + 1,
-        unitPrice: row.quantitySold ? row.totalRevenue / row.quantitySold : 0,
-      }))
-
-    const chartSeed = range === '7d'
-      ? ['25/10', '26/10', '27/10', '28/10', '29/10', '30/10', '31/10']
-      : ['01/10', '08/10', '15/10', '22/10', '30/10']
-    const chart = chartSeed.map((label) => ({ label, value: 0 }))
-
-    completedOrders.forEach((order) => {
-      const day = new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit' }).format(new Date(order.orderedAt))
-      const matchedPoint = chart.find((point) => point.label === day) || chart[chart.length - 1]
-      matchedPoint.value += getSellerOrderRevenue(order)
-    })
-
-    const formatCardValue = (value) => formatCompactCurrency(value || 0).replace(' Tr', 'M')
-
-    return {
-      success: true,
-      data: {
-        store,
-        cards: [
-          {
-            id: 'total-revenue',
-            title: 'Tổng doanh thu',
-            value: formatCardValue(totalRevenue),
-            suffix: 'đ',
-            icon: 'payments',
-            iconWrapClassName: 'bg-[#ffdad3] text-[#b22204]',
-            trendText: 'Tính từ đơn hoàn thành',
-            trendClassName: 'text-[#16A34A]',
-            trendIcon: 'trending_up',
-            bgAccentClassName: 'bg-[#ffdad3]/30',
-          },
-          {
-            id: 'success-orders',
-            title: 'Đơn hàng thành công',
-            value: String(orderCount),
-            icon: 'local_mall',
-            iconWrapClassName: 'bg-[#ffdad3] text-[#b22204]',
-            trendText: 'Thuộc gian hàng seller',
-            trendClassName: 'text-[#16A34A]',
-            trendIcon: 'trending_up',
-            bgAccentClassName: 'bg-[#ffdad3]/25',
-          },
-          {
-            id: 'avg-order',
-            title: 'Giá trị trung bình đơn',
-            value: formatCardValue(averageOrderValue),
-            suffix: 'đ',
-            icon: 'receipt_long',
-            iconWrapClassName: 'bg-[#e3e2e2] text-[#5b403b]',
-            trendText: 'Mock theo đơn đã hoàn thành',
-            trendClassName: 'text-[#DC2626]',
-            trendIcon: 'trending_flat',
-            bgAccentClassName: 'bg-[#e3e2e2]/40',
-          },
-        ],
-        chart,
-        rows,
-      },
-      meta: {
-        store,
-        totalCount: rows.length,
-        orderCount,
-        totalRevenue,
-        averageOrderValue,
-      },
+      const formatCardValue = (value) => formatCompactCurrency(value || 0).replace(' Tr', 'M')
+      return {
+        success: true,
+        data: {
+          store,
+          cards: [
+            {
+              id: 'total-revenue',
+              title: 'Tổng doanh thu',
+              value: formatCardValue(totalRevenue),
+              suffix: 'đ',
+              icon: 'payments',
+              iconWrapClassName: 'bg-[#ffdad3] text-[#b22204]',
+              trendText: 'Chỉ tính đơn COMPLETED',
+              trendClassName: 'text-[#16A34A]',
+              trendIcon: 'trending_up',
+              bgAccentClassName: 'bg-[#ffdad3]/30',
+            },
+            {
+              id: 'success-orders',
+              title: 'Đơn hàng thành công',
+              value: String(orderCount),
+              icon: 'local_mall',
+              iconWrapClassName: 'bg-[#ffdad3] text-[#b22204]',
+              trendText: String(report.cancelled_orders || 0) + ' đơn đã hủy trong kỳ',
+              trendClassName: 'text-[#5b403b]',
+              trendIcon: 'receipt_long',
+              bgAccentClassName: 'bg-[#ffdad3]/25',
+            },
+            {
+              id: 'avg-order',
+              title: 'Giá trị trung bình đơn',
+              value: formatCardValue(averageOrderValue),
+              suffix: 'đ',
+              icon: 'receipt_long',
+              iconWrapClassName: 'bg-[#e3e2e2] text-[#5b403b]',
+              trendText: 'Từ dữ liệu đơn hoàn thành',
+              trendClassName: 'text-[#5b403b]',
+              trendIcon: 'trending_flat',
+              bgAccentClassName: 'bg-[#e3e2e2]/40',
+            },
+          ],
+          chart,
+          rows,
+        },
+        meta: {
+          store,
+          totalCount: rows.length,
+          orderCount,
+          totalOrders: Number(report.total_orders) || 0,
+          totalRevenue,
+          averageOrderValue,
+          orderStatistics: report.order_statistics || {},
+          fromDate,
+          toDate,
+        },
+      }
+    } catch (error) {
+      return { success: false, message: error.message }
     }
   },
-
   getProductStatusMeta(status) {
     return productStatusMeta[status] || productStatusMeta[PRODUCT_STATUSES.HIDDEN]
   },

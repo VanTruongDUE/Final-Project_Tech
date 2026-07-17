@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import AdminIcon from '../../components/admin/AdminIcon'
 import { adminService } from '../../services/adminService'
 
@@ -31,7 +31,7 @@ function StoreStatusBadge({ status }) {
   return <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${meta.className}`}>{meta.label}</span>
 }
 
-function StoreDetailModal({ store, onClose, onUpdateStatus }) {
+function StoreDetailModal({ store, pending, onClose, onUpdateStatus }) {
   if (!store) {
     return null
   }
@@ -74,6 +74,7 @@ function StoreDetailModal({ store, onClose, onUpdateStatus }) {
               <>
                 <button
                   type="button"
+                  disabled={pending}
                   onClick={() => onUpdateStatus(store, 'ACTIVE')}
                   className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#b22204] px-4 text-sm font-semibold text-white transition hover:bg-[#d63c1e]"
                 >
@@ -82,6 +83,7 @@ function StoreDetailModal({ store, onClose, onUpdateStatus }) {
                 </button>
                 <button
                   type="button"
+                  disabled={pending}
                   onClick={() => onUpdateStatus(store, 'REJECTED')}
                   className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#ba1a1a] bg-white px-4 text-sm font-semibold text-[#ba1a1a] transition hover:bg-[#ffdad6]"
                 >
@@ -92,6 +94,7 @@ function StoreDetailModal({ store, onClose, onUpdateStatus }) {
             ) : (
               <button
                 type="button"
+                disabled={pending}
                 onClick={() => onUpdateStatus(store, isLocked || isRejected ? 'ACTIVE' : 'LOCKED')}
                 className={`inline-flex h-10 items-center gap-2 rounded-lg px-4 text-sm font-semibold transition ${
                   isLocked || isRejected ? 'bg-green-600 text-white hover:bg-green-700' : 'border border-[#ba1a1a] bg-white text-[#ba1a1a] hover:bg-[#ffdad6]'
@@ -219,19 +222,70 @@ export default function AdminStoresPage() {
   const [status, setStatus] = useState('all')
   const [category, setCategory] = useState('all')
   const [selectedStoreId, setSelectedStoreId] = useState('')
-  const [, setRefreshKey] = useState(0)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [storesResponse, setStoresResponse] = useState({ success: false, isLoading: true })
+  const [selectedStoreResponse, setSelectedStoreResponse] = useState(null)
+  const [pendingStoreId, setPendingStoreId] = useState('')
+  const [feedback, setFeedback] = useState('')
 
-  const storesResponse = adminService.getAdminStores({ keyword, status, category })
+  useEffect(() => {
+    let isMounted = true
+
+    setStoresResponse({ success: false, isLoading: true })
+    Promise.resolve(adminService.getAdminStores({ keyword, status, category }))
+      .then((response) => {
+        if (isMounted) setStoresResponse(response)
+      })
+      .catch((error) => {
+        if (isMounted) setStoresResponse({ success: false, message: error.message })
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [keyword, status, category, refreshKey])
+
+  useEffect(() => {
+    let isMounted = true
+
+    if (!selectedStoreId) {
+      setSelectedStoreResponse(null)
+      return () => {
+        isMounted = false
+      }
+    }
+
+    Promise.resolve(adminService.getAdminStoreById(selectedStoreId))
+      .then((response) => {
+        if (isMounted) setSelectedStoreResponse(response)
+      })
+      .catch((error) => {
+        if (isMounted) setSelectedStoreResponse({ success: false, message: error.message })
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [selectedStoreId, refreshKey])
+
   const stores = storesResponse.success ? storesResponse.data : []
   const summary = storesResponse.meta?.summary || { total: 0, active: 0, locked: 0, pending: 0 }
   const categories = storesResponse.meta?.categories || []
   const totalCount = storesResponse.meta?.totalCount || 0
   const allCount = storesResponse.meta?.allCount || 0
-  const selectedStoreResponse = selectedStoreId ? adminService.getAdminStoreById(selectedStoreId) : null
   const selectedStore = selectedStoreResponse?.success ? selectedStoreResponse.data : null
 
-  const handleUpdateStatus = (store, nextStatus) => {
-    adminService.updateStoreStatus(store.id, nextStatus)
+  const handleUpdateStatus = async (store, nextStatus) => {
+    if (!window.confirm(`Chuyển cửa hàng ${store.name} sang trạng thái ${nextStatus}?`)) return
+    setPendingStoreId(String(store.id))
+    setFeedback('')
+    const response = await Promise.resolve(adminService.updateStoreStatus(store.id, nextStatus))
+    setPendingStoreId('')
+    if (!response.success) {
+      setFeedback(response.message || 'Không thể cập nhật trạng thái cửa hàng.')
+      return
+    }
+    setFeedback(nextStatus === 'ACTIVE' ? 'Đã duyệt cửa hàng và đồng bộ vai trò Seller cho owner.' : 'Đã cập nhật trạng thái cửa hàng.')
     setRefreshKey((current) => current + 1)
   }
 
@@ -242,6 +296,22 @@ export default function AdminStoresPage() {
     { label: 'Chờ duyệt', value: summary.pending, icon: 'pending_actions', iconClassName: 'bg-[#ffdad6] text-[#bb0017]' },
   ]
 
+  if (storesResponse.isLoading) {
+    return (
+      <section className="mx-auto flex w-full max-w-[1600px] flex-col p-3 md:p-6">
+        <div className="rounded-xl border border-[#e3e2e2] bg-white p-5 text-sm text-[#5b403b] shadow-sm">Đang tải cửa hàng Admin...</div>
+      </section>
+    )
+  }
+
+  if (!storesResponse.success) {
+    return (
+      <section className="mx-auto flex w-full max-w-[1600px] flex-col p-3 md:p-6">
+        <div className="rounded-xl border border-[#ffdad6] bg-white p-5 text-sm text-[#ba1a1a] shadow-sm">{storesResponse.message || 'Không thể tải cửa hàng Admin.'}</div>
+      </section>
+    )
+  }
+
   return (
     <section className="mx-auto flex w-full max-w-[1600px] flex-col p-3 md:p-6">
       <header className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
@@ -250,6 +320,7 @@ export default function AdminStoresPage() {
           <p className="mt-1 text-sm text-[#5b403b]">Giám sát và quản lý trạng thái các đối tác bán hàng.</p>
         </div>
       </header>
+      {feedback ? <div className="mb-4 rounded-lg border border-[#e3beb6] bg-[#fff4f1] px-4 py-3 text-sm text-[#5b403b]">{feedback}</div> : null}
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {kpiCards.map((card) => (
@@ -376,6 +447,7 @@ export default function AdminStoresPage() {
                             <>
                               <button
                                 type="button"
+                                disabled={pendingStoreId === String(store.id)}
                                 onClick={() => handleUpdateStatus(store, 'ACTIVE')}
                                 className="rounded p-1.5 text-[#5b403b] transition hover:bg-green-100 hover:text-green-700"
                                 title="Duyệt"
@@ -384,6 +456,7 @@ export default function AdminStoresPage() {
                               </button>
                               <button
                                 type="button"
+                                disabled={pendingStoreId === String(store.id)}
                                 onClick={() => handleUpdateStatus(store, 'REJECTED')}
                                 className="rounded p-1.5 text-[#5b403b] transition hover:bg-[#ffdad6] hover:text-[#ba1a1a]"
                                 title="Từ chối"
@@ -394,6 +467,7 @@ export default function AdminStoresPage() {
                           ) : (
                             <button
                               type="button"
+                              disabled={pendingStoreId === String(store.id)}
                               onClick={() => handleUpdateStatus(store, isLocked || isRejected ? 'ACTIVE' : 'LOCKED')}
                               className={`rounded p-1.5 transition ${
                                 isLocked || isRejected ? 'text-[#5b403b] hover:bg-green-100 hover:text-green-700' : 'text-[#5b403b] hover:bg-[#ffdad6] hover:text-[#ba1a1a]'
@@ -439,6 +513,7 @@ export default function AdminStoresPage() {
 
       <StoreDetailModal
         store={selectedStore}
+        pending={pendingStoreId === String(selectedStore?.id || '')}
         onClose={() => setSelectedStoreId('')}
         onUpdateStatus={handleUpdateStatus}
       />

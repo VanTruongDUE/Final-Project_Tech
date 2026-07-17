@@ -1,17 +1,28 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import ConversationListItem from '../../components/buyer/ConversationListItem'
-import { useAuth } from '../../contexts/useAuth'
 import { conversationService } from '../../services/conversationService'
 
 export default function BuyerMessagesPage() {
-  const { currentUser } = useAuth()
   const [keyword, setKeyword] = useState('')
+  const [conversations, setConversations] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState('')
 
-  const conversations = useMemo(
-    () => conversationService.getConversationsByCustomer(currentUser?.id),
-    [currentUser?.id],
-  )
+  useEffect(() => {
+    let isMounted = true
+    conversationService.getConversations()
+      .then((response) => {
+        if (isMounted) setConversations(response.data)
+      })
+      .catch((error) => {
+        if (isMounted) setErrorMessage(error.message)
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false)
+      })
+    return () => { isMounted = false }
+  }, [])
 
   const filteredConversations = useMemo(() => {
     const normalizedKeyword = keyword.trim().toLowerCase()
@@ -35,7 +46,7 @@ export default function BuyerMessagesPage() {
     })
   }, [conversations, keyword])
 
-  if (!conversations.length) {
+  if (isLoading || errorMessage || !conversations.length) {
     return (
       <section className="mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8">
         <div className="rounded-2xl border border-[#e3e2e2] bg-white px-6 py-14 text-center shadow-sm">
@@ -44,7 +55,9 @@ export default function BuyerMessagesPage() {
               chat
             </span>
           </div>
-          <h1 className="mt-5 text-2xl font-bold text-[#1b1c1c]">Bạn chưa có cuộc trò chuyện nào</h1>
+          <h1 className="mt-5 text-2xl font-bold text-[#1b1c1c]">
+            {isLoading ? 'Đang tải tin nhắn...' : errorMessage || 'Bạn chưa có cuộc trò chuyện nào'}
+          </h1>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-[#5b403b]">
             Hãy vào trang sản phẩm hoặc chi tiết đơn hàng để nhắn tin với shop khi cần hỗ trợ thêm.
           </p>

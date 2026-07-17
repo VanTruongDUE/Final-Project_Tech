@@ -9,7 +9,7 @@ export default function ResetPasswordPage() {
   const location = useLocation()
   const { currentUser } = useAuth()
   const [formData, setFormData] = useState({
-    email: location.state?.email || '',
+    identifier: location.state?.identifier || '',
     otp: location.state?.otp || '',
     newPassword: '',
     confirmPassword: '',
@@ -25,8 +25,8 @@ export default function ResetPasswordPage() {
     }
   }, [currentUser, navigate])
 
-  const canEditEmailAndOtp = useMemo(
-    () => !location.state?.email || !location.state?.otp,
+  const canEditIdentifierAndOtp = useMemo(
+    () => !location.state?.identifier || !location.state?.otp,
     [location.state],
   )
 
@@ -42,13 +42,13 @@ export default function ResetPasswordPage() {
     setIsSubmitting(true)
 
     try {
-      const result = await authService.resetPassword(formData)
+      const result = await authService.resetPassword({ ...formData, email: formData.identifier })
 
       navigate('/login', {
         replace: true,
         state: {
           resetSuccessMessage: result.message,
-          prefillEmail: formData.email.trim().toLowerCase(),
+          prefillEmail: formData.identifier.trim().toLowerCase(),
         },
       })
     } catch (error) {
@@ -77,15 +77,15 @@ export default function ResetPasswordPage() {
           <form className="mt-8 flex flex-col gap-5" onSubmit={handleSubmit}>
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-[#1b1c1c]">Email</span>
+                <span className="mb-2 block text-sm font-medium text-[#1b1c1c]">Email hoặc số điện thoại</span>
                 <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
+                  type="text"
+                  name="identifier"
+                  value={formData.identifier}
                   onChange={handleChange}
-                  readOnly={!canEditEmailAndOtp}
+                  readOnly={!canEditIdentifierAndOtp}
                   className="h-11 w-full rounded-lg border border-[#e3beb6] bg-white px-4 text-sm outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/20 read-only:bg-[#f5f3f3]"
-                  placeholder="Nhập email"
+                  placeholder="Nhập email hoặc số điện thoại"
                   required
                 />
               </label>
@@ -97,7 +97,7 @@ export default function ResetPasswordPage() {
                   name="otp"
                   value={formData.otp}
                   onChange={handleChange}
-                  readOnly={!canEditEmailAndOtp}
+                  readOnly={!canEditIdentifierAndOtp}
                   className="h-11 w-full rounded-lg border border-[#e3beb6] bg-white px-4 text-sm outline-none transition focus:border-[#ee4d2d] focus:ring-2 focus:ring-[#ee4d2d]/20 read-only:bg-[#f5f3f3]"
                   placeholder="Nhập mã OTP"
                   required
