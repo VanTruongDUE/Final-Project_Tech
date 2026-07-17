@@ -1,0 +1,413 @@
+<!DOCTYPE html><html lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>TechTonic Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-low": "#f5f3f3",
+                      "surface-variant": "#e3e2e2",
+                      "surface-bright": "#fbf9f9",
+                      "on-primary-fixed-variant": "#8d1600",
+                      "surface-container-high": "#e9e8e7",
+                      "surface-dim": "#dbdad9",
+                      "on-secondary-container": "#fffbff",
+                      "secondary-container": "#db3514",
+                      "on-secondary-fixed": "#3e0500",
+                      "on-tertiary-container": "#fffbff",
+                      "secondary": "#b41f00",
+                      "tertiary-fixed": "#ffdad6",
+                      "on-tertiary-fixed": "#410003",
+                      "on-error": "#ffffff",
+                      "surface-container-lowest": "#ffffff",
+                      "error": "#ba1a1a",
+                      "surface": "#fbf9f9",
+                      "tertiary": "#bb0017",
+                      "secondary-fixed-dim": "#ffb4a4",
+                      "primary": "#b22204",
+                      "on-tertiary": "#ffffff",
+                      "on-primary-fixed": "#3e0500",
+                      "surface-tint": "#b62506",
+                      "on-primary": "#ffffff",
+                      "error-container": "#ffdad6",
+                      "tertiary-container": "#e51d27",
+                      "on-secondary-fixed-variant": "#8d1600",
+                      "surface-container": "#efeded",
+                      "on-error-container": "#93000a",
+                      "primary-fixed-dim": "#ffb4a4",
+                      "on-tertiary-fixed-variant": "#93000f",
+                      "on-surface-variant": "#5b403b",
+                      "secondary-fixed": "#ffdad3",
+                      "outline-variant": "#e3beb6",
+                      "primary-container": "#d63c1e",
+                      "outline": "#8f7069",
+                      "inverse-surface": "#303031",
+                      "surface-container-highest": "#e3e2e2",
+                      "tertiary-fixed-dim": "#ffb3ac",
+                      "inverse-on-surface": "#f2f0f0",
+                      "on-secondary": "#ffffff",
+                      "on-surface": "#1b1c1c",
+                      "background": "#fbf9f9",
+                      "primary-fixed": "#ffdad3",
+                      "inverse-primary": "#ffb4a4",
+                      "on-primary-container": "#fffbff",
+                      "on-background": "#1b1c1c"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "md": "16px",
+                      "sm": "8px",
+                      "base": "4px",
+                      "margin-mobile": "12px",
+                      "xs": "4px",
+                      "xl": "48px",
+                      "margin-desktop": "auto",
+                      "max-width": "1200px",
+                      "lg": "24px",
+                      "gutter": "12px"
+              },
+              "fontFamily": {
+                      "headline-lg-mobile": ["Inter"],
+                      "price-sm": ["Inter"],
+                      "headline-lg": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "label-md": ["Inter"],
+                      "price-lg": ["Inter"],
+                      "body-md": ["Inter"],
+                      "display-lg": ["Inter"],
+                      "body-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "headline-lg-mobile": ["24px", { "lineHeight": "1.3", "fontWeight": "700" }],
+                      "price-sm": ["14px", { "lineHeight": "1", "fontWeight": "600" }],
+                      "headline-lg": ["32px", { "lineHeight": "1.25", "fontWeight": "700" }],
+                      "headline-md": ["20px", { "lineHeight": "1.4", "fontWeight": "600" }],
+                      "label-md": ["12px", { "lineHeight": "1.2", "fontWeight": "500" }],
+                      "price-lg": ["24px", { "lineHeight": "1", "fontWeight": "600" }],
+                      "body-md": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                      "display-lg": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                      "body-lg": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        .material-symbols-outlined {
+          font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined[data-weight="fill"] {
+            font-variation-settings: 'FILL' 1;
+        }
+      </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface font-body-md antialiased overflow-x-hidden">
+<!-- TopNavBar -->
+<header class="bg-slate-900 border-b border-slate-800 shadow-sm flex justify-between items-center w-full px-md h-14 sticky top-0 z-50">
+<div class="flex items-center gap-md">
+<span class="text-title-lg font-headline-lg text-white ml-md md:ml-0 hidden md:block">TechToShop</span>
+</div>
+<div class="flex items-center gap-md mr-md md:mr-0">
+<button class="text-slate-300 hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-slate-300 hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center text-white overflow-hidden">
+<img alt="Admin Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0H6um0ugtpPdUr0_9DumeIP9wxz9DJeq4e0_oWXsz0GXOI088WJ6NDaSzQnuw9RI9xfmRql_erO-LghSoUb34TDWIF3GESt2uACxzQ794VMe-8RQ3q7kmdKg3v0JNftxsYuzl9jEeLo93yCCyS3TNI2yMCY3znt1vHjBnOwPzVPaaBw0U1uWEvK1CjHLyA945dwqt7kZYoO1HA5Pn8tsHqSNtLzhb4jjCHjNgxjVmS6uT0zZRZZkMU6l4JrKLlh7K-SD3duSL1kw">
+</div>
+</div>
+</header>
+<div class="flex h-[calc(100vh-3.5rem)]">
+<!-- SideNavBar -->
+<aside class="bg-slate-900 shadow-md fixed left-0 top-14 h-[calc(100vh-3.5rem)] w-[240px] py-md flex flex-col hidden md:flex z-40 border-r border-slate-800">
+<div class="px-md mb-lg">
+<button class="w-full bg-primary text-on-primary text-label-md font-label-md py-sm rounded hover:bg-primary-container transition-colors shadow-sm flex justify-center items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">add</span> Thêm sản phẩm
+</button>
+</div>
+<nav class="flex-1 overflow-y-auto">
+<ul class="space-y-1 px-sm">
+<li class="">
+<a class="flex items-center gap-3 bg-blue-600 text-white rounded p-2 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-label-md font-label-md">Dashboard</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 text-slate-300 p-2 hover:bg-slate-800 hover:text-white transition-all rounded" href="#">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+<span class="text-label-md font-label-md">Đơn hàng</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 text-slate-300 p-2 hover:bg-slate-800 hover:text-white transition-all rounded" href="#">
+<span class="material-symbols-outlined" data-icon="store">store</span>
+<span class="text-label-md font-label-md">Cửa hàng</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 text-slate-300 p-2 hover:bg-slate-800 hover:text-white transition-all rounded" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="text-label-md font-label-md">Sản phẩm</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 text-slate-300 p-2 hover:bg-slate-800 hover:text-white transition-all rounded" href="#">
+<span class="material-symbols-outlined" data-icon="people">people</span>
+<span class="text-label-md font-label-md">Người dùng</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 text-slate-300 p-2 hover:bg-slate-800 hover:text-white transition-all rounded" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="text-label-md font-label-md">Báo cáo</span>
+</a>
+</li>
+</ul>
+</nav>
+<div class="mt-auto px-sm">
+<a class="flex items-center gap-3 text-slate-400 p-2 hover:bg-slate-800 hover:text-white transition-all rounded" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="text-label-md font-label-md">Đăng xuất</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 md:ml-[240px] p-margin-mobile md:p-md bg-slate-50 overflow-y-auto w-full max-w-[1600px] mx-auto">
+<div class="mb-md flex justify-between items-end">
+<div>
+<h1 class="text-headline-md font-headline-md text-slate-900">System Overview</h1>
+<p class="text-body-sm text-slate-500 mt-1">Global metrics and recent activity.</p>
+</div>
+<div class="text-label-md text-slate-500">Last updated: Just now</div>
+</div>
+<!-- Bento Grid Metrics -->
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-sm mb-lg">
+<!-- Metric Card 1 -->
+<div class="bg-white p-sm rounded border border-slate-200 shadow-sm relative overflow-hidden">
+<div class="flex justify-between items-start mb-1">
+<span class="text-label-md font-label-md text-slate-500">Total Users</span>
+<span class="material-symbols-outlined text-blue-600 text-[18px]" data-icon="group">group</span>
+</div>
+<div class="text-headline-md font-headline-md text-slate-900">1.2k</div>
+<div class="text-xs text-green-600 mt-1 flex items-center font-medium">
+<span class="material-symbols-outlined text-[14px] mr-1" data-icon="trending_up">trending_up</span> +5.2%
+                    </div>
+</div>
+<!-- Metric Card 2 -->
+<div class="bg-white p-sm rounded border border-slate-200 shadow-sm relative overflow-hidden">
+<div class="flex justify-between items-start mb-1">
+<span class="text-label-md font-label-md text-slate-500">Total Stores</span>
+<span class="material-symbols-outlined text-blue-600 text-[18px]" data-icon="store">store</span>
+</div>
+<div class="text-headline-md font-headline-md text-slate-900">450</div>
+<div class="text-xs text-green-600 mt-1 flex items-center font-medium">
+<span class="material-symbols-outlined text-[14px] mr-1" data-icon="trending_up">trending_up</span> +12 new
+                    </div>
+</div>
+<!-- Metric Card 3 -->
+<div class="bg-white p-sm rounded border border-slate-200 shadow-sm relative overflow-hidden">
+<div class="flex justify-between items-start mb-1">
+<span class="text-label-md font-label-md text-slate-500">Total Products</span>
+<span class="material-symbols-outlined text-blue-600 text-[18px]" data-icon="inventory">inventory</span>
+</div>
+<div class="text-headline-md font-headline-md text-slate-900">15k</div>
+<div class="text-xs text-green-600 mt-1 flex items-center font-medium">
+<span class="material-symbols-outlined text-[14px] mr-1" data-icon="trending_up">trending_up</span> +300
+                    </div>
+</div>
+<!-- Metric Card 4 -->
+<div class="bg-white p-sm rounded border border-slate-200 shadow-sm relative overflow-hidden">
+<div class="flex justify-between items-start mb-1">
+<span class="text-label-md font-label-md text-slate-500">Total Orders</span>
+<span class="material-symbols-outlined text-blue-600 text-[18px]" data-icon="local_shipping">local_shipping</span>
+</div>
+<div class="text-headline-md font-headline-md text-slate-900">8.2k</div>
+<div class="text-xs text-green-600 mt-1 flex items-center font-medium">
+<span class="material-symbols-outlined text-[14px] mr-1" data-icon="trending_up">trending_up</span> +1.5%
+                    </div>
+</div>
+<!-- Metric Card 5 - High Priority -->
+<div class="bg-gradient-to-br from-blue-900 to-blue-700 p-sm rounded shadow border border-blue-800 relative overflow-hidden col-span-2 md:col-span-4 lg:col-span-1">
+<div class="flex justify-between items-start mb-1">
+<span class="text-label-md font-label-md text-blue-100">Total Revenue</span>
+<span class="material-symbols-outlined text-white text-[18px]" data-icon="account_balance_wallet">account_balance_wallet</span>
+</div>
+<div class="text-headline-md font-headline-md text-white mt-1">1.2B VNĐ</div>
+<div class="text-xs text-blue-200 mt-1 flex items-center font-medium">
+<span class="material-symbols-outlined text-[14px] mr-1" data-icon="arrow_upward">arrow_upward</span> +15.3% vs last month
+                    </div>
+</div>
+</div>
+<!-- Main Layout Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-sm mb-md">
+<!-- Left Column (Wider) -->
+<div class="lg:col-span-2 space-y-sm">
+<!-- Revenue Chart Placeholder -->
+<div class="bg-white p-sm rounded shadow-sm border border-slate-200">
+<div class="flex justify-between items-center mb-sm">
+<h3 class="text-label-lg font-bold text-slate-800">Revenue Trend</h3>
+<select class="text-xs border border-slate-300 rounded py-1 px-2 bg-slate-50 text-slate-700">
+<option>Last 30 Days</option>
+<option>This Year</option>
+</select>
+</div>
+<div class="h-48 bg-slate-50 rounded flex items-center justify-center border border-dashed border-slate-300 relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-t from-blue-100/30 to-transparent"></div>
+<svg class="w-full h-full opacity-60" preserveAspectRatio="none" viewBox="0 0 100 50">
+<path class="text-blue-200" d="M0,40 Q10,35 20,40 T40,30 T60,25 T80,15 T100,20 L100,50 L0,50 Z" fill="currentColor"></path>
+<path class="text-blue-600" d="M0,40 Q10,35 20,40 T40,30 T60,25 T80,15 T100,20" fill="none" stroke="currentColor" stroke-width="1.5"></path>
+</svg>
+<span class="absolute text-xs text-slate-500 bg-white px-2 py-1 rounded shadow-sm border border-slate-200">Interactive Chart Canvas</span>
+</div>
+</div>
+<!-- Recent Activity Table -->
+<div class="bg-white rounded shadow-sm border border-slate-200 overflow-hidden">
+<div class="p-sm border-b border-slate-200 flex justify-between items-center bg-slate-50">
+<h3 class="text-label-lg font-bold text-slate-800">Recent Activity</h3>
+<a class="text-xs font-medium text-blue-600 hover:underline" href="#">View All</a>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm">
+<thead class="bg-slate-50 text-slate-500 text-xs uppercase font-semibold border-b border-slate-200">
+<tr>
+<th class="px-4 py-2">Entity</th>
+<th class="px-4 py-2">Action</th>
+<th class="px-4 py-2">Time</th>
+<th class="px-4 py-2 text-right">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100">
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-4 py-2 flex items-center gap-2">
+<div class="w-6 h-6 rounded bg-purple-100 flex items-center justify-center text-purple-600">
+<span class="material-symbols-outlined text-[14px]" data-icon="storefront">storefront</span>
+</div>
+<span class="font-medium text-slate-800">Mega Electronics</span>
+</td>
+<td class="px-4 py-2 text-slate-600">Registered new store</td>
+<td class="px-4 py-2 text-slate-500 text-xs">2 mins ago</td>
+<td class="px-4 py-2 text-right">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">Pending</span>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-4 py-2 flex items-center gap-2">
+<div class="w-6 h-6 rounded bg-blue-100 flex items-center justify-center text-blue-600">
+<span class="material-symbols-outlined text-[14px]" data-icon="person">person</span>
+</div>
+<span class="font-medium text-slate-800">Nguyen Van A</span>
+</td>
+<td class="px-4 py-2 text-slate-600">Placed order #8821</td>
+<td class="px-4 py-2 text-slate-500 text-xs">15 mins ago</td>
+<td class="px-4 py-2 text-right">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Completed</span>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-4 py-2 flex items-center gap-2">
+<div class="w-6 h-6 rounded bg-red-100 flex items-center justify-center text-red-600">
+<span class="material-symbols-outlined text-[14px]" data-icon="inventory_2">inventory_2</span>
+</div>
+<span class="font-medium text-slate-800">iPhone 15 Pro Max</span>
+</td>
+<td class="px-4 py-2 text-slate-600">Reported by 5 users</td>
+<td class="px-4 py-2 text-slate-500 text-xs">1 hr ago</td>
+<td class="px-4 py-2 text-right">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Flagged</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Right Column (Narrower) -->
+<div class="space-y-sm">
+<!-- Quick Alerts -->
+<div class="bg-white p-sm rounded shadow-sm border border-red-200 relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
+<h3 class="text-label-lg font-bold text-slate-800 flex items-center gap-2 mb-2 ml-1">
+<span class="material-symbols-outlined text-red-500 text-[18px]" data-icon="warning">warning</span>
+                            Action Required
+                        </h3>
+<div class="space-y-2 ml-1">
+<div class="p-2 bg-red-50 border border-red-100 rounded flex justify-between items-center">
+<div>
+<p class="text-xs font-semibold text-red-800">Store Approvals</p>
+<p class="text-[11px] text-red-600 mt-0.5">24 awaiting review</p>
+</div>
+<button class="text-xs font-medium text-white bg-red-600 px-2 py-1 rounded hover:bg-red-700 transition-colors">Review</button>
+</div>
+<div class="p-2 bg-amber-50 border border-amber-100 rounded flex justify-between items-center">
+<div>
+<p class="text-xs font-semibold text-amber-800">Reported Products</p>
+<p class="text-[11px] text-amber-600 mt-0.5">12 items flagged</p>
+</div>
+<button class="text-xs font-medium text-amber-800 bg-white border border-amber-200 px-2 py-1 rounded hover:bg-amber-100 transition-colors">Check</button>
+</div>
+</div>
+</div>
+<!-- Order Status Pie Chart Placeholder -->
+<div class="bg-white p-sm rounded shadow-sm border border-slate-200">
+<h3 class="text-label-lg font-bold text-slate-800 mb-2">Order Status</h3>
+<div class="flex items-center justify-center h-32 relative mb-2">
+<!-- Abstract SVG Pie Chart -->
+<svg class="w-28 h-28 transform -rotate-90" viewBox="0 0 100 100">
+<circle class="text-slate-100" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-width="20"></circle>
+<circle class="text-blue-600" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="60" stroke-width="20"></circle>
+<circle class="text-amber-400" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="200" stroke-width="20"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-sm font-bold text-slate-800">8.2k</span>
+<span class="text-[10px] text-slate-500 uppercase">Total</span>
+</div>
+</div>
+<!-- Legend -->
+<div class="space-y-1">
+<div class="flex justify-between items-center text-xs">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded bg-blue-600"></span>
+<span class="text-slate-600">Completed</span>
+</div>
+<span class="font-medium text-slate-800">75%</span>
+</div>
+<div class="flex justify-between items-center text-xs">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded bg-amber-400"></span>
+<span class="text-slate-600">Processing</span>
+</div>
+<span class="font-medium text-slate-800">15%</span>
+</div>
+<div class="flex justify-between items-center text-xs">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded bg-slate-200"></span>
+<span class="text-slate-600">Cancelled</span>
+</div>
+<span class="font-medium text-slate-800">10%</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+
+
+
+
+</body></html>

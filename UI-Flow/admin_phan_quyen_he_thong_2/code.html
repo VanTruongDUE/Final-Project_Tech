@@ -1,0 +1,492 @@
+<!DOCTYPE html><html lang="vi" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Admin - Phan quyen he thong</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "secondary-container": "#db3514",
+                "surface-container-lowest": "#ffffff",
+                "on-tertiary-container": "#fffbff",
+                "on-secondary-fixed": "#3e0500",
+                "on-primary-fixed-variant": "#8d1600",
+                "tertiary": "#bb0017",
+                "on-primary-fixed": "#3e0500",
+                "on-secondary-container": "#fffbff",
+                "outline-variant": "#e3beb6",
+                "surface-bright": "#fbf9f9",
+                "outline": "#8f7069",
+                "on-tertiary-fixed-variant": "#93000f",
+                "surface-container": "#efeded",
+                "on-error": "#ffffff",
+                "on-surface-variant": "#5b403b",
+                "on-secondary": "#ffffff",
+                "on-surface": "#1b1c1c",
+                "secondary-fixed-dim": "#ffb4a4",
+                "surface": "#fbf9f9",
+                "on-background": "#1b1c1c",
+                "background": "#fbf9f9",
+                "inverse-primary": "#ffb4a4",
+                "surface-variant": "#e3e2e2",
+                "surface-container-high": "#e9e8e7",
+                "inverse-surface": "#303031",
+                "on-error-container": "#93000a",
+                "secondary-fixed": "#ffdad3",
+                "primary-fixed": "#ffdad3",
+                "on-secondary-fixed-variant": "#8d1600",
+                "on-tertiary-fixed": "#410003",
+                "surface-dim": "#dbdad9",
+                "on-primary": "#ffffff",
+                "primary-container": "#d63c1e",
+                "error-container": "#ffdad6",
+                "primary": "#b22204",
+                "on-tertiary": "#ffffff",
+                "error": "#ba1a1a",
+                "primary-fixed-dim": "#ffb4a4",
+                "tertiary-fixed": "#ffdad6",
+                "tertiary-fixed-dim": "#ffb3ac",
+                "surface-container-low": "#f5f3f3",
+                "secondary": "#b41f00",
+                "on-primary-container": "#fffbff",
+                "inverse-on-surface": "#f2f0f0",
+                "surface-container-highest": "#e3e2e2",
+                "tertiary-container": "#e51d27",
+                "surface-tint": "#b62506"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "margin-desktop": "80px",
+                "base": "4px",
+                "xl": "48px",
+                "sm": "8px",
+                "max-width": "1200px",
+                "margin-mobile": "16px",
+                "gutter": "12px",
+                "xs": "4px",
+                "lg": "24px",
+                "md": "16px",
+                "unit-1": "4px",
+                "unit-2": "8px",
+                "unit-3": "12px",
+                "unit-4": "16px",
+                "unit-6": "24px",
+                "unit-8": "32px",
+                "unit-12": "48px",
+                "container-max": "1440px",
+                "margin-tablet": "40px"
+        },
+        "fontFamily": {
+                "price-lg": [
+                        "Inter"
+                ],
+                "label-md": [
+                        "Inter"
+                ],
+                "display-lg": [
+                        "Inter"
+                ],
+                "price-sm": [
+                        "Inter"
+                ],
+                "headline-md": [
+                        "Inter"
+                ],
+                "body-md": [
+                        "Inter"
+                ],
+                "headline-lg-mobile": [
+                        "Inter"
+                ],
+                "headline-lg": [
+                        "Inter"
+                ],
+                "body-lg": [
+                        "Inter"
+                ]
+        },
+        "fontSize": {
+                "price-lg": [
+                        "24px",
+                        {
+                                "lineHeight": "1",
+                                "fontWeight": "600"
+                        }
+                ],
+                "label-md": [
+                        "12px",
+                        {
+                                "lineHeight": "1.2",
+                                "fontWeight": "500"
+                        }
+                ],
+                "display-lg": [
+                        "48px",
+                        {
+                                "lineHeight": "1.2",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "price-sm": [
+                        "14px",
+                        {
+                                "lineHeight": "1",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-md": [
+                        "20px",
+                        {
+                                "lineHeight": "1.4",
+                                "fontWeight": "600"
+                        }
+                ],
+                "body-md": [
+                        "14px",
+                        {
+                                "lineHeight": "1.5",
+                                "fontWeight": "400"
+                        }
+                ],
+                "headline-lg-mobile": [
+                        "24px",
+                        {
+                                "lineHeight": "1.3",
+                                "fontWeight": "700"
+                        }
+                ],
+                "headline-lg": [
+                        "32px",
+                        {
+                                "lineHeight": "1.25",
+                                "fontWeight": "700"
+                        }
+                ],
+                "body-lg": [
+                        "16px",
+                        {
+                                "lineHeight": "1.5",
+                                "fontWeight": "400"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        /* Custom scrollbar for matrix table to keep it clean */
+        .matrix-scroll::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .matrix-scroll::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        .matrix-scroll::-webkit-scrollbar-thumb {
+            background: #d8dadc; 
+            border-radius: 4px;
+        }
+        .matrix-scroll::-webkit-scrollbar-thumb:hover {
+            background: #c3c6d7; 
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased overflow-hidden selection:bg-primary-fixed selection:text-on-primary-fixed">
+<div class="flex h-screen w-full">
+<!-- SideNavBar Component -->
+<nav class="fixed left-0 top-0 h-full w-[280px] py-unit-6 flex flex-col bg-surface-container-low dark:bg-inverse-surface shadow-md z-50">
+<!-- Header/Brand -->
+<div class="px-unit-6 mb-unit-8 flex items-center gap-unit-3">
+<div class="w-unit-12 h-unit-12 rounded-lg bg-[#ee4d2d] flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-white text-title-lg">admin_panel_settings</span>
+</div>
+<div>
+<h2 class="text-headline-md font-headline-md text-[#ee4d2d] dark:text-inverse-primary truncate">TechToShop</h2>
+<p class="text-label-sm font-label-sm text-text-muted">Admin/Seller Panel</p>
+</div>
+</div>
+<!-- Primary Action CTA -->
+<div class="px-unit-6 mb-unit-6">
+<button class="w-full flex items-center justify-center gap-unit-2 bg-[#ee4d2d] hover:bg-primary-container text-white font-label-md text-label-md py-unit-3 px-unit-4 rounded-lg transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                    Thêm sản phẩm mới
+                </button>
+</div>
+<!-- Navigation Links -->
+<div class="flex-1 overflow-y-auto px-unit-3 flex flex-col gap-unit-1">
+<a class="flex items-center gap-unit-3 text-text-muted dark:text-surface-variant p-unit-3 rounded-r-full hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all Labels: text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                    Dashboard
+                </a>
+<a class="flex items-center gap-unit-3 text-text-muted dark:text-surface-variant p-unit-3 rounded-r-full hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all Labels: text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined">shopping_bag</span>
+                    Đơn hàng
+                </a>
+<a class="flex items-center gap-unit-3 text-text-muted dark:text-surface-variant p-unit-3 rounded-r-full hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all Labels: text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+                    Sản phẩm
+                </a>
+<a class="flex items-center gap-unit-3 text-text-muted dark:text-surface-variant p-unit-3 rounded-r-full hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all Labels: text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined">warehouse</span>
+                    Kho hàng
+                </a>
+<a class="flex items-center gap-unit-3 text-text-muted dark:text-surface-variant p-unit-3 rounded-r-full hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all Labels: text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined">analytics</span>
+                    Báo cáo
+                </a>
+<!-- Active Item -->
+<a class="flex items-center gap-unit-3 bg-[#ee4d2d]/10 dark:bg-primary-container text-[#ee4d2d] dark:text-on-primary-container border-l-4 border-[#ee4d2d] rounded-r-full p-unit-3 transition-all duration-200 scale-95 Labels: text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined fill">settings</span>
+                    Cài đặt
+                </a>
+</div>
+<!-- Footer Action -->
+<div class="px-unit-3 mt-auto pt-unit-4 border-t border-border-light">
+<a class="flex items-center gap-unit-3 text-text-muted dark:text-surface-variant p-unit-3 rounded-r-full hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all Labels: text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined">logout</span>
+                    Đăng xuất
+                </a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 ml-[280px] flex flex-col h-screen relative bg-surface">
+<!-- Contextual Header -->
+<header class="h-[80px] px-margin-tablet lg:px-margin-desktop flex items-center justify-between border-b border-border-light bg-surface-container-lowest shrink-0 z-10 sticky top-0 shadow-sm">
+<div>
+<h1 class="text-headline-md font-headline-md text-text-main font-bold">Phân quyền hệ thống</h1>
+<p class="text-body-md font-body-md text-text-muted mt-1">Quản lý ma trận truy cập cho các vai trò người dùng</p>
+</div>
+<div class="flex items-center gap-unit-4">
+<button class="flex items-center gap-2 px-unit-4 py-[10px] rounded border border-border-light text-text-main font-label-md text-label-md hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-[20px]">history</span>
+                        Lịch sử thay đổi
+                    </button>
+<button class="flex items-center gap-2 px-unit-6 py-[10px] rounded bg-[#ee4d2d] text-white font-label-md text-label-md hover:opacity-90 transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[20px]">save</span>
+                        Lưu phân quyền
+                    </button>
+</div>
+</header>
+<!-- Scrollable Canvas -->
+<div class="flex-1 overflow-auto p-margin-tablet lg:p-margin-desktop matrix-scroll">
+<div class="max-w-container-max mx-auto">
+<!-- Information Banner -->
+<div class="bg-[#ee4d2d]/10 text-[#ee4d2d] p-unit-4 rounded-lg border border-[#ee4d2d]/20 mb-unit-6 flex items-start gap-unit-3">
+<span class="material-symbols-outlined mt-0.5 text-[#ee4d2d]">info</span>
+<div>
+<h4 class="font-label-md text-label-md mb-1 text-[#ee4d2d] font-semibold">Hướng dẫn thiết lập</h4>
+<p class="font-body-md text-body-md text-sm opacity-90 text-on-surface">Đánh dấu vào các ô vuông để cấp quyền tương ứng cho từng vai trò. Quyền 'Admin' được tự động cấp toàn bộ chức năng và không thể thu hồi các quyền cơ bản. Các thay đổi sẽ có hiệu lực ngay sau khi lưu.</p>
+</div>
+</div>
+<!-- Matrix Container -->
+<div class="bg-surface-container-lowest rounded-xl border border-border-light shadow-sm overflow-hidden">
+<!-- Table Toolbar -->
+<div class="p-unit-4 border-b border-border-light flex justify-between items-center bg-surface-bright">
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[20px]">search</span>
+<input class="w-full pl-10 pr-3 py-2 border border-border-light rounded focus:ring-2 focus:ring-[#ee4d2d] focus:border-[#ee4d2d] text-body-md font-body-md" placeholder="Tìm kiếm module..." type="text">
+</div>
+<div class="flex gap-2">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-status-info/10 text-status-info font-label-sm text-label-sm">
+<span class="w-2 h-2 rounded-full bg-status-info"></span> Mới cập nhật
+                                </span>
+</div>
+</div>
+<!-- The Matrix Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse min-w-[800px]">
+<thead>
+<tr class="bg-surface-container-low border-b border-border-light">
+<th class="py-unit-4 px-unit-6 font-label-md text-label-md text-text-main w-[250px] sticky left-0 z-10 bg-surface-container-low border-r border-border-light font-semibold">
+                                            Module chức năng
+                                        </th>
+<th class="py-unit-4 px-unit-6 font-label-md text-label-md text-text-main text-center border-r border-border-light/50 w-[200px] font-semibold">
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-text-muted">person</span>
+                                                Buyer
+                                            </div>
+</th>
+<th class="py-unit-4 px-unit-6 font-label-md text-label-md text-text-main text-center border-r border-border-light/50 w-[200px] font-semibold">
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-text-muted">storefront</span>
+                                                Seller
+                                            </div>
+</th>
+<th class="py-unit-4 px-unit-6 font-label-md text-label-md text-text-main text-center border-r border-border-light/50 w-[200px] font-semibold">
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-[#ee4d2d]">admin_panel_settings</span>
+                                                Admin
+                                            </div>
+</th>
+<th class="py-unit-4 px-unit-6 font-label-md text-label-md text-text-main text-center w-[200px] font-semibold">
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-text-muted">local_shipping</span>
+                                                Shipper
+                                            </div>
+</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-light">
+<!-- Row 1: Xác thực -->
+<tr class="hover:bg-surface-bright transition-colors group">
+<td class="py-unit-4 px-unit-6 sticky left-0 bg-surface-container-lowest group-hover:bg-surface-bright border-r border-border-light transition-colors z-10">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-container flex items-center justify-center text-text-muted">
+<span class="material-symbols-outlined text-[18px]">security</span>
+</div>
+<span class="font-label-md text-label-md text-text-main">Xác thực &amp; Bảo mật</span>
+</div>
+</td>
+<td class="py-unit-4 px-unit-6 border-r border-border-light/50">
+<div class="grid grid-cols-2 gap-y-3 gap-x-2">
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Xem</span></label>
+<label class="flex items-center gap-2 cursor-pointer opacity-50"><input class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Thêm</span></label>
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Sửa</span></label>
+<label class="flex items-center gap-2 cursor-pointer opacity-50"><input class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Đình chỉ</span></label>
+</div>
+</td>
+<td class="py-unit-4 px-unit-6 border-r border-border-light/50">
+<div class="grid grid-cols-2 gap-y-3 gap-x-2">
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Xem</span></label>
+<label class="flex items-center gap-2 cursor-pointer opacity-50"><input class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Thêm</span></label>
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Sửa</span></label>
+<label class="flex items-center gap-2 cursor-pointer"><input class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Đình chỉ</span></label>
+</div>
+</td>
+<td class="py-unit-4 px-unit-6 border-r border-border-light/50 bg-[#ee4d2d]/5">
+<div class="grid grid-cols-2 gap-y-3 gap-x-2">
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant font-medium">Xem</span></label>
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant font-medium">Thêm</span></label>
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant font-medium">Sửa</span></label>
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant font-medium">Đình chỉ</span></label>
+</div>
+</td>
+<td class="py-unit-4 px-unit-6">
+<div class="grid grid-cols-2 gap-y-3 gap-x-2">
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Xem</span></label>
+<label class="flex items-center gap-2 cursor-pointer opacity-50"><input class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Thêm</span></label>
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Sửa</span></label>
+<label class="flex items-center gap-2 cursor-pointer opacity-50"><input class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Đình chỉ</span></label>
+</div>
+</td>
+</tr>
+<!-- Row 2: Sản phẩm -->
+<tr class="hover:bg-surface-bright transition-colors group">
+<td class="py-unit-4 px-unit-6 sticky left-0 bg-surface-container-lowest group-hover:bg-surface-bright border-r border-border-light transition-colors z-10">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-container flex items-center justify-center text-text-muted">
+<span class="material-symbols-outlined text-[18px]">inventory_2</span>
+</div>
+<span class="font-label-md text-label-md text-text-main">Sản phẩm &amp; Kho</span>
+</div>
+</td>
+<td class="py-unit-4 px-unit-6 border-r border-border-light/50">
+<div class="grid grid-cols-2 gap-y-3 gap-x-2">
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Xem</span></label>
+<label class="flex items-center gap-2 cursor-pointer opacity-50"><input class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Thêm</span></label>
+<label class="flex items-center gap-2 cursor-pointer opacity-50"><input class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Sửa</span></label>
+<label class="flex items-center gap-2 cursor-pointer opacity-50"><input class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Đình chỉ</span></label>
+</div>
+</td>
+<td class="py-unit-4 px-unit-6 border-r border-border-light/50 bg-[#ee4d2d]/5">
+<div class="grid grid-cols-2 gap-y-3 gap-x-2">
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Xem</span></label>
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Thêm</span></label>
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Sửa</span></label>
+<label class="flex items-center gap-2 cursor-pointer"><input class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Đình chỉ</span></label>
+</div>
+</td>
+<td class="py-unit-4 px-unit-6 border-r border-border-light/50 bg-[#ee4d2d]/5">
+<div class="grid grid-cols-2 gap-y-3 gap-x-2">
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant font-medium">Xem</span></label>
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant font-medium">Thêm</span></label>
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant font-medium">Sửa</span></label>
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant font-medium">Đình chỉ</span></label>
+</div>
+</td>
+<td class="py-unit-4 px-unit-6">
+<div class="grid grid-cols-2 gap-y-3 gap-x-2">
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Xem</span></label>
+<label class="flex items-center gap-2 cursor-pointer opacity-50"><input class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Thêm</span></label>
+<label class="flex items-center gap-2 cursor-pointer opacity-50"><input class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Sửa</span></label>
+<label class="flex items-center gap-2 cursor-pointer opacity-50"><input class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Đình chỉ</span></label>
+</div>
+</td>
+</tr>
+<!-- Row 3: Đơn hàng -->
+<tr class="hover:bg-surface-bright transition-colors group">
+<td class="py-unit-4 px-unit-6 sticky left-0 bg-surface-container-lowest group-hover:bg-surface-bright border-r border-border-light transition-colors z-10">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-container flex items-center justify-center text-text-muted">
+<span class="material-symbols-outlined text-[18px]">shopping_cart</span>
+</div>
+<span class="font-label-md text-label-md text-text-main">Quản lý Đơn hàng</span>
+</div>
+</td>
+<td class="py-unit-4 px-unit-6 border-r border-border-light/50">
+<div class="grid grid-cols-2 gap-y-3 gap-x-2">
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Xem</span></label>
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Thêm</span></label>
+<label class="flex items-center gap-2 cursor-pointer opacity-50"><input class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Sửa</span></label>
+<label class="flex items-center gap-2 cursor-pointer"><input class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Đình chỉ</span></label>
+</div>
+</td>
+<td class="py-unit-4 px-unit-6 border-r border-border-light/50 bg-[#ee4d2d]/5">
+<div class="grid grid-cols-2 gap-y-3 gap-x-2">
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Xem</span></label>
+<label class="flex items-center gap-2 cursor-pointer opacity-50"><input class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Thêm</span></label>
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Sửa</span></label>
+<label class="flex items-center gap-2 cursor-pointer"><input class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Đình chỉ</span></label>
+</div>
+</td>
+<td class="py-unit-4 px-unit-6 border-r border-border-light/50 bg-[#ee4d2d]/5">
+<div class="grid grid-cols-2 gap-y-3 gap-x-2">
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant font-medium">Xem</span></label>
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant font-medium">Thêm</span></label>
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant font-medium">Sửa</span></label>
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant font-medium">Đình chỉ</span></label>
+</div>
+</td>
+<td class="py-unit-4 px-unit-6 bg-[#ee4d2d]/5">
+<div class="grid grid-cols-2 gap-y-3 gap-x-2">
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Xem</span></label>
+<label class="flex items-center gap-2 cursor-pointer opacity-50"><input class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Thêm</span></label>
+<label class="flex items-center gap-2 cursor-pointer"><input checked="" class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Sửa</span></label>
+<label class="flex items-center gap-2 cursor-pointer opacity-50"><input class="rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] w-4 h-4" disabled="" type="checkbox"><span class="font-body-md text-sm text-on-surface-variant">Đình chỉ</span></label>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+
+
+
+
+
+
+</body></html>

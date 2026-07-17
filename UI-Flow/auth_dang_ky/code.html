@@ -1,0 +1,277 @@
+<!DOCTYPE html><html lang="vi" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Auth - Dang ky</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config Injection -->
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "secondary-container": "#db3514",
+                "surface-container-lowest": "#ffffff",
+                "on-tertiary-container": "#fffbff",
+                "on-secondary-fixed": "#3e0500",
+                "on-primary-fixed-variant": "#8d1600",
+                "tertiary": "#bb0017",
+                "on-primary-fixed": "#3e0500",
+                "on-secondary-container": "#fffbff",
+                "outline-variant": "#e3beb6",
+                "surface-bright": "#fbf9f9",
+                "outline": "#8f7069",
+                "on-tertiary-fixed-variant": "#93000f",
+                "surface-container": "#efeded",
+                "on-error": "#ffffff",
+                "on-surface-variant": "#5b403b",
+                "on-secondary": "#ffffff",
+                "on-surface": "#1b1c1c",
+                "secondary-fixed-dim": "#ffb4a4",
+                "surface": "#fbf9f9",
+                "on-background": "#1b1c1c",
+                "background": "#fbf9f9",
+                "inverse-primary": "#ffb4a4",
+                "surface-variant": "#e3e2e2",
+                "surface-container-high": "#e9e8e7",
+                "inverse-surface": "#303031",
+                "on-error-container": "#93000a",
+                "secondary-fixed": "#ffdad3",
+                "primary-fixed": "#ffdad3",
+                "on-secondary-fixed-variant": "#8d1600",
+                "on-tertiary-fixed": "#410003",
+                "surface-dim": "#dbdad9",
+                "on-primary": "#ffffff",
+                "primary-container": "#d63c1e",
+                "error-container": "#ffdad6",
+                "primary": "#b22204",
+                "on-tertiary": "#ffffff",
+                "error": "#ba1a1a",
+                "primary-fixed-dim": "#ffb4a4",
+                "tertiary-fixed": "#ffdad6",
+                "tertiary-fixed-dim": "#ffb3ac",
+                "surface-container-low": "#f5f3f3",
+                "secondary": "#b41f00",
+                "on-primary-container": "#fffbff",
+                "inverse-on-surface": "#f2f0f0",
+                "surface-container-highest": "#e3e2e2",
+                "tertiary-container": "#e51d27",
+                "surface-tint": "#b62506"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "margin-desktop": "auto",
+                "base": "4px",
+                "xl": "48px",
+                "sm": "8px",
+                "max-width": "1200px",
+                "margin-mobile": "12px",
+                "gutter": "12px",
+                "xs": "4px",
+                "lg": "24px",
+                "md": "16px"
+        },
+        "fontFamily": {
+                "price-lg": [
+                        "Inter"
+                ],
+                "label-md": [
+                        "Inter"
+                ],
+                "display-lg": [
+                        "Inter"
+                ],
+                "price-sm": [
+                        "Inter"
+                ],
+                "headline-md": [
+                        "Inter"
+                ],
+                "body-md": [
+                        "Inter"
+                ],
+                "headline-lg-mobile": [
+                        "Inter"
+                ],
+                "headline-lg": [
+                        "Inter"
+                ],
+                "body-lg": [
+                        "Inter"
+                ]
+        },
+        "fontSize": {
+                "price-lg": [
+                        "24px",
+                        {
+                                "lineHeight": "1",
+                                "fontWeight": "600"
+                        }
+                ],
+                "label-md": [
+                        "12px",
+                        {
+                                "lineHeight": "1.2",
+                                "fontWeight": "500"
+                        }
+                ],
+                "display-lg": [
+                        "48px",
+                        {
+                                "lineHeight": "1.2",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "price-sm": [
+                        "14px",
+                        {
+                                "lineHeight": "1",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-md": [
+                        "20px",
+                        {
+                                "lineHeight": "1.4",
+                                "fontWeight": "600"
+                        }
+                ],
+                "body-md": [
+                        "14px",
+                        {
+                                "lineHeight": "1.5",
+                                "fontWeight": "400"
+                        }
+                ],
+                "headline-lg-mobile": [
+                        "24px",
+                        {
+                                "lineHeight": "1.3",
+                                "fontWeight": "700"
+                        }
+                ],
+                "headline-lg": [
+                        "32px",
+                        {
+                                "lineHeight": "1.25",
+                                "fontWeight": "700"
+                        }
+                ],
+                "body-lg": [
+                        "16px",
+                        {
+                                "lineHeight": "1.5",
+                                "fontWeight": "400"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .material-symbols-outlined {
+                font-family: 'Material Symbols Outlined';
+                font-weight: normal;
+                font-style: normal;
+                font-size: 24px;
+                line-height: 1;
+                letter-spacing: normal;
+                text-transform: none;
+                display: inline-block;
+                white-space: nowrap;
+                word-wrap: normal;
+                direction: ltr;
+                -webkit-font-feature-settings: 'liga';
+                -webkit-font-smoothing: antialiased;
+            }
+        }
+    </style>
+</head>
+<body class="bg-background min-h-screen flex items-center justify-center p-margin-mobile md:p-margin-desktop text-on-surface font-body-md">
+<!-- Registration Card -->
+<main class="w-full max-w-[480px] bg-surface-container-lowest rounded-xl shadow-[0_12px_32px_rgba(0,0,0,0.1)] p-lg md:p-xl border border-outline-variant">
+<!-- Header Section -->
+<div class="text-center mb-xl">
+<h1 class="text-headline-lg font-headline-lg text-[#ee4d2d] tracking-tight mb-sm font-bold">TechToShop</h1>
+<h2 class="text-headline-md font-headline-md text-on-surface font-bold">Tạo tài khoản mới</h2>
+<p class="text-body-md font-body-md text-on-surface-variant mt-xs">Điền thông tin bên dưới để bắt đầu</p>
+</div>
+<!-- Registration Form -->
+<form action="#" class="flex flex-col gap-md" method="POST">
+<!-- Full Name Input -->
+<div>
+<label class="block text-label-md font-label-md text-on-surface mb-xs font-medium" for="fullname">Họ tên</label>
+<div class="relative">
+<input class="w-full h-[48px] px-md border border-outline-variant rounded-lg bg-surface-container-lowest text-body-md font-body-md text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-[#ee4d2d] focus:border-[#ee4d2d] transition-all duration-200" id="fullname" name="fullname" placeholder="Nhập họ và tên" required="" type="text">
+</div>
+</div>
+<!-- Email Input -->
+<div>
+<label class="block text-label-md font-label-md text-on-surface mb-xs font-medium" for="email">Email</label>
+<div class="relative">
+<input class="w-full h-[48px] px-md border border-outline-variant rounded-lg bg-surface-container-lowest text-body-md font-body-md text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-[#ee4d2d] focus:border-[#ee4d2d] transition-all duration-200" id="email" name="email" placeholder="Nhập địa chỉ email" required="" type="email">
+</div>
+</div>
+<!-- Phone Number Input -->
+<div>
+<label class="block text-label-md font-label-md text-on-surface mb-xs font-medium" for="phone">Số điện thoại</label>
+<div class="relative">
+<input class="w-full h-[48px] px-md border border-outline-variant rounded-lg bg-surface-container-lowest text-body-md font-body-md text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-[#ee4d2d] focus:border-[#ee4d2d] transition-all duration-200" id="phone" name="phone" placeholder="Nhập số điện thoại" required="" type="tel">
+</div>
+</div>
+<!-- Password Input -->
+<div>
+<label class="block text-label-md font-label-md text-on-surface mb-xs font-medium" for="password">Mật khẩu</label>
+<div class="relative">
+<input class="w-full h-[48px] px-md border border-outline-variant rounded-lg bg-surface-container-lowest text-body-md font-body-md text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-[#ee4d2d] focus:border-[#ee4d2d] transition-all duration-200" id="password" name="password" placeholder="Tạo mật khẩu" required="" type="password">
+</div>
+</div>
+<!-- Confirm Password Input -->
+<div>
+<label class="block text-label-md font-label-md text-on-surface mb-xs font-medium" for="confirm_password">Xác nhận mật khẩu</label>
+<div class="relative">
+<input class="w-full h-[48px] px-md border border-outline-variant rounded-lg bg-surface-container-lowest text-body-md font-body-md text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-[#ee4d2d] focus:border-[#ee4d2d] transition-all duration-200" id="confirm_password" name="confirm_password" placeholder="Nhập lại mật khẩu" required="" type="password">
+</div>
+</div>
+<!-- Terms Checkbox -->
+<div class="flex items-start gap-sm mt-sm">
+<div class="flex items-center h-5 mt-0.5">
+<input class="w-4 h-4 rounded border-outline-variant text-[#ee4d2d] focus:ring-[#ee4d2d] focus:ring-2 bg-surface-container-lowest cursor-pointer transition-colors" id="terms" name="terms" required="" type="checkbox">
+</div>
+<label class="text-body-md font-body-md text-on-surface-variant cursor-pointer font-medium" for="terms">Tôi đồng ý với <a class="text-[#ee4d2d] hover:text-[#d63c1e] font-medium hover:underline transition-colors" href="#">Điều khoản sử dụng</a> và <a class="text-[#ee4d2d] hover:text-[#d63c1e] font-medium hover:underline transition-colors" href="#">Chính sách bảo mật</a> của TechToShop.</label>
+</div>
+<!-- Submit Button -->
+<button class="w-full h-[48px] mt-md bg-[#ee4d2d] hover:bg-[#d63c1e] text-on-primary rounded-lg text-label-md font-label-md flex justify-center items-center gap-sm transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] font-bold" type="submit">
+                Đăng ký
+            </button>
+</form>
+<!-- Login Redirect Link -->
+<div class="mt-lg text-center text-body-md font-body-md text-on-surface-variant border-t border-outline-variant pt-lg">
+            Đã có tài khoản? 
+            <a class="text-[#ee4d2d] font-bold hover:text-[#d63c1e] hover:underline transition-colors ml-1" href="#">Đăng nhập ngay</a>
+</div>
+</main>
+
+
+
+
+
+
+
+
+</body></html>

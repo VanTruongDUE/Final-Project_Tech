@@ -1,0 +1,372 @@
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import AdminIcon from '../../components/admin/AdminIcon'
+import { adminService } from '../../services/adminService'
+
+function formatCompactVnd(value) {
+  if (value >= 1000000000) {
+    return `${(value / 1000000000).toFixed(1).replace('.0', '')}B VNĐ`
+  }
+
+  if (value >= 1000000) {
+    return `${Math.round(value / 1000000)}M VNĐ`
+  }
+
+  return new Intl.NumberFormat('vi-VN').format(value) + 'đ'
+}
+
+function buildRevenuePath(points) {
+  const maxValue = Math.max(...points.map((point) => point.value), 1)
+  const stepX = points.length > 1 ? 100 / (points.length - 1) : 100
+  const coordinates = points.map((point, index) => ({
+    x: index * stepX,
+    y: 50 - (point.value / maxValue) * 38,
+  }))
+  const path = coordinates.reduce((command, point, index) => {
+    if (index === 0) {
+      return `M${point.x},${point.y}`
+    }
+
+    const previous = coordinates[index - 1]
+    const midpoint = (previous.x + point.x) / 2
+    return `${command} Q${midpoint},${previous.y} ${point.x},${point.y}`
+  }, '')
+
+  return {
+    path,
+    area: `${path} L100,50 L0,50 Z`,
+    coordinates,
+  }
+}
+
+const chartTypeOptions = [
+  { value: 'area', label: 'Vùng' },
+  { value: 'line', label: 'Đường' },
+  { value: 'bar', label: 'Cột' },
+]
+
+function MetricCard({ metric }) {
+  if (metric.featured) {
+    return (
+      <div className="relative col-span-2 min-h-24 overflow-hidden rounded-xl border border-blue-800 bg-gradient-to-br from-blue-900 to-blue-700 p-4 shadow md:col-span-4 lg:col-span-1">
+        <div className="mb-1 flex items-start justify-between">
+          <span className="text-xs font-medium text-blue-100">{metric.label}</span>
+          <AdminIcon name={metric.icon} className="text-[18px] text-white" />
+        </div>
+        <div className="mt-1 text-2xl font-bold text-white">{metric.value}</div>
+        <div className="mt-1 flex items-center text-xs font-medium text-blue-200">
+          <AdminIcon name="arrow_upward" className="mr-1 text-[14px]" />
+          {metric.trend}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="relative min-h-24 overflow-hidden rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="mb-1 flex items-start justify-between">
+        <span className="text-xs font-medium text-slate-500">{metric.label}</span>
+        <AdminIcon name={metric.icon} className={`text-[18px] ${metric.iconClassName}`} />
+      </div>
+      <div className="text-2xl font-bold text-slate-900">{metric.value}</div>
+      <div className="mt-1 flex items-center text-xs font-medium text-green-600">
+        <AdminIcon name="trending_up" className="mr-1 text-[14px]" />
+        {metric.trend}
+      </div>
+    </div>
+  )
+}
+
+function RevenueTrend({ points }) {
+  const [chartType, setChartType] = useState('area')
+  const chart = buildRevenuePath(points)
+  const maxValue = Math.max(...points.map((point) => point.value), 1)
+
+  return (
+    <div className="rounded border border-slate-200 bg-white p-3 shadow-sm">
+      <div className="mb-2 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <h2 className="text-sm font-bold text-slate-800">Xu hướng doanh thu</h2>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex rounded border border-slate-200 bg-slate-50 p-0.5">
+            {chartTypeOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setChartType(option.value)}
+                className={`rounded px-2 py-1 text-xs font-medium transition ${chartType === option.value ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-white'}`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          <select className="rounded border border-slate-300 bg-slate-50 px-2 py-1 text-xs text-slate-700 outline-none">
+            <option>30 ngày qua</option>
+            <option>Năm nay</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="relative h-48 overflow-hidden rounded border border-dashed border-slate-300 bg-slate-50">
+        <div className="absolute inset-0 bg-gradient-to-t from-blue-100/30 to-transparent" />
+        {chartType === 'bar' ? (
+          <div className="relative z-10 flex h-full items-end gap-2 px-4 pb-8 pt-6">
+            {points.map((point) => {
+              const height = Math.max(6, (point.value / maxValue) * 82)
+
+              return (
+                <div key={point.label} className="group relative flex h-full flex-1 items-end justify-center">
+                  <div className="w-full max-w-12 rounded-t bg-blue-500 transition group-hover:bg-blue-700" style={{ height: `${height}%` }} />
+                  <div className="pointer-events-none absolute bottom-[calc(100%+8px)] left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-800 shadow group-hover:block">
+                    {point.label}: {formatCompactVnd(point.value)}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <>
+            <svg className="relative h-full w-full" preserveAspectRatio="none" viewBox="0 0 100 50">
+              {chartType === 'area' ? <path d={chart.area} fill="#dbeafe" opacity="0.75" /> : null}
+              <path d={chart.path} fill="none" stroke="#2563eb" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" vectorEffect="non-scaling-stroke" />
+            </svg>
+            {chart.coordinates.map((point, index) => {
+              const source = points[index]
+
+              return (
+                <div
+                  key={source.label}
+                  className="group absolute z-20 -translate-x-1/2 -translate-y-1/2"
+                  style={{ left: `${point.x}%`, top: `${point.y * 2}%` }}
+                >
+                  <div className="h-3 w-3 rounded-full border-2 border-white bg-blue-600 shadow transition group-hover:scale-125" />
+                  <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-800 shadow group-hover:block">
+                    {source.label}: {formatCompactVnd(source.value)}
+                  </div>
+                </div>
+              )
+            })}
+          </>
+        )}
+        <div className="absolute bottom-2 left-3 right-3 flex justify-between text-[11px] font-medium text-slate-500">
+          {points.map((point) => (
+            <span key={point.label}>{point.label}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function RecentActivityTable({ activities }) {
+  return (
+    <div className="overflow-hidden rounded border border-slate-200 bg-white shadow-sm">
+      <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 p-3">
+        <h2 className="text-sm font-bold text-slate-800">Hoạt động gần đây</h2>
+        <button type="button" className="text-xs font-medium text-blue-600 hover:underline">
+          Xem tất cả
+        </button>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[680px] text-left text-sm">
+          <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-500">
+            <tr>
+              <th className="px-4 py-2">Đối tượng</th>
+              <th className="px-4 py-2">Hành động</th>
+              <th className="px-4 py-2">Thời gian</th>
+              <th className="px-4 py-2 text-right">Trạng thái</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {activities.map((activity) => (
+              <tr key={activity.id} className="transition-colors hover:bg-slate-50">
+                <td className="flex items-center gap-2 px-4 py-2">
+                  <div className={`flex h-6 w-6 items-center justify-center rounded ${activity.iconClassName}`}>
+                    <AdminIcon name={activity.icon} className="text-[14px]" />
+                  </div>
+                  <span className="font-medium text-slate-800">{activity.entity}</span>
+                </td>
+                <td className="px-4 py-2 text-slate-600">{activity.action}</td>
+                <td className="px-4 py-2 text-xs text-slate-500">{activity.time}</td>
+                <td className="px-4 py-2 text-right">
+                  <span className={`inline-flex rounded px-2 py-0.5 text-xs font-medium ${activity.statusClassName}`}>{activity.status}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+function ActionRequired({ alerts }) {
+  const toneClassName = {
+    red: 'border-red-100 bg-red-50 text-red-800',
+    amber: 'border-amber-100 bg-amber-50 text-amber-800',
+  }
+
+  return (
+    <div className="relative overflow-hidden rounded border border-red-200 bg-white p-3 shadow-sm">
+      <div className="absolute left-0 top-0 h-full w-1 bg-red-500" />
+      <h2 className="mb-2 ml-1 flex items-center gap-2 text-sm font-bold text-slate-800">
+        <AdminIcon name="warning" className="text-[18px] text-red-500" />
+        Cần xử lý
+      </h2>
+      <div className="ml-1 space-y-2">
+        {alerts.map((alert) => (
+          <div key={alert.id} className={`flex items-center justify-between rounded border p-2 ${toneClassName[alert.tone]}`}>
+            <div>
+              <p className="text-xs font-semibold">{alert.title}</p>
+              <p className="mt-0.5 text-[11px] opacity-80">{alert.description}</p>
+            </div>
+            {alert.to ? (
+              <Link to={alert.to} className="rounded bg-white px-2 py-1 text-xs font-medium shadow-sm transition hover:bg-slate-50">
+                {alert.actionLabel}
+              </Link>
+            ) : (
+              <button type="button" className="rounded bg-white px-2 py-1 text-xs font-medium shadow-sm transition hover:bg-slate-50">
+                {alert.actionLabel}
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function OrderStatus({ orderStatus }) {
+  return (
+    <div className="rounded border border-slate-200 bg-white p-3 shadow-sm">
+      <h2 className="mb-2 text-sm font-bold text-slate-800">Trạng thái đơn hàng</h2>
+      <div className="relative mb-2 flex h-32 items-center justify-center">
+        <div className="h-28 w-28 rounded-full border-[18px] border-slate-200" />
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-sm font-bold text-slate-800">{new Intl.NumberFormat('vi-VN').format(orderStatus.total)}</span>
+          <span className="text-[10px] uppercase text-slate-500">Tổng</span>
+        </div>
+      </div>
+
+      <div className="space-y-1">
+        {orderStatus.segments.map((segment) => (
+          <div key={segment.id} className="group relative flex items-center justify-between text-xs">
+            <div className="flex items-center gap-1.5">
+              <span className={`h-2.5 w-2.5 rounded ${segment.colorClassName}`} />
+              <span className="text-slate-600">{segment.label}</span>
+            </div>
+            <span className="font-medium text-slate-800">{segment.value}</span>
+            <span className="pointer-events-none absolute right-0 top-full z-10 mt-1 hidden whitespace-nowrap rounded border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-slate-800 shadow group-hover:block">
+              {segment.label}: {segment.value} đơn
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function BestSellingProducts({ products }) {
+  return (
+    <div className="overflow-hidden rounded border border-slate-200 bg-white shadow-sm">
+      <div className="border-b border-slate-200 bg-slate-50 p-3">
+        <h2 className="text-sm font-bold text-slate-800">Sản phẩm bán chạy</h2>
+      </div>
+      {products.length ? (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[680px] text-left text-sm">
+            <thead className="border-b border-slate-200 text-xs uppercase text-slate-500">
+              <tr><th className="px-4 py-2">Sản phẩm / SKU</th><th className="px-4 py-2">Cửa hàng</th><th className="px-4 py-2 text-right">Đã bán</th><th className="px-4 py-2 text-right">Doanh thu item</th></tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {products.slice(0, 5).map((product) => (
+                <tr key={product.id}>
+                  <td className="px-4 py-2"><p className="font-medium text-slate-800">{product.name}</p><p className="text-xs text-slate-500">{product.skuCode || 'Chưa có SKU'} · {product.variantName}</p></td>
+                  <td className="px-4 py-2 text-slate-600">{product.storeName}</td>
+                  <td className="px-4 py-2 text-right font-semibold">{product.sold.toLocaleString('vi-VN')}</td>
+                  <td className="px-4 py-2 text-right font-semibold text-blue-700">{product.revenueLabel}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : <p className="p-4 text-sm text-slate-500">Không có sản phẩm bán chạy trong kỳ.</p>}
+    </div>
+  )
+}
+
+export default function AdminDashboardPage() {
+  const [dashboardResponse, setDashboardResponse] = useState({ success: false, isLoading: true })
+
+  useEffect(() => {
+    let isMounted = true
+
+    setDashboardResponse({ success: false, isLoading: true })
+    Promise.resolve(adminService.getDashboardStats())
+      .then((response) => {
+        if (isMounted) setDashboardResponse(response)
+      })
+      .catch((error) => {
+        if (isMounted) setDashboardResponse({ success: false, message: error.message })
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  if (dashboardResponse.isLoading) {
+    return (
+      <section className="p-4">
+        <div className="rounded border border-slate-200 bg-white p-4 text-sm text-slate-600">Đang tải dashboard Admin...</div>
+      </section>
+    )
+  }
+
+  if (!dashboardResponse.success) {
+    return (
+      <section className="p-4">
+        <div className="rounded border border-red-200 bg-white p-4 text-sm text-red-700">Không thể tải dashboard Admin.</div>
+      </section>
+    )
+  }
+
+  const { metrics, revenueTrend, recentActivity, alerts, orderStatus, topProducts, lastUpdated, totals } = dashboardResponse.data
+
+  return (
+    <section className="mx-auto flex w-full max-w-[1600px] flex-col gap-5 p-3 md:p-6">
+      <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 md:text-[32px]">Tổng quan hệ thống</h1>
+          <p className="mt-1 text-sm text-slate-500">Theo dõi chỉ số toàn sàn và hoạt động mới nhất.</p>
+        </div>
+        <div className="text-xs text-slate-500">Cập nhật: {lastUpdated}</div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-5">
+        {metrics.map((metric) => (
+          <MetricCard key={metric.id} metric={metric} />
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
+        <div className="space-y-2 lg:col-span-2">
+          <RevenueTrend points={revenueTrend} />
+          <RecentActivityTable activities={recentActivity} />
+        </div>
+
+        <div className="space-y-2">
+          <ActionRequired alerts={alerts} />
+          <OrderStatus orderStatus={orderStatus} />
+        </div>
+      </div>
+
+      <BestSellingProducts products={topProducts} />
+
+      <p className="sr-only">
+        Dashboard API toàn sàn: {totals.users} người dùng, {totals.stores} cửa hàng, {totals.products} sản phẩm, {totals.orders} đơn hàng,
+        doanh thu {formatCompactVnd(totals.revenue)}.
+      </p>
+    </section>
+  )
+}

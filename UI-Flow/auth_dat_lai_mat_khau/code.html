@@ -1,0 +1,251 @@
+<!DOCTYPE html><html lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Auth - Dat lai mat khau</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "secondary-container": "#db3514",
+                "surface-container-lowest": "#ffffff",
+                "on-tertiary-container": "#fffbff",
+                "on-secondary-fixed": "#3e0500",
+                "on-primary-fixed-variant": "#8d1600",
+                "tertiary": "#bb0017",
+                "on-primary-fixed": "#3e0500",
+                "on-secondary-container": "#fffbff",
+                "outline-variant": "#e3beb6",
+                "surface-bright": "#fbf9f9",
+                "outline": "#8f7069",
+                "on-tertiary-fixed-variant": "#93000f",
+                "surface-container": "#efeded",
+                "on-error": "#ffffff",
+                "on-surface-variant": "#5b403b",
+                "on-secondary": "#ffffff",
+                "on-surface": "#1b1c1c",
+                "secondary-fixed-dim": "#ffb4a4",
+                "surface": "#fbf9f9",
+                "on-background": "#1b1c1c",
+                "background": "#fbf9f9",
+                "inverse-primary": "#ffb4a4",
+                "surface-variant": "#e3e2e2",
+                "surface-container-high": "#e9e8e7",
+                "inverse-surface": "#303031",
+                "on-error-container": "#93000a",
+                "secondary-fixed": "#ffdad3",
+                "primary-fixed": "#ffdad3",
+                "on-secondary-fixed-variant": "#8d1600",
+                "on-tertiary-fixed": "#410003",
+                "surface-dim": "#dbdad9",
+                "on-primary": "#ffffff",
+                "primary-container": "#d63c1e",
+                "error-container": "#ffdad6",
+                "primary": "#b22204",
+                "on-tertiary": "#ffffff",
+                "error": "#ba1a1a",
+                "primary-fixed-dim": "#ffb4a4",
+                "tertiary-fixed": "#ffdad6",
+                "tertiary-fixed-dim": "#ffb3ac",
+                "surface-container-low": "#f5f3f3",
+                "secondary": "#b41f00",
+                "on-primary-container": "#fffbff",
+                "inverse-on-surface": "#f2f0f0",
+                "surface-container-highest": "#e3e2e2",
+                "tertiary-container": "#e51d27",
+                "surface-tint": "#b62506"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "margin-desktop": "auto",
+                "base": "4px",
+                "xl": "48px",
+                "sm": "8px",
+                "max-width": "1200px",
+                "margin-mobile": "12px",
+                "gutter": "12px",
+                "xs": "4px",
+                "lg": "24px",
+                "md": "16px"
+        },
+        "fontFamily": {
+                "price-lg": [
+                        "Inter"
+                ],
+                "label-md": [
+                        "Inter"
+                ],
+                "display-lg": [
+                        "Inter"
+                ],
+                "price-sm": [
+                        "Inter"
+                ],
+                "headline-md": [
+                        "Inter"
+                ],
+                "body-md": [
+                        "Inter"
+                ],
+                "headline-lg-mobile": [
+                        "Inter"
+                ],
+                "headline-lg": [
+                        "Inter"
+                ],
+                "body-lg": [
+                        "Inter"
+                ]
+        },
+        "fontSize": {
+                "price-lg": [
+                        "24px",
+                        {
+                                "lineHeight": "1",
+                                "fontWeight": "600"
+                        }
+                ],
+                "label-md": [
+                        "12px",
+                        {
+                                "lineHeight": "1.2",
+                                "fontWeight": "500"
+                        }
+                ],
+                "display-lg": [
+                        "48px",
+                        {
+                                "lineHeight": "1.2",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "price-sm": [
+                        "14px",
+                        {
+                                "lineHeight": "1",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-md": [
+                        "20px",
+                        {
+                                "lineHeight": "1.4",
+                                "fontWeight": "600"
+                        }
+                ],
+                "body-md": [
+                        "14px",
+                        {
+                                "lineHeight": "1.5",
+                                "fontWeight": "400"
+                        }
+                ],
+                "headline-lg-mobile": [
+                        "24px",
+                        {
+                                "lineHeight": "1.3",
+                                "fontWeight": "700"
+                        }
+                ],
+                "headline-lg": [
+                        "32px",
+                        {
+                                "lineHeight": "1.25",
+                                "fontWeight": "700"
+                        }
+                ],
+                "body-lg": [
+                        "16px",
+                        {
+                                "lineHeight": "1.5",
+                                "fontWeight": "400"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+  body {
+    background-color: #fbf9f9; /* Neutral background */
+  }
+  .card-shadow {
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05); /* Level 2 Raised */
+  }
+</style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col items-center justify-center p-md md:p-xl">
+<!-- Main Container -->
+<div class="w-full max-w-[480px] bg-surface-container-lowest border border-outline-variant rounded-lg card-shadow p-lg md:p-xl flex flex-col gap-lg font-['Inter']">
+<!-- Header -->
+<div class="text-center flex flex-col gap-sm">
+<div class="mx-auto w-12 h-12 bg-[#EE4D2D]/10 rounded-full flex items-center justify-center mb-sm">
+<span class="material-symbols-outlined text-[#EE4D2D] text-headline-md" data-icon="lock_reset" data-weight="fill" style="font-variation-settings: 'FILL' 1;">lock_reset</span>
+</div>
+<h1 class="text-headline-lg-mobile md:text-headline-lg font-headline-lg-mobile md:font-headline-lg text-[#EE4D2D] font-bold">Đặt lại mật khẩu</h1>
+<p class="text-body-md font-body-md text-on-surface-variant">Vui lòng nhập mật khẩu mới cho tài khoản TechToShop của bạn.</p>
+</div>
+<!-- Form -->
+<form class="flex flex-col gap-md">
+<!-- New Password -->
+<div class="flex flex-col gap-xs">
+<label class="text-label-md font-label-md text-on-surface" for="new_password">Mật khẩu mới</label>
+<div class="relative">
+<input class="w-full h-[48px] px-md border border-outline-variant rounded-DEFAULT text-on-surface bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-[#EE4D2D] focus:ring-offset-2 focus:border-transparent" id="new_password" placeholder="••••••••" type="password">
+<button class="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface focus:outline-none" type="button">
+<span class="material-symbols-outlined" data-icon="visibility_off">visibility_off</span>
+</button>
+</div>
+</div>
+<!-- Confirm Password -->
+<div class="flex flex-col gap-xs">
+<label class="text-label-md font-label-md text-on-surface" for="confirm_password">Xác nhận mật khẩu</label>
+<div class="relative">
+<input class="w-full h-[48px] px-md border border-outline-variant rounded-DEFAULT text-on-surface bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-[#EE4D2D] focus:ring-offset-2 focus:border-transparent" id="confirm_password" placeholder="••••••••" type="password">
+<button class="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface focus:outline-none" type="button">
+<span class="material-symbols-outlined" data-icon="visibility_off">visibility_off</span>
+</button>
+</div>
+</div>
+<!-- Security Notice -->
+<div class="bg-surface-bright border border-outline-variant rounded-DEFAULT p-3 flex items-start gap-2 mt-2">
+<span class="material-symbols-outlined text-[#EE4D2D] text-[20px] mt-0.5" data-icon="info">info</span>
+<p class="text-label-md font-label-md text-on-surface-variant">Mật khẩu phải dài ít nhất 8 ký tự, bao gồm chữ cái và số.</p>
+</div>
+<!-- Submit Button -->
+<div class="bg-[#16A34A]/10 border border-[#16A34A] rounded-DEFAULT p-3 flex items-center gap-2 mt-2">
+<span class="material-symbols-outlined text-[#16A34A] text-[20px]" data-icon="check_circle">check_circle</span>
+<p class="text-label-md font-label-md text-[#16A34A]">Mật khẩu đã được cập nhật thành công!</p>
+</div><button class="w-full h-[48px] bg-[#EE4D2D] text-on-primary rounded-lg text-label-md font-label-md hover:bg-[#EE4D2D]/90 transition-colors mt-md flex items-center justify-center gap-2" type="submit">
+        Cập nhật mật khẩu
+        <span class="material-symbols-outlined text-[20px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</form>
+<!-- Footer link -->
+<div class="text-center mt-md">
+<a class="text-label-md font-label-md text-[#EE4D2D] hover:underline flex items-center justify-center gap-1" href="#">
+<span class="material-symbols-outlined text-[16px]" data-icon="arrow_back">arrow_back</span>
+        Quay lại đăng nhập
+      </a>
+</div>
+</div>
+
+
+
+
+
+
+
+
+</body></html>

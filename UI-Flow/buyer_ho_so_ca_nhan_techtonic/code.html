@@ -1,0 +1,309 @@
+<!DOCTYPE html><html lang="vi" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Buyer - Ho so ca nhan (TechTonic)</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#ffb3ac",
+                        "tertiary-fixed": "#ffdad6",
+                        "secondary": "#b41f00",
+                        "on-secondary-fixed-variant": "#8d1600",
+                        "surface": "#fbf9f9",
+                        "surface-container": "#efeded",
+                        "on-tertiary-fixed-variant": "#93000f",
+                        "on-background": "#1b1c1c",
+                        "on-tertiary-container": "#fffbff",
+                        "on-error": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#e51d27",
+                        "on-primary-fixed-variant": "#8d1600",
+                        "surface-container-low": "#f5f3f3",
+                        "on-tertiary": "#ffffff",
+                        "inverse-on-surface": "#f2f0f0",
+                        "inverse-primary": "#ffb4a4",
+                        "primary-fixed": "#ffdad3",
+                        "inverse-surface": "#303031",
+                        "secondary-fixed": "#ffdad3",
+                        "surface-container-high": "#e9e8e7",
+                        "surface-container-highest": "#e3e2e2",
+                        "tertiary": "#bb0017",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-tint": "#b62506",
+                        "on-primary-container": "#fffbff",
+                        "on-secondary-container": "#fffbff",
+                        "surface-bright": "#fbf9f9",
+                        "primary-fixed-dim": "#ffb4a4",
+                        "secondary-fixed-dim": "#ffb4a4",
+                        "on-surface": "#1b1c1c",
+                        "surface-dim": "#dbdad9",
+                        "outline-variant": "#e3beb6",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "secondary-container": "#db3514",
+                        "on-tertiary-fixed": "#410003",
+                        "on-secondary-fixed": "#3e0500",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#d63c1e",
+                        "on-secondary": "#ffffff",
+                        "surface-variant": "#e3e2e2",
+                        "primary": "#b22204",
+                        "outline": "#8f7069",
+                        "on-surface-variant": "#5b403b",
+                        "on-primary-fixed": "#3e0500",
+                        "background": "#fbf9f9"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "margin-desktop": "auto",
+                        "md": "16px",
+                        "lg": "24px",
+                        "margin-mobile": "12px",
+                        "base": "4px",
+                        "max-width": "1200px",
+                        "sm": "8px",
+                        "gutter": "12px",
+                        "xl": "48px"
+                    },
+                    "fontFamily": {
+                        "price-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "price-lg": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "price-sm": ["14px", { "lineHeight": "1", "fontWeight": "600" }],
+                        "headline-md": ["20px", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "price-lg": ["24px", { "lineHeight": "1", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.3", "fontWeight": "700" }],
+                        "label-md": ["12px", { "lineHeight": "1.2", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.25", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-[#F5F5F5] text-on-surface font-body-md antialiased min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="bg-surface-container-lowest dark:bg-inverse-surface border-b border-border-light dark:border-outline shadow-sm sticky top-0 z-50">
+<div class="flex justify-between items-center w-full px-md max-w-max-width mx-auto h-[60px]">
+<div class="flex items-center gap-lg">
+<a class="text-title-lg font-headline-lg text-primary dark:text-inverse-primary tracking-tight font-extrabold" href="#">TechToShop</a>
+<nav class="hidden md:flex gap-lg">
+<a class="text-text-muted dark:text-surface-variant text-label-md font-label-md hover:text-primary dark:hover:text-primary-fixed-dim transition-colors" href="#">Danh mục</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<div class="relative hidden md:block">
+<input class="bg-surface-container-low border border-surface-variant rounded-full py-2 px-4 pr-10 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-body-sm w-64 transition-all" placeholder="Tìm kiếm sản phẩm..." type="text">
+<button class="absolute right-3 top-1/2 -translate-y-1/2 text-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="search">search</span>
+</button>
+</div>
+<button class="text-text-muted dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+</button>
+<div class="flex gap-sm ml-sm">
+<button class="text-primary dark:text-inverse-primary text-label-md font-label-md hover:text-primary-container transition-colors">Đăng nhập</button>
+<span class="text-surface-variant">|</span>
+<button class="text-text-muted dark:text-surface-variant text-label-md font-label-md hover:text-primary transition-colors">Đăng ký</button>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Grid -->
+<main class="flex-1 w-full max-w-max-width mx-auto px-md py-lg grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Sidebar Navigation (Buyer Profile Context) -->
+<aside class="md:col-span-3 bg-surface-container-lowest rounded-lg shadow-sm p-sm h-fit">
+<div class="flex items-center gap-sm p-sm mb-sm border-b border-surface-variant">
+<img alt="User Avatar" class="w-12 h-12 rounded-full object-cover border border-surface-variant" data-alt="A close-up studio portrait of a young adult looking directly at the camera with a neutral, pleasant expression. The lighting is soft and even, typical of a professional headshot. The background is a clean, neutral white, fitting the bright, high-contrast aesthetic of the T2 Commerce design system. The image is cropped tightly around the face and shoulders, suitable for a circular profile avatar." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5Y3o9PXGnGTb-kJWorCE32SZHdv-bnFY8eE_NMw2aPBBA0OjMf0edofl1G-QLrZv6-Pqs2BoLFJeof8iZNqao5DeD2BIp2Vn-N1pk1v2l_zT3JdU1idikHPYoS02VDemw4or4q8XhbsgAyqkDgW_nUEEdmDohJXezHFPR9BloYgnFmL4-cLrEPH6dzAovoLh_gu1BikU_om7W_Rl_aavnKEXrIzNofCw5shUFbUoGLKeHG2zr7JXPQMHh-h6IRXOXPRUFaVNwBLg">
+<div>
+<p class="font-headline-md text-headline-md text-on-surface line-clamp-1">Nguyễn Văn A</p>
+<p class="text-label-md font-label-md text-on-surface-variant">Thành viên Bạc</p>
+</div>
+</div>
+<nav class="flex flex-col gap-xs">
+<!-- Active Item -->
+<a class="flex items-center gap-md bg-primary-fixed dark:bg-primary-container text-on-primary-fixed-variant dark:text-on-primary-container border-l-4 border-primary rounded-r-full p-sm transition-all scale-95 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-label-md font-label-md">Hồ sơ</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant hover:bg-surface-container-high transition-all p-sm rounded-r-full" href="#">
+<span class="material-symbols-outlined" data-icon="location_on">location_on</span>
+<span class="text-label-md font-label-md">Địa chỉ</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant hover:bg-surface-container-high transition-all p-sm rounded-r-full" href="#">
+<span class="material-symbols-outlined" data-icon="lock">lock</span>
+<span class="text-label-md font-label-md">Đổi mật khẩu</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant hover:bg-surface-container-high transition-all p-sm rounded-r-full" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="text-label-md font-label-md">Đơn hàng</span>
+</a>
+<div class="my-xs border-t border-surface-variant"></div>
+<a class="flex items-center gap-md text-on-surface-variant hover:bg-surface-container-high transition-all p-sm rounded-r-full" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="text-label-md font-label-md">Đăng xuất</span>
+</a>
+</nav>
+</aside>
+<!-- Main Form Area -->
+<section class="md:col-span-9 flex flex-col gap-lg">
+<!-- Profile Info Card -->
+<div class="bg-surface-container-lowest rounded-lg shadow-sm p-lg">
+<div class="border-b border-surface-variant pb-md mb-md">
+<h1 class="text-headline-lg font-headline-lg text-on-surface">Hồ sơ của tôi</h1>
+<p class="text-body-md font-body-md text-on-surface-variant mt-xs">Quản lý thông tin hồ sơ để bảo mật tài khoản</p>
+</div>
+<div class="flex flex-col md:flex-row gap-lg">
+<!-- Avatar Upload Area -->
+<div class="flex-shrink-0 flex flex-col items-center justify-start md:border-r border-surface-variant md:pr-lg gap-md order-1 md:order-2">
+<div class="relative group cursor-pointer">
+<img alt="Avatar Preview" class="w-24 h-24 rounded-full object-cover border-2 border-surface-variant" data-alt="A close-up studio portrait of a young adult looking directly at the camera with a neutral, pleasant expression. The lighting is soft and even, typical of a professional headshot. The background is a clean, neutral white, fitting the bright, high-contrast aesthetic of the T2 Commerce design system. The image is cropped tightly around the face and shoulders, suitable for a circular profile avatar." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDML1MF5PEizl8Nuu-TShNOPx_eAKcYix9VC3KwKqGdSshtWhDHOie0_C553OiVkpr6lszBVFYG2FuJG7P4itu897ooZSl0-T1-sJzsli4qjwRd0cj5xuJ2d_V6x3cQMRSaGfSplIN7YQ3rZFlX1_qhI-7-EbJbD0LcI6gtX7dB1M1r8rLKbi2-zTtabtCWk3aRErtWa_Ph9iaLJgBQB97ecOVYk41ECzFWtbpM2qfyK_5ITAz5C2SkdFPnN96lmd10YNDE0P_O7Nk">
+<div class="absolute inset-0 bg-on-background/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-surface-container-lowest" data-icon="photo_camera">photo_camera</span>
+</div>
+</div>
+<button class="bg-surface-container-lowest border border-surface-variant text-on-surface text-label-md font-label-md px-4 py-2 rounded-lg hover:border-primary hover:text-primary transition-colors">Chọn Ảnh</button>
+<p class="text-label-md font-label-md text-on-surface-variant text-center max-w-[150px]">Dụng lượng file tối đa 1 MB<br>Định dạng: .JPEG, .PNG</p>
+</div>
+<!-- Form Fields -->
+<form class="flex-1 flex flex-col gap-md order-2 md:order-1">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-sm items-center">
+<label class="text-label-md font-label-md text-on-surface-variant text-left md:text-right md:pr-md">Tên đăng nhập</label>
+<div class="md:col-span-3">
+<p class="text-body-md font-body-md text-on-surface">nguyenvana_123</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-sm items-center">
+<label class="text-label-md font-label-md text-on-surface-variant text-left md:text-right md:pr-md" for="fullname">Họ và tên</label>
+<div class="md:col-span-3">
+<input class="w-full bg-surface-container-lowest border border-surface-variant rounded-md py-2 px-3 text-body-md font-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" id="fullname" type="text" value="Nguyễn Văn A">
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-sm items-center">
+<label class="text-label-md font-label-md text-on-surface-variant text-left md:text-right md:pr-md" for="email">Email</label>
+<div class="md:col-span-3 flex items-center gap-sm">
+<p class="text-body-md font-body-md text-on-surface flex-1">ngu****@gmail.com</p>
+<button class="text-primary text-label-md font-label-md underline hover:text-primary-container" type="button">Thay đổi</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-sm items-center">
+<label class="text-label-md font-label-md text-on-surface-variant text-left md:text-right md:pr-md" for="phone">Số điện thoại</label>
+<div class="md:col-span-3 flex items-center gap-sm">
+<p class="text-body-md font-body-md text-on-surface flex-1">********89</p>
+<button class="text-primary text-label-md font-label-md underline hover:text-primary-container" type="button">Thay đổi</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-sm items-center">
+<label class="text-label-md font-label-md text-on-surface-variant text-left md:text-right md:pr-md">Giới tính</label>
+<div class="md:col-span-3 flex gap-md">
+<label class="flex items-center gap-xs cursor-pointer">
+<input checked="" class="text-primary focus:ring-primary border-surface-variant" name="gender" type="radio" value="male">
+<span class="text-body-md font-body-md text-on-surface">Nam</span>
+</label>
+<label class="flex items-center gap-xs cursor-pointer">
+<input class="text-primary focus:ring-primary border-surface-variant" name="gender" type="radio" value="female">
+<span class="text-body-md font-body-md text-on-surface">Nữ</span>
+</label>
+<label class="flex items-center gap-xs cursor-pointer">
+<input class="text-primary focus:ring-primary border-surface-variant" name="gender" type="radio" value="other">
+<span class="text-body-md font-body-md text-on-surface">Khác</span>
+</label>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-sm items-center">
+<label class="text-label-md font-label-md text-on-surface-variant text-left md:text-right md:pr-md">Ngày sinh</label>
+<div class="md:col-span-3 flex gap-sm">
+<select class="bg-surface-container-lowest border border-surface-variant rounded-md py-2 px-3 text-body-md font-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all flex-1">
+<option>15</option>
+</select>
+<select class="bg-surface-container-lowest border border-surface-variant rounded-md py-2 px-3 text-body-md font-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all flex-1">
+<option>Tháng 8</option>
+</select>
+<select class="bg-surface-container-lowest border border-surface-variant rounded-md py-2 px-3 text-body-md font-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all flex-1">
+<option>1990</option>
+</select>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-sm mt-md">
+<div class="hidden md:block"></div>
+<div class="md:col-span-3">
+<button class="bg-primary hover:bg-primary-container text-on-primary text-body-md font-body-md px-8 py-2 rounded-lg shadow-sm transition-colors w-fit" type="button">Cập nhật</button>
+</div>
+</div>
+</form>
+</div>
+</div>
+<!-- Password Change Section (Short) -->
+<div class="bg-surface-container-lowest rounded-lg shadow-sm p-lg">
+<div class="border-b border-surface-variant pb-md mb-md">
+<h2 class="text-headline-md font-headline-md text-on-surface">Đổi mật khẩu nhanh</h2>
+</div>
+<form class="grid grid-cols-1 md:grid-cols-3 gap-md items-end">
+<div class="flex flex-col gap-xs">
+<label class="text-label-md font-label-md text-on-surface-variant" for="current_pw">Mật khẩu hiện tại</label>
+<input class="w-full bg-surface-container-lowest border border-surface-variant rounded-md py-2 px-3 text-body-md font-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" id="current_pw" type="password">
+</div>
+<div class="flex flex-col gap-xs">
+<label class="text-label-md font-label-md text-on-surface-variant" for="new_pw">Mật khẩu mới</label>
+<input class="w-full bg-surface-container-lowest border border-surface-variant rounded-md py-2 px-3 text-body-md font-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all" id="new_pw" type="password">
+</div>
+<div class="flex flex-col gap-xs">
+<button class="bg-surface-container-lowest border border-primary text-primary hover:bg-primary-fixed text-body-md font-body-md px-4 py-2 rounded-lg transition-colors w-full md:w-auto" type="button">Xác nhận đổi</button>
+</div>
+</form>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest dark:bg-inverse-surface border-t border-border-light dark:border-outline mt-auto">
+<div class="w-full py-xl px-md max-w-max-width mx-auto grid grid-cols-1 md:grid-cols-3 gap-gutter text-body-md font-body-md text-on-surface">
+<div>
+<a class="text-title-lg font-headline-lg text-primary block mb-sm" href="#">TechToShop</a>
+<p class="text-on-surface-variant text-label-sm font-label-sm">© 2024 TechToShop. All rights reserved.</p>
+</div>
+<div class="flex flex-col gap-xs">
+<h4 class="font-bold mb-xs">Thông tin</h4>
+<a class="text-text-muted dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">Về chúng tôi</a>
+<a class="text-text-muted dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">Liên hệ</a>
+</div>
+<div class="flex flex-col gap-xs">
+<h4 class="font-bold mb-xs">Pháp lý</h4>
+<a class="text-text-muted dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">Chính sách bảo mật</a>
+<a class="text-text-muted dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">Điều khoản sử dụng</a>
+</div>
+</div>
+</footer>
+
+
+
+
+</body></html>

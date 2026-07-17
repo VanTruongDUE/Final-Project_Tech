@@ -1,0 +1,388 @@
+<!DOCTYPE html><html lang="vi" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Buyer - Thanh toan (TechTonic Optimized)</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "secondary-container": "#db3514",
+                "surface-container-lowest": "#ffffff",
+                "on-tertiary-container": "#fffbff",
+                "on-secondary-fixed": "#3e0500",
+                "on-primary-fixed-variant": "#8d1600",
+                "tertiary": "#bb0017",
+                "on-primary-fixed": "#3e0500",
+                "on-secondary-container": "#fffbff",
+                "outline-variant": "#e3beb6",
+                "surface-bright": "#fbf9f9",
+                "outline": "#8f7069",
+                "on-tertiary-fixed-variant": "#93000f",
+                "surface-container": "#efeded",
+                "on-error": "#ffffff",
+                "on-surface-variant": "#5b403b",
+                "on-secondary": "#ffffff",
+                "on-surface": "#1b1c1c",
+                "secondary-fixed-dim": "#ffb4a4",
+                "surface": "#fbf9f9",
+                "on-background": "#1b1c1c",
+                "background": "#fbf9f9",
+                "inverse-primary": "#ffb4a4",
+                "surface-variant": "#e3e2e2",
+                "surface-container-high": "#e9e8e7",
+                "inverse-surface": "#303031",
+                "on-error-container": "#93000a",
+                "secondary-fixed": "#ffdad3",
+                "primary-fixed": "#ffdad3",
+                "on-secondary-fixed-variant": "#8d1600",
+                "on-tertiary-fixed": "#410003",
+                "surface-dim": "#dbdad9",
+                "on-primary": "#ffffff",
+                "primary-container": "#d63c1e",
+                "error-container": "#ffdad6",
+                "primary": "#b22204",
+                "on-tertiary": "#ffffff",
+                "error": "#ba1a1a",
+                "primary-fixed-dim": "#ffb4a4",
+                "tertiary-fixed": "#ffdad6",
+                "tertiary-fixed-dim": "#ffb3ac",
+                "surface-container-low": "#f5f3f3",
+                "secondary": "#b41f00",
+                "on-primary-container": "#fffbff",
+                "inverse-on-surface": "#f2f0f0",
+                "surface-container-highest": "#e3e2e2",
+                "tertiary-container": "#e51d27",
+                "surface-tint": "#b62506",
+                "shopee-orange": "#EE4D2D",
+                "shopee-red": "#D0011B"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "margin-desktop": "auto",
+                "base": "4px",
+                "xl": "48px",
+                "sm": "8px",
+                "max-width": "1200px",
+                "margin-mobile": "12px",
+                "gutter": "12px",
+                "xs": "4px",
+                "lg": "24px",
+                "md": "16px"
+        },
+        "fontFamily": {
+                "price-lg": [
+                        "Inter"
+                ],
+                "label-md": [
+                        "Inter"
+                ],
+                "display-lg": [
+                        "Inter"
+                ],
+                "price-sm": [
+                        "Inter"
+                ],
+                "headline-md": [
+                        "Inter"
+                ],
+                "body-md": [
+                        "Inter"
+                ],
+                "headline-lg-mobile": [
+                        "Inter"
+                ],
+                "headline-lg": [
+                        "Inter"
+                ],
+                "body-lg": [
+                        "Inter"
+                ]
+        },
+        "fontSize": {
+                "price-lg": [
+                        "24px",
+                        {
+                                "lineHeight": "1",
+                                "fontWeight": "600"
+                        }
+                ],
+                "label-md": [
+                        "12px",
+                        {
+                                "lineHeight": "1.2",
+                                "fontWeight": "500"
+                        }
+                ],
+                "display-lg": [
+                        "48px",
+                        {
+                                "lineHeight": "1.2",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "price-sm": [
+                        "14px",
+                        {
+                                "lineHeight": "1",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-md": [
+                        "20px",
+                        {
+                                "lineHeight": "1.4",
+                                "fontWeight": "600"
+                        }
+                ],
+                "body-md": [
+                        "14px",
+                        {
+                                "lineHeight": "1.5",
+                                "fontWeight": "400"
+                        }
+                ],
+                "headline-lg-mobile": [
+                        "24px",
+                        {
+                                "lineHeight": "1.3",
+                                "fontWeight": "700"
+                        }
+                ],
+                "headline-lg": [
+                        "32px",
+                        {
+                                "lineHeight": "1.25",
+                                "fontWeight": "700"
+                        }
+                ],
+                "body-lg": [
+                        "16px",
+                        {
+                                "lineHeight": "1.5",
+                                "fontWeight": "400"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+</head>
+<body class="bg-surface text-on-surface font-body-md antialiased min-h-screen flex flex-col">
+<!-- Minimal Checkout Header -->
+<header class="bg-shopee-orange border-b border-outline-variant h-16 flex items-center px-4 md:px-8 sticky top-0 z-50">
+<div class="max-w-7xl mx-auto w-full flex justify-between items-center">
+<div class="flex items-center gap-4">
+<a class="text-on-primary hover:text-white/80 transition-colors flex items-center gap-2 text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined" style="font-size: 20px;">arrow_back</span>
+                    Trở về giỏ hàng
+                </a>
+</div>
+<div class="text-white font-headline-lg text-headline-lg tracking-tight">TechToShop</div>
+<div class="w-12"></div> <!-- Spacer for center alignment -->
+</div>
+</header>
+<!-- Main Checkout Canvas -->
+<main class="flex-grow w-full max-w-7xl mx-auto px-4 md:px-8 py-8">
+<h1 class="text-headline-lg font-headline-lg text-on-surface mb-8">Thanh toán</h1>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- LEFT COLUMN: Forms -->
+<div class="lg:col-span-7 xl:col-span-8 flex flex-col gap-6">
+<!-- Section: Shipping Info -->
+<section class="bg-surface-container-lowest rounded-lg border border-surface-variant p-6 shadow-sm">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-8 h-8 rounded-full bg-primary-fixed text-shopee-orange flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-size: 18px;">local_shipping</span>
+</div>
+<h2 class="text-headline-md font-headline-md text-on-surface">Thông tin giao hàng</h2><button class="ml-auto text-label-md font-bold text-shopee-orange hover:text-shopee-red transition-colors">Thay đổi</button>
+</div>
+<form class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="flex flex-col gap-2 md:col-span-2">
+<label class="text-label-md font-label-md text-on-surface-variant">Họ và tên người nhận</label>
+<input class="h-[48px] px-4 rounded-lg border border-outline bg-surface-container-lowest text-body-md font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-shopee-orange focus:border-transparent transition-all placeholder:text-outline-variant" placeholder="Nhập họ và tên" type="text">
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-label-md font-label-md text-on-surface-variant">Số điện thoại</label>
+<input class="h-[48px] px-4 rounded-lg border border-outline bg-surface-container-lowest text-body-md font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-shopee-orange focus:border-transparent transition-all placeholder:text-outline-variant" placeholder="Nhập số điện thoại" type="tel">
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-label-md font-label-md text-on-surface-variant">Email (Tùy chọn)</label>
+<input class="h-[48px] px-4 rounded-lg border border-outline bg-surface-container-lowest text-body-md font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-shopee-orange focus:border-transparent transition-all placeholder:text-outline-variant" placeholder="Nhập email" type="email">
+</div>
+<div class="flex flex-col gap-2 md:col-span-2">
+<label class="text-label-md font-label-md text-on-surface-variant">Địa chỉ nhận hàng</label>
+<input class="h-[48px] px-4 rounded-lg border border-outline bg-surface-container-lowest text-body-md font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-shopee-orange focus:border-transparent transition-all placeholder:text-outline-variant" placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố" type="text">
+</div>
+</form>
+</section>
+<!-- Section: Shipping Method -->
+<section class="bg-surface-container-lowest rounded-lg border border-surface-variant p-6 shadow-sm">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-8 h-8 rounded-full bg-primary-fixed text-shopee-orange flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-size: 18px;">package_2</span>
+</div>
+<h2 class="text-headline-md font-headline-md text-on-surface">Phương thức vận chuyển</h2>
+</div>
+<div class="flex flex-col gap-3">
+<label class="relative flex items-center justify-between p-4 rounded-lg border border-shopee-orange bg-shopee-orange/5 cursor-pointer transition-all">
+<div class="flex items-center gap-3">
+<input checked="" class="w-4 h-4 text-[color:var(--tw-colors-shopee-orange)] focus:ring-shopee-orange border-outline-variant" name="shipping" type="radio">
+<div>
+<span class="block text-label-md font-label-md text-on-surface">Giao hàng tiêu chuẩn</span>
+<span class="block text-body-md font-body-md text-on-surface-variant mt-1">Dự kiến giao: 2-4 ngày làm việc</span>
+</div>
+</div>
+<span class="text-label-md font-label-md text-on-surface">30.000 ₫</span>
+</label>
+<label class="relative flex items-center justify-between p-4 rounded-lg border border-surface-variant hover:border-outline-variant cursor-pointer transition-all">
+<div class="flex items-center gap-3">
+<input class="w-4 h-4 text-[color:var(--tw-colors-shopee-orange)] focus:ring-shopee-orange border-outline-variant" name="shipping" type="radio">
+<div>
+<span class="block text-label-md font-label-md text-on-surface">Giao hàng hỏa tốc</span>
+<span class="block text-body-md font-body-md text-on-surface-variant mt-1">Dự kiến giao: Trong ngày (Nội thành)</span>
+</div>
+</div>
+<span class="text-label-md font-label-md text-on-surface">50.000 ₫</span>
+</label>
+</div>
+</section>
+<!-- Section: Payment Method -->
+<section class="bg-surface-container-lowest rounded-lg border border-surface-variant p-6 shadow-sm">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-8 h-8 rounded-full bg-primary-fixed text-shopee-orange flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-size: 18px;">payments</span>
+</div>
+<h2 class="text-headline-md font-headline-md text-on-surface">Phương thức thanh toán</h2>
+</div>
+<div class="flex flex-col gap-3">
+<label class="relative flex items-center gap-3 p-4 rounded-lg border border-surface-variant hover:border-outline-variant cursor-pointer transition-all">
+<input checked="" class="w-4 h-4 text-[color:var(--tw-colors-shopee-orange)] focus:ring-shopee-orange border-outline-variant" name="payment" type="radio">
+<div class="flex items-center gap-3 flex-grow">
+<span class="material-symbols-outlined text-outline" style="font-size: 24px;">account_balance_wallet</span>
+<div>
+<span class="block text-label-md font-label-md text-on-surface">Thanh toán khi nhận hàng (COD)</span>
+<span class="block text-body-md font-body-md text-on-surface-variant mt-1">Thanh toán bằng tiền mặt khi giao hàng</span>
+</div>
+</div>
+</label>
+<label class="relative flex items-center gap-3 p-4 rounded-lg border border-surface-variant hover:border-outline-variant cursor-pointer transition-all">
+<input class="w-4 h-4 text-[color:var(--tw-colors-shopee-orange)] focus:ring-shopee-orange border-outline-variant" name="payment" type="radio">
+<div class="flex items-center gap-3 flex-grow">
+<span class="material-symbols-outlined text-outline" style="font-size: 24px;">account_balance</span>
+<div>
+<span class="block text-label-md font-label-md text-on-surface">Chuyển khoản ngân hàng</span>
+<span class="block text-body-md font-body-md text-on-surface-variant mt-1">Chuyển khoản qua quét mã QR hoặc STK</span>
+</div>
+</div>
+</label>
+</div>
+</section>
+</div>
+<!-- RIGHT COLUMN: Order Summary -->
+<div class="lg:col-span-5 xl:col-span-4">
+<div class="sticky top-[calc(48px+32px)] bg-surface-container-lowest rounded-lg border border-surface-variant p-6 shadow-sm flex flex-col gap-6">
+<h2 class="text-headline-md font-headline-md text-on-surface border-b border-surface-variant pb-4">Đơn hàng của bạn (3 sản phẩm)</h2>
+<!-- Product List -->
+<div class="flex flex-col gap-4 max-h-[300px] overflow-y-auto pr-2">
+<!-- Item 1 -->
+<div class="flex gap-4">
+<div class="w-16 h-16 rounded-md bg-surface-container overflow-hidden flex-shrink-0 border border-surface-variant">
+<img alt="Product thumbnail" class="w-full h-full object-cover" data-alt="A clean, minimalist product photography shot of a sleek modern smartwatch with a white band, resting on a pure white surface. High key lighting, soft shadows, pristine corporate e-commerce aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAuIK7eUMCM_UB-UI8FHipnxxhCvmOHHm7JBOMfZDRhJQzsCUitAHQY_rKZDn5FSEOdiTSQebQSAqnSZhCPzeTPXjwoAFxAeXAGXM3rhA7HqFCO0rPBBfLnUCmIeQbD8RJk0kKVtkuCuj__8965U0rLPiFvPN5ZSrSQhZrED46xQith8M1o2-t4XSMMdEV26bcJq9BSC7IwMNG-ET7FvS6AzTDFumC8SWHlQS5fppUymWPBEcF2lBx84mh81upJYLm5ZWW5jbA7X_M">
+</div>
+<div class="flex-grow flex flex-col justify-between">
+<div>
+<h3 class="text-label-md font-label-md text-on-surface line-clamp-2">Đồng hồ thông minh TechToShop Pro Max - Phiên bản viền thép không gỉ</h3>
+<span class="text-body-md font-body-md text-on-surface-variant">Màu: Bạc</span>
+</div>
+<div class="flex justify-between items-center mt-2">
+<span class="text-body-md font-body-md text-on-surface-variant">SL: 1</span>
+<span class="text-label-md font-label-md text-on-surface">3.450.000 ₫</span>
+</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="flex gap-4">
+<div class="w-16 h-16 rounded-md bg-surface-container overflow-hidden flex-shrink-0 border border-surface-variant">
+<img alt="Product thumbnail" class="w-full h-full object-cover" data-alt="A minimalist e-commerce product shot of premium over-ear wireless headphones in matte black. Placed against a bright white background with soft, studio-quality lighting to highlight the texture and modern design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEAjBrkSpNrw7gP8oCCQc_LrKZ3J-x1l5mSeAel3iv-pS8aushN7P-5XgQE3SSdI9L2xPt6khQoNsL9U_a30GEM5fWhD0WV3FqG_yJ9FSe4wEm-ljCOp3TcML5m5gPL1cWhX9VKftlwwWCLaHrF54WV9-oNr6L2ihoHvDDzGKNXzHUvCdPDdfB3GeTXIUi2Uock3YG3u8q1U6KqGXalUYK_AwHi2WZzPM54YSX8SVnNB7Bzxrg2ZHRWFe_fzFEqjhgutRvZDjx4CM">
+</div>
+<div class="flex-grow flex flex-col justify-between">
+<div>
+<h3 class="text-label-md font-label-md text-on-surface line-clamp-2">Tai nghe chống ồn chủ động không dây</h3>
+<span class="text-body-md font-body-md text-on-surface-variant">Màu: Đen nhám</span>
+</div>
+<div class="flex justify-between items-center mt-2">
+<span class="text-body-md font-body-md text-on-surface-variant">SL: 2</span>
+<span class="text-label-md font-label-md text-on-surface">5.100.000 ₫</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Discount Code -->
+<div class="flex gap-2 border-t border-b border-surface-variant py-4">
+<input class="flex-grow h-[40px] px-3 rounded border border-surface-variant text-body-md font-body-md focus:outline-none focus:ring-2 focus:ring-shopee-orange focus:border-transparent placeholder:text-outline-variant" placeholder="Nhập mã giảm giá" type="text">
+<button class="h-[40px] px-4 bg-shopee-orange hover:bg-shopee-red text-white font-bold text-label-md rounded transition-colors shadow-sm">Áp dụng</button>
+</div>
+<!-- Calculation -->
+<div class="flex flex-col gap-3">
+<div class="flex justify-between items-center">
+<span class="text-body-md font-body-md text-on-surface-variant">Tạm tính</span>
+<span class="text-label-md font-label-md text-on-surface">8.550.000 ₫</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-body-md font-body-md text-on-surface-variant">Phí vận chuyển</span>
+<span class="text-label-md font-label-md text-on-surface">30.000 ₫</span>
+</div>
+</div>
+<!-- Total -->
+<div class="flex justify-between items-end border-t border-surface-variant pt-4">
+<span class="text-headline-md font-headline-md text-on-surface">Tổng cộng</span>
+<div class="text-right">
+<span class="block text-price-lg font-price-lg text-shopee-orange tracking-tight font-bold">8.580.000 ₫</span>
+<span class="block text-body-md font-body-md text-on-surface-variant mt-1">(Đã bao gồm VAT)</span>
+</div>
+</div>
+<!-- CTA -->
+<button class="h-[40px] px-4 bg-shopee-orange hover:bg-shopee-red text-white font-bold text-label-md rounded transition-colors shadow-sm">Đặt hàng <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span></button>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer from JSON Rules -->
+<footer class="bg-surface-container-low border-t border-outline-variant w-full py-12 px-4 md:px-8 mt-auto">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+<div class="text-headline-lg font-bold text-shopee-orange">TechToShop</div>
+<div class="text-body-md font-body-md flex justify-center text-on-surface-variant">© 2024 TechToShop. All rights reserved.</div>
+<div class="flex justify-end gap-4">
+<a class="text-label-md font-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Về chúng tôi</a>
+<a class="text-label-md font-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Liên hệ</a>
+<a class="text-label-md font-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Chính sách bảo mật</a>
+<a class="text-label-md font-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Điều khoản sử dụng</a>
+</div>
+</div>
+</footer>
+
+
+
+
+
+
+
+
+</body></html>

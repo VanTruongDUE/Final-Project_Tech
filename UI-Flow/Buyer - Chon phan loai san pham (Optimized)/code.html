@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-container": "#db3514",
+                    "on-secondary": "#ffffff",
+                    "surface-container-highest": "#e3e2e2",
+                    "on-tertiary-container": "#fffbff",
+                    "error": "#ba1a1a",
+                    "on-background": "#1b1c1c",
+                    "outline": "#8f7069",
+                    "tertiary": "#bb0017",
+                    "background": "#fbf9f9",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-dim": "#dbdad9",
+                    "secondary-fixed": "#ffdad3",
+                    "secondary": "#b41f00",
+                    "tertiary-fixed-dim": "#ffb3ac",
+                    "inverse-on-surface": "#f2f0f0",
+                    "tertiary-fixed": "#ffdad6",
+                    "surface-tint": "#b62506",
+                    "primary": "#b22204",
+                    "surface-variant": "#e3e2e2",
+                    "primary-container": "#d63c1e",
+                    "on-primary": "#ffffff",
+                    "secondary-fixed-dim": "#ffb4a4",
+                    "on-surface": "#1b1c1c",
+                    "on-error": "#ffffff",
+                    "surface-bright": "#fbf9f9",
+                    "inverse-surface": "#303031",
+                    "error-container": "#ffdad6",
+                    "on-error-container": "#93000a",
+                    "inverse-primary": "#ffb4a4",
+                    "on-tertiary-fixed-variant": "#93000f",
+                    "primary-fixed-dim": "#ffb4a4",
+                    "surface": "#fbf9f9",
+                    "surface-container-high": "#e9e8e7",
+                    "on-secondary-fixed": "#3e0500",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed": "#3e0500",
+                    "on-primary-fixed-variant": "#8d1600",
+                    "surface-container": "#efeded",
+                    "on-secondary-container": "#fffbff",
+                    "on-primary-container": "#fffbff",
+                    "outline-variant": "#e3beb6",
+                    "on-surface-variant": "#5b403b",
+                    "primary-fixed": "#ffdad3",
+                    "surface-container-low": "#f5f3f3",
+                    "tertiary-container": "#e51d27",
+                    "on-secondary-fixed-variant": "#8d1600",
+                    "on-tertiary-fixed": "#410003"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-mobile": "12px",
+                    "margin-desktop": "auto",
+                    "xs": "4px",
+                    "md": "16px",
+                    "sm": "8px",
+                    "xl": "48px",
+                    "max-width": "1200px",
+                    "lg": "24px",
+                    "gutter": "12px",
+                    "base": "4px"
+            },
+            "fontFamily": {
+                    "price-sm": ["Inter"],
+                    "price-lg": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "label-md": ["Inter"],
+                    "display-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "price-sm": ["14px", {"lineHeight": "1", "fontWeight": "600"}],
+                    "price-lg": ["24px", {"lineHeight": "1", "fontWeight": "600"}],
+                    "headline-md": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.25", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "label-md": ["12px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                    "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .modal-overlay {
+            backdrop-filter: blur(8px);
+            background-color: rgba(27, 28, 28, 0.4);
+        }
+        .variation-chip input:checked + label {
+            background-color: #fff1f0;
+            border-color: #b22204;
+            color: #b22204;
+            font-weight: 600;
+        }</style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- Mock Background Page (Product Detail Context) -->
+<main class="min-h-screen flex flex-col items-center justify-center p-md opacity-40 select-none pointer-events-none">
+<div class="max-w-container-max w-full grid grid-cols-1 md:grid-cols-2 gap-lg">
+<div class="aspect-square bg-surface-container rounded-xl overflow-hidden shadow-sm">
+<img class="w-full h-full object-cover" data-alt="A premium high-tech smartphone displayed on a minimalist white surface with soft studio lighting. The phone features a sleek glass and metal frame in a deep midnight blue finish. The background is a clean, neutral gradient of light grey and white, emphasizing the vibrant red accents of the TechToShop branding. High-key lighting creates a professional and aspirational retail mood." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQRduPcaimDm3Y0uKNlg15IF87-zAOmGTN6UcljEDmjzHBSm_wNj8Ib3Cryg5uLZLdJdnxiyY3X4UnR10wFy8CsEaz5oddcuQ-c-msR7iCoy3gJ9Nvmi00lLrDFgX_VtJeF1Jjrwzz27Lnwntf-jtdJHzxZVaGvEMV0nIJcyQe4ULfTgcByvKAr14fax-A3Gij80YlxZFwAmbNWpMYNLUqaF-kkNI2zHNVRF-jtrnGaiphPXJS2940GPPrLTL_pNRetZwhvlYrc94"/>
+</div>
+<div class="flex flex-col gap-sm">
+<div class="h-8 w-3/4 bg-surface-container rounded-lg"></div>
+<div class="h-6 w-1/4 bg-primary-container rounded-lg"></div>
+<div class="h-32 w-full bg-surface-container-low rounded-lg mt-md"></div>
+<div class="mt-auto h-12 w-full bg-primary rounded-lg"></div>
+</div>
+</div>
+</main>
+<!-- Buy Now Modal Overlay -->
+<div class="fixed inset-0 z-50 flex items-center justify-center p-margin-mobile md:p-0 overflow-y-auto modal-overlay" id="buy-now-modal">
+<!-- Modal Content -->
+<div class="bg-surface-container-lowest w-full max-w-[500px] rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-300">
+<!-- Header -->
+<div class="flex items-center justify-between p-md border-b border-outline-variant">
+<h2 class="font-headline-md text-headline-md text-on-surface">Chọn phân loại</h2>
+<button class="p-base hover:bg-surface-container-high rounded-full transition-colors" onclick="document.getElementById('buy-now-modal').style.display='none'">
+<span class="material-symbols-outlined text-on-surface-variant">close</span>
+</button>
+</div>
+<!-- Product Quick Info -->
+<div class="p-md flex gap-md">
+<div class="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden border border-primary/10 shadow-sm">
+<img class="w-full h-full object-cover" data-alt="Close up thumbnail of a luxury smartphone in midnight color, focusing on its high-quality camera lens and sleek glass finish. The lighting is crisp and clear, highlighting the refined textures. The aesthetic matches the modern corporate retail style of TechToShop with high contrast and clean presentation." src="https://lh3.googleusercontent.com/aida-public/AB6AXuACM_yr8SpdyuJCs_3JlaKvIjFf5D5HZj6X1IbA9tLzhZqzcs_ZTm3CiFUr6AgymoH-H-aBlD3hMj53amYfUkhJcMuuAcOI9Kv2l_ape_jO0rynz9FV_ETOtLbILqp7ZoK_RjERFIhYPKLSI7utPVoHpdr39-orTFzT17nKVqFQn6cVXZu4EGEFQIMNzlHjO2uQPvuuod4xc3em0YrvgW1ZlckgbxghiEJubg2jPb8J5icUihtu4NiURv7BFpkObzGh99_1Y4q0x1E"/>
+</div>
+<div class="flex flex-col justify-center">
+<div class="text-primary font-price-lg text-price-lg">₫24,990,000</div>
+<div class="text-on-surface-variant font-label-md text-label-md mt-xs">Kho: 1,248</div>
+</div>
+</div>
+<form class="p-md space-y-lg" id="variation-form">
+<!-- Color Options -->
+<div class="space-y-sm">
+<h3 class="text-on-surface font-label-md text-label-md uppercase tracking-wider">Màu sắc</h3>
+<div class="flex flex-wrap gap-sm">
+<div class="variation-chip">
+<input checked="" class="hidden" id="color-midnight" name="color" type="radio" value="midnight"/>
+<label class="px-md py-sm border border-outline-variant rounded-lg text-body-md font-body-md cursor-pointer hover:border-primary transition-all block" for="color-midnight">Midnight</label>
+</div>
+<div class="variation-chip">
+<input class="hidden" id="color-silver" name="color" type="radio" value="silver"/>
+<label class="px-md py-sm border border-outline-variant rounded-lg text-body-md font-body-md cursor-pointer hover:border-primary transition-all block" for="color-silver">Silver</label>
+</div>
+<div class="variation-chip">
+<input class="hidden" id="color-starlight" name="color" type="radio" value="starlight"/>
+<label class="px-md py-sm border border-outline-variant rounded-lg text-body-md font-body-md cursor-pointer hover:border-primary transition-all block" for="color-starlight">Starlight</label>
+</div>
+</div>
+</div>
+<!-- Storage Options -->
+<div class="space-y-sm">
+<h3 class="text-on-surface font-label-md text-label-md uppercase tracking-wider">Dung lượng</h3>
+<div class="flex flex-wrap gap-sm">
+<div class="variation-chip">
+<input checked="" class="hidden" id="storage-128" name="storage" type="radio" value="128"/>
+<label class="px-md py-sm border border-outline-variant rounded-lg text-body-md font-body-md cursor-pointer hover:border-primary transition-all block" for="storage-128">128GB</label>
+</div>
+<div class="variation-chip">
+<input class="hidden" id="storage-256" name="storage" type="radio" value="256"/>
+<label class="px-md py-sm border border-outline-variant rounded-lg text-body-md font-body-md cursor-pointer hover:border-primary transition-all block" for="storage-256">256GB</label>
+</div>
+<div class="variation-chip">
+<input class="hidden" id="storage-512" name="storage" type="radio" value="512"/>
+<label class="px-md py-sm border border-outline-variant rounded-lg text-body-md font-body-md cursor-pointer hover:border-primary transition-all block" for="storage-512">512GB</label>
+</div>
+</div>
+</div>
+<!-- Quantity Selector -->
+<div class="flex items-center justify-between">
+<h3 class="text-on-surface font-label-md text-label-md uppercase tracking-wider">Số lượng</h3>
+<div class="flex items-center border border-outline-variant rounded-lg overflow-hidden h-10 bg-surface-container-low">
+<button class="px-md h-full hover:bg-surface-container-high transition-colors flex items-center justify-center" onclick="decrementQty()" type="button">
+<span class="material-symbols-outlined text-body-lg">remove</span>
+</button>
+<input class="w-16 h-full text-center border-none focus:ring-0 font-body-md bg-transparent" id="quantity-input" min="1" type="number" value="1"/>
+<button class="px-md h-full hover:bg-surface-container-high transition-colors flex items-center justify-center" onclick="incrementQty()" type="button">
+<span class="material-symbols-outlined text-body-lg">add</span>
+</button>
+</div>
+</div>
+</form>
+<!-- Sticky Footer Action -->
+<div class="p-md border-t border-outline-variant bg-surface-container-lowest">
+<button class="w-full h-12 bg-primary text-on-primary font-headline-md text-headline-md rounded-lg shadow-sm active:scale-95 transition-all flex items-center justify-center gap-sm hover:bg-primary/90 hover:shadow-md" type="button">
+                    Confirm Buy Now
+                </button>
+</div>
+</div>
+</div>
+<script>
+        const qtyInput = document.getElementById('quantity-input');
+        
+        function incrementQty() {
+            qtyInput.value = parseInt(qtyInput.value) + 1;
+            triggerPulse(qtyInput);
+        }
+
+        function decrementQty() {
+            if (parseInt(qtyInput.value) > 1) {
+                qtyInput.value = parseInt(qtyInput.value) - 1;
+                triggerPulse(qtyInput);
+            }
+        }
+
+        function triggerPulse(el) {
+            el.classList.add('scale-110', 'text-primary');
+            setTimeout(() => {
+                el.classList.remove('scale-110', 'text-primary');
+            }, 100);
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('buy-now-modal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+</body></html>

@@ -1,0 +1,359 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Shipper - Dashboard Tong quan (Optimized)</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#e3e2e2",
+                        "on-surface": "#1b1c1c",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed": "#3e0500",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "surface-container": "#efeded",
+                        "on-tertiary-fixed": "#410003",
+                        "on-background": "#1b1c1c",
+                        "inverse-surface": "#303031",
+                        "error-container": "#ffdad6",
+                        "surface-bright": "#fbf9f9",
+                        "on-primary": "#ffffff",
+                        "outline": "#8f7069",
+                        "surface-tint": "#b62506",
+                        "secondary-fixed-dim": "#ffb4a4",
+                        "background": "#fbf9f9",
+                        "secondary-container": "#db3514",
+                        "primary-fixed": "#ffdad3",
+                        "on-secondary-fixed": "#3e0500",
+                        "surface": "#fbf9f9",
+                        "inverse-on-surface": "#f2f0f0",
+                        "surface-container-high": "#e9e8e7",
+                        "primary": "#b22204",
+                        "outline-variant": "#e3beb6",
+                        "on-tertiary-fixed-variant": "#93000f",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed-dim": "#ffb4a4",
+                        "on-secondary-container": "#fffbff",
+                        "on-primary-container": "#fffbff",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed-variant": "#8d1600",
+                        "tertiary-fixed-dim": "#ffb3ac",
+                        "on-tertiary-container": "#fffbff",
+                        "inverse-primary": "#ffb4a4",
+                        "tertiary-fixed": "#ffdad6",
+                        "tertiary": "#bb0017",
+                        "surface-dim": "#dbdad9",
+                        "surface-container-low": "#f5f3f3",
+                        "secondary-fixed": "#ffdad3",
+                        "secondary": "#b41f00",
+                        "on-secondary-fixed-variant": "#8d1600",
+                        "tertiary-container": "#e51d27",
+                        "on-surface-variant": "#5b403b",
+                        "surface-variant": "#e3e2e2",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-container": "#d63c1e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "base": "4px",
+                        "max-width": "1200px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "margin-desktop": "auto",
+                        "md": "16px",
+                        "margin-mobile": "12px",
+                        "gutter": "12px",
+                        "xl": "48px"
+                    },
+                    "fontFamily": {
+                        "price-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "price-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "price-lg": ["24px", { "lineHeight": "1", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.3", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "1.2", "fontWeight": "500" }],
+                        "headline-md": ["20px", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.25", "fontWeight": "700" }],
+                        "price-sm": ["14px", { "lineHeight": "1", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: theme('colors.surface'); color: theme('colors.on-surface'); }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: theme('colors.surface-variant'); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: theme('colors.outline'); }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden antialiased font-body-md">
+<!-- SideNavBar (Shared Component) -->
+<aside class="hidden md:flex fixed left-0 top-0 h-full flex-col py-lg px-md gap-sm border-r border-outline-variant shadow-md bg-surface-container-low w-64 z-20">
+<!-- Header Profile Area -->
+<div class="px-sm mb-md"><h1 class="font-headline-md text-headline-md font-bold text-primary">TechToShop</h1></div><div class="flex items-center gap-md mb-lg px-sm">
+<img alt="Shipper Profile Photo" class="w-12 h-12 rounded-full object-cover shadow-sm border border-outline-variant" data-alt="A professional headshot of a logistics manager in a bright, modern office setting. The lighting is high-key and soft, creating a clean, trustworthy atmosphere. The overall color palette is neutral with subtle corporate accents, aligning with a high-end enterprise application interface. The portrait exudes reliability and efficiency." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzpiR_nG1sVuzsqWZbzafitHmYftDCDpQ3LqFU2cvDR1QejGwos94X_h5aqXmAtvCdBtFLHj9AUxsfcr1dPoX7xGIs5qFLAQ3sxIedSTPkwRj45Ix-EmTi_vWQ1-dQquarnF7Vt7w84veyeADvUPmsa1C6z-vkpZWtTNqUzAM4GOuf2JvlLtYnc5K3Rr0KZH5YjMgA8Z77Jt1ETe1Nvs3s80h7nW98L5AS-pYb5k0NqCHrf0LoXzIp3EKwYKniOIcRDIDSOuwTfL4">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Shipper Name</h2>
+<p class="font-label-md text-label-md text-on-surface-variant">SHIPPER ROLE</p>
+</div>
+</div>
+<!-- Navigation Tabs -->
+<nav class="flex-1 flex flex-col gap-xs font-body-md text-body-md">
+<!-- Active Tab: Dashboard -->
+<a class="flex items-center gap-md bg-secondary-container text-on-secondary-container rounded-lg px-md py-sm font-semibold cursor-pointer transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center gap-md text-on-surface-variant px-md py-sm hover:bg-surface-container-highest transition-all cursor-pointer active:translate-x-1" href="#">
+<span class="material-symbols-outlined">local_shipping</span>
+                Assigned Shipments
+            </a>
+<a class="flex items-center gap-md text-on-surface-variant px-md py-sm hover:bg-surface-container-highest transition-all cursor-pointer active:translate-x-1" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+                Shipment Detail
+            </a>
+<a class="flex items-center gap-md text-on-surface-variant px-md py-sm hover:bg-surface-container-highest transition-all cursor-pointer active:translate-x-1" href="#">
+<span class="material-symbols-outlined">edit_notifications</span>
+                Update Status
+            </a>
+</nav>
+<!-- Bottom Actions -->
+<div class="mt-auto flex flex-col gap-sm">
+<button class="w-full py-sm px-md bg-primary text-on-primary rounded-lg font-label-md text-label-md hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-md flex justify-center items-center gap-sm">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                New Delivery
+            </button>
+<a class="flex items-center gap-md text-on-surface-variant px-md py-sm hover:bg-surface-container-highest transition-all cursor-pointer active:translate-x-1 font-body-md text-body-md mt-sm border-t border-outline-variant pt-md" href="#">
+<span class="material-symbols-outlined">logout</span>
+                Logout
+            </a>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<div class="flex-1 md:ml-64 flex flex-col h-full relative overflow-hidden bg-surface">
+<!-- TopAppBar (Shared Component) -->
+<header class="bg-surface shadow-sm sticky top-0 z-10 flex justify-between items-center w-full px-lg h-16 max-w-max-width mx-auto">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined md:hidden text-on-surface cursor-pointer">menu</span>
+<h1 class="font-headline-md text-headline-md font-bold text-primary">TechToShop</h1>
+</div>
+<div class="flex items-center gap-md">
+<!-- Search Bar -->
+<div class="hidden sm:flex items-center bg-surface-container-low border border-outline-variant rounded-full px-md py-1.5 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">search</span>
+<input class="bg-transparent border-none outline-none font-body-md text-body-md text-on-surface ml-sm placeholder:text-on-surface-variant w-48" placeholder="Search orders..." type="text">
+</div>
+<button class="hidden lg:flex items-center gap-xs py-1.5 px-sm bg-primary/10 text-primary rounded-full hover:bg-primary/20 transition-colors font-label-md">
+<span class="material-symbols-outlined text-[18px]">add</span>
+    New Delivery
+</button>
+<!-- Trailing Icons -->
+<button class="text-on-surface-variant hover:bg-surface-container-highest transition-colors rounded-full p-1.5 flex items-center justify-center cursor-pointer active:scale-95">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:bg-surface-container-highest transition-colors rounded-full p-1.5 flex items-center justify-center cursor-pointer active:scale-95">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Dashboard Canvas -->
+<main class="flex-1 overflow-y-auto p-md md:p-lg space-y-lg max-w-max-width mx-auto w-full">
+<!-- Page Header (Contextual) -->
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface hidden md:block">Overview</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-xs">Track your daily shipping performance and active orders.</p>
+</div>
+<!-- KPI Cards Grid -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-md">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest rounded-xl p-md shadow-sm border border-outline-variant/50 hover:shadow-md transition-shadow flex flex-col justify-between">
+<div class="flex justify-between items-start mb-sm">
+<p class="font-label-md text-label-md text-on-surface-variant">Assigned</p>
+<div class="bg-blue-100 p-1.5 rounded-lg text-blue-800">
+<span class="material-symbols-outlined text-[20px]">assignment</span>
+</div>
+</div>
+<p class="font-display-lg text-display-lg text-on-surface">12</p>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest rounded-xl p-md shadow-sm border border-outline-variant/50 hover:shadow-md transition-shadow flex flex-col justify-between relative overflow-hidden">
+<div class="absolute top-0 right-0 w-16 h-16 bg-orange-100/50 rounded-bl-full -z-10"></div>
+<div class="flex justify-between items-start mb-sm">
+<p class="font-label-md text-label-md text-on-surface-variant">Shipping</p>
+<div class="bg-orange-100 p-1.5 rounded-lg text-orange-800">
+<span class="material-symbols-outlined text-[20px]">local_shipping</span>
+</div>
+</div>
+<p class="font-display-lg text-display-lg text-orange-800">5</p>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest rounded-xl p-md shadow-sm border border-outline-variant/50 hover:shadow-md transition-shadow flex flex-col justify-between">
+<div class="flex justify-between items-start mb-sm">
+<p class="font-label-md text-label-md text-on-surface-variant">Delivered</p>
+<div class="bg-green-100 p-1.5 rounded-lg text-green-800">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+</div>
+</div>
+<p class="font-display-lg text-display-lg text-on-surface">124</p>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface-container-lowest rounded-xl p-md shadow-sm border border-outline-variant/50 hover:shadow-md transition-shadow flex flex-col justify-between">
+<div class="flex justify-between items-start mb-sm">
+<p class="font-label-md text-label-md text-on-surface-variant">Failed</p>
+<div class="bg-red-100 p-1.5 rounded-lg text-red-800">
+<span class="material-symbols-outlined text-[20px]">error</span>
+</div>
+</div>
+<p class="font-display-lg text-display-lg text-red-800">2</p>
+</div>
+</div>
+<!-- Complex Bento Area -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-md">
+<!-- Chart Placeholder Area -->
+<div class="lg:col-span-1 bg-surface-container-lowest rounded-xl p-md shadow-sm border border-outline-variant/50 flex flex-col">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-headline-md text-headline-md text-on-surface">Status Distribution</h3>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer">more_vert</span>
+</div>
+<!-- Minimalist CSS Chart Representation -->
+<div class="flex-1 flex flex-col justify-center gap-sm">
+<div class="flex items-center gap-sm">
+<div class="w-full bg-surface-container-highest rounded-full h-2 overflow-hidden flex">
+<div class="bg-primary h-full" style="width: 70%"></div>
+<div class="bg-surface-variant h-full" style="width: 30%"></div>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant w-8">70%</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface mt-xs text-center">On-time delivery rate is optimal.</p>
+<!-- Donut chart mockup via CSS conic-gradient -->
+<div class="mt-md w-32 h-32 rounded-full mx-auto relative flex items-center justify-center" style="background: conic-gradient(theme('colors.primary') 0% 65%, theme('colors.surface-variant') 65% 85%, theme('colors.error') 85% 100%);">
+<div class="w-24 h-24 bg-surface-container-lowest rounded-full flex flex-col items-center justify-center shadow-inner">
+<span class="font-headline-md text-headline-md text-on-surface">143</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Total</span>
+</div>
+</div>
+<div class="flex justify-center gap-md mt-sm">
+<div class="flex items-center gap-xs font-label-md text-label-md text-on-surface-variant"><span class="w-2 h-2 rounded-full bg-primary"></span> Success</div>
+<div class="flex items-center gap-xs font-label-md text-label-md text-on-surface-variant"><span class="w-2 h-2 rounded-full bg-surface-variant"></span> Pending</div>
+</div>
+</div>
+</div>
+<!-- Recent Shipments Table Area -->
+<div class="lg:col-span-2 bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/50 flex flex-col overflow-hidden">
+<div class="p-md border-b border-outline-variant/50 flex justify-between items-center bg-surface-bright">
+<h3 class="font-headline-md text-headline-md text-on-surface">Recent Shipments</h3>
+<button class="font-label-md text-label-md text-primary hover:text-primary-container transition-colors flex items-center gap-xs">
+                            View All <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant/50">
+<th class="p-md font-label-md text-label-md text-on-surface-variant font-medium">Tracking ID</th>
+<th class="p-md font-label-md text-label-md text-on-surface-variant font-medium hidden sm:table-cell">Order ID</th>
+<th class="p-md font-label-md text-label-md text-on-surface-variant font-medium">Receiver &amp; Address</th>
+<th class="p-md font-label-md text-label-md text-on-surface-variant font-medium">Status</th>
+<th class="p-md font-label-md text-label-md text-on-surface-variant font-medium text-right">Action</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface divide-y divide-outline-variant/30">
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="p-md font-medium text-primary cursor-pointer hover:underline">#SHIP-8823</td>
+<td class="p-md text-on-surface-variant hidden sm:table-cell">ORD-092A</td>
+<td class="p-md">
+<p class="font-medium text-on-surface">Eleanor Shellstrop</p>
+<p class="font-label-md text-label-md text-on-surface-variant">123 Phoenix St, AZ</p>
+</td>
+<td class="p-md">
+<span class="inline-flex items-center px-2 py-1 rounded-full bg-blue-100 text-blue-800 font-label-md text-label-md">ASSIGNED</span>
+</td>
+<td class="p-md text-right">
+<button class="px-sm py-1 border border-outline text-on-surface hover:bg-surface-container rounded font-label-md text-label-md transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">View Detail</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="p-md font-medium text-primary cursor-pointer hover:underline">#SHIP-8824</td>
+<td class="p-md text-on-surface-variant hidden sm:table-cell">ORD-093B</td>
+<td class="p-md">
+<p class="font-medium text-on-surface">Chidi Anagonye</p>
+<p class="font-label-md text-label-md text-on-surface-variant">456 Ethics Way, NY</p>
+</td>
+<td class="p-md">
+<span class="inline-flex items-center px-2 py-1 rounded-full bg-orange-100 text-orange-800 font-label-md text-label-md">SHIPPING</span>
+</td>
+<td class="p-md text-right">
+<button class="px-sm py-1 border border-outline text-on-surface hover:bg-surface-container rounded font-label-md text-label-md transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">View Detail</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="p-md font-medium text-primary cursor-pointer hover:underline">#SHIP-8820</td>
+<td class="p-md text-on-surface-variant hidden sm:table-cell">ORD-089X</td>
+<td class="p-md">
+<p class="font-medium text-on-surface">Tahani Al-Jamil</p>
+<p class="font-label-md text-label-md text-on-surface-variant">789 Elite Blvd, CA</p>
+</td>
+<td class="p-md">
+<span class="inline-flex items-center px-2 py-1 rounded-full bg-green-100 text-green-800 font-label-md text-label-md">DELIVERED</span>
+</td>
+<td class="p-md text-right">
+<button class="px-sm py-1 border border-outline text-on-surface hover:bg-surface-container rounded font-label-md text-label-md transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">View Detail</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="p-md font-medium text-primary cursor-pointer hover:underline">#SHIP-8815</td>
+<td class="p-md text-on-surface-variant hidden sm:table-cell">ORD-085Y</td>
+<td class="p-md">
+<p class="font-medium text-on-surface">Jason Mendoza</p>
+<p class="font-label-md text-label-md text-on-surface-variant">321 Bortles Rd, FL</p>
+</td>
+<td class="p-md">
+<span class="inline-flex items-center px-2 py-1 rounded-full bg-red-100 text-red-800 font-label-md text-label-md">FAILED</span>
+</td>
+<td class="p-md text-right">
+<button class="px-sm py-1 border border-outline text-on-surface hover:bg-surface-container rounded font-label-md text-label-md transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">View Detail</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+</div>
+
+
+
+
+
+
+
+
+</body></html>
