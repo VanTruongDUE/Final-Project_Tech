@@ -4,6 +4,28 @@ from services.seller_order_service import SellerOrderService
 
 class SellerOrderController:
 
+    @staticmethod
+    def revenue_report(current_user):
+        try:
+            if 'SELLER' not in current_user.get('roles', []):
+                return jsonify({'success': False, 'message': 'Chỉ người bán mới có thể xem doanh thu'}), 403
+
+            try:
+                limit = int(request.args.get('limit', 10))
+            except (TypeError, ValueError):
+                return jsonify({'success': False, 'message': 'limit phải là số nguyên'}), 400
+
+            result, status_code = SellerOrderService.get_revenue_report(
+                user_id=current_user['user_id'],
+                from_date=request.args.get('from_date'),
+                to_date=request.args.get('to_date'),
+                group_by=request.args.get('group_by', 'day').strip().lower(),
+                limit=limit,
+            )
+            return jsonify(result), status_code
+        except Exception as e:
+            return jsonify({'success': False, 'message': str(e)}), 500
+
     # API 38: GET /api/v1/seller/orders
     @staticmethod
     def list_store_orders(current_user):

@@ -24,8 +24,13 @@ class VoucherController:
                 order_amount = float(order_amount_raw)
             except ValueError:
                 return jsonify({'success': False, 'message': 'order_amount phải là số'}), 400
+            if order_amount < 0:
+                return jsonify({'success': False, 'message': 'order_amount không được âm'}), 400
 
-            store_id = int(store_id_raw) if store_id_raw else None
+            try:
+                store_id = int(store_id_raw) if store_id_raw else None
+            except ValueError:
+                return jsonify({'success': False, 'message': 'store_id phải là số nguyên'}), 400
 
             result, status_code = VoucherService.check_voucher(
                 customer_id=current_user['user_id'],

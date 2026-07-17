@@ -6,7 +6,9 @@ from models.store import Store
 from models.user_store import UserStore
 from models.user import User
 from models.shipment import Shipment
-from datetime import datetime
+from collections import defaultdict
+from datetime import datetime, timedelta
+from decimal import Decimal
 import pytz
 
 
@@ -28,6 +30,118 @@ class SellerOrderService:
             UserStore.is_active == 1
         ).first()
         return result[0] if result else None
+
+    @staticmethod
+    def get_revenue_report(user_id, from_date, to_date, group_by='day', limit=10):
+        store_id = SellerOrderService._get_seller_store_id(user_id)
+        if not store_id:
+            return {'success': False, 'message': 'Bạn không phải chủ của cửa hàng'}, 403
+
+        try:
+            start_date = datetime.strptime(from_date, '%Y-%m-%d')
+            end_date = datetime.strptime(to_date, '%Y-%m-%d')
+        except (TypeError, ValueError):
+            return {'success': False, 'message': 'from_date và to_date phải có định dạng YYYY-MM-DD'}, 400
+
+        if start_date > end_date:
+            return {'success': False, 'message': 'from_date không được lớn hơn to_date'}, 400
+        if group_by not in ('day', 'week', 'month'):
+            return {'success': False, 'message': 'group_by phải là day, week hoặc month'}, 400
+        if limit < 1 or limit > 100:
+            return {'success': False, 'message': 'limit phải từ 1 đến 100'}, 400
+
+        end_exclusive = end_date + timedelta(days=1)
+        orders = db.session.query(Order).filter(
+            Order.store_id == store_id,
+            Order.created_at >= start_date,
+            Order.created_at < end_exclusive,
+            Order.deleted_at.is_(None)
+        ).all()
+
+        known_statuses = (
+            'PENDING', 'CONFIRMED', 'PROCESSING', 'READY_TO_SHIP',
+            'SHIPPING', 'COMPLETED', 'CANCELLED', 'DELIVERY_FAILED'
+        )
+        status_counts = {status: 0 for status in known_statuses}
+        period_revenue = defaultdict(lambda: {'revenue': Decimal('0.00'), 'completed_orders': 0})
+        total_revenue = Decimal('0.00')
+        completed_orders = []
+
+        for order in orders:
+            status_counts[order.order_status] = status_counts.get(order.order_status, 0) + 1
+            if order.order_status != 'COMPLETED':
+                continue
+
+            revenue = order.total_amount or Decimal('0.00')
+            total_revenue += revenue
+            completed_orders.append(order)
+            if group_by == 'month':
+                period = order.created_at.strftime('%Y-%m')
+            elif group_by == 'week':
+                week_start = order.created_at.date() - timedelta(days=order.created_at.weekday())
+                period = week_start.isoformat()
+            else:
+                period = order.created_at.date().isoformat()
+            period_revenue[period]['revenue'] += revenue
+            period_revenue[period]['completed_orders'] += 1
+
+        completed_order_ids = [order.order_id for order in completed_orders]
+        product_totals = defaultdict(lambda: {'quantity_sold': 0, 'revenue': Decimal('0.00')})
+        if completed_order_ids:
+            item_rows = db.session.query(OrderItem).filter(OrderItem.order_id.in_(completed_order_ids)).all()
+            for item in item_rows:
+                key = (
+                    item.product_id,
+                    item.variant_id,
+                    item.product_name_snapshot,
+                    item.sku_code_snapshot,
+                    item.variant_name_snapshot,
+                )
+                product_totals[key]['quantity_sold'] += item.quantity
+                product_totals[key]['revenue'] += (item.unit_price or Decimal('0.00')) * item.quantity
+
+        sorted_products = sorted(
+            product_totals.items(),
+            key=lambda entry: (entry[1]['quantity_sold'], entry[1]['revenue']),
+            reverse=True
+        )[:limit]
+        top_products = []
+        for key, totals in sorted_products:
+            product_id, variant_id, product_name, sku_code, variant_name = key
+            top_products.append({
+                'product_id': product_id,
+                'variant_id': variant_id,
+                'product_name': product_name,
+                'sku_code': sku_code,
+                'variant_name': variant_name,
+                'quantity_sold': totals['quantity_sold'],
+                'revenue': str(totals['revenue'].quantize(Decimal('0.01'))),
+            })
+
+        store = db.session.query(Store).filter(Store.store_id == store_id).first()
+        return {
+            'success': True,
+            'data': {
+                'store': {'store_id': store.store_id, 'store_name': store.store_name},
+                'from_date': from_date,
+                'to_date': to_date,
+                'group_by': group_by,
+                'total_revenue': str(total_revenue.quantize(Decimal('0.01'))),
+                'total_orders': len(orders),
+                'completed_orders': status_counts.get('COMPLETED', 0),
+                'cancelled_orders': status_counts.get('CANCELLED', 0),
+                'order_statistics': status_counts,
+                'revenue_by_period': [
+                    {
+                        'period': period,
+                        'revenue': str(values['revenue'].quantize(Decimal('0.01'))),
+                        'completed_orders': values['completed_orders'],
+                    }
+                    for period, values in sorted(period_revenue.items())
+                ],
+                'top_products': top_products,
+            }
+        }, 200
 
     # API 38: GET /api/v1/seller/orders
     @staticmethod
@@ -110,9 +224,15 @@ class SellerOrderService:
             items_list = [{
                 'order_item_id': oi.order_item_id,
                 'product_id': oi.product_id,
+                'variant_id': oi.variant_id,
+                'sku_code': oi.sku_code_snapshot,
+                'variant_name': oi.variant_name_snapshot,
+                'product_name': oi.product_name_snapshot,
                 'quantity': oi.quantity,
                 'unit_price': float(oi.unit_price),
+                'line_total': float(oi.unit_price) * oi.quantity,
                 'product_name_snapshot': oi.product_name_snapshot,
+                'product_image_url': oi.product_image_url_snapshot,
                 'product_image_url_snapshot': oi.product_image_url_snapshot,
             } for oi in items]
 

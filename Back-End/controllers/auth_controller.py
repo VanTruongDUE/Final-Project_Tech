@@ -16,6 +16,14 @@ class AuthControllers:
         """
         data = request.get_json(silent=True) or {}
 
+        forbidden_fields = {'role', 'roles', 'role_code', 'type', 'status', 'user_id'}
+        supplied_forbidden = sorted(forbidden_fields.intersection(data))
+        if supplied_forbidden:
+            return jsonify({
+                "success": False,
+                "message": f"Public registration không hỗ trợ: {', '.join(supplied_forbidden)}"
+            }), 400
+
         email = data.get('email', '').strip() or None
         phone = data.get('phone', '').strip() or None
         password = data.get('password', '')

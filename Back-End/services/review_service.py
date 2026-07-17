@@ -2,12 +2,64 @@ from extensions import db
 from models.review import Review
 from models.order_item import OrderItem
 from models.order import Order
+from models.user import User
 from datetime import datetime
 from sqlalchemy.exc import IntegrityError
 import pytz
 
 
 class ReviewService:
+
+    @staticmethod
+    def list_admin_reviews(status=None, page=1, limit=20):
+        query = (
+            db.session.query(Review, User, OrderItem)
+            .join(User, User.user_id == Review.customer_id)
+            .join(OrderItem, OrderItem.order_item_id == Review.order_item_id)
+        )
+        if status:
+            query = query.filter(Review.status == status)
+
+        total_items = query.count()
+        rows = (
+            query.order_by(Review.created_at.desc(), Review.review_id.desc())
+            .offset((page - 1) * limit)
+            .limit(limit)
+            .all()
+        )
+        reviews = []
+        for review, customer, order_item in rows:
+            reviews.append({
+                'review_id': review.review_id,
+                'customer': {
+                    'user_id': customer.user_id,
+                    'full_name': customer.full_name,
+                    'email': customer.email,
+                },
+                'product_id': review.product_id,
+                'product_name': order_item.product_name_snapshot,
+                'order_item_id': review.order_item_id,
+                'sku_code': order_item.sku_code_snapshot,
+                'variant_name': order_item.variant_name_snapshot,
+                'rating': review.rating,
+                'comment': review.comment,
+                'status': review.status,
+                'created_at': review.created_at.isoformat() if review.created_at else None,
+                'hidden_at': review.hidden_at.isoformat() if review.hidden_at else None,
+            })
+
+        return {
+            'success': True,
+            'data': {
+                'reviews': reviews,
+                'pagination': {
+                    'current_page': page,
+                    'per_page': limit,
+                    'total_items': total_items,
+                    'total_pages': (total_items + limit - 1) // limit if total_items else 0,
+                }
+            }
+        }, 200
 
     # API 42: POST /api/v1/reviews — Customer
     @staticmethod

@@ -4,6 +4,12 @@ from middlewares.auth_middleware import token_required
 
 store_bp = Blueprint('stores', __name__, url_prefix='/api/v1')
 
+store_bp.add_url_rule(
+    '/me/store-application',
+    view_func=token_required(StoreController.store_application),
+    methods=['GET', 'POST']
+)
+
 # API 25: GET /api/v1/stores/:id — Public (không cần auth)
 store_bp.add_url_rule(
     '/stores/<int:store_id>',

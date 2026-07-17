@@ -4,6 +4,28 @@ from services.review_service import ReviewService
 
 class ReviewController:
 
+    @staticmethod
+    def list_admin_reviews(current_user):
+        try:
+            if 'ADMIN' not in current_user.get('roles', []):
+                return jsonify({'success': False, 'message': 'Chỉ Admin mới có thể xem danh sách đánh giá'}), 403
+
+            status = request.args.get('status', '').strip().upper() or None
+            if status not in (None, 'VISIBLE', 'HIDDEN'):
+                return jsonify({'success': False, 'message': 'status phải là VISIBLE hoặc HIDDEN'}), 400
+            try:
+                page = int(request.args.get('page', 1))
+                limit = int(request.args.get('limit', 20))
+            except (TypeError, ValueError):
+                return jsonify({'success': False, 'message': 'page và limit phải là số nguyên'}), 400
+            if page < 1 or limit < 1 or limit > 100:
+                return jsonify({'success': False, 'message': 'page/limit không hợp lệ'}), 400
+
+            result, status_code = ReviewService.list_admin_reviews(status=status, page=page, limit=limit)
+            return jsonify(result), status_code
+        except Exception as e:
+            return jsonify({'success': False, 'message': str(e)}), 500
+
     # API 42: POST /api/v1/reviews — Customer
     @staticmethod
     def create_review(current_user):

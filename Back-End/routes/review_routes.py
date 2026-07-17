@@ -4,6 +4,12 @@ from middlewares.auth_middleware import token_required
 
 review_bp = Blueprint('reviews', __name__, url_prefix='/api/v1')
 
+review_bp.add_url_rule(
+    '/admin/reviews',
+    view_func=token_required(ReviewController.list_admin_reviews),
+    methods=['GET']
+)
+
 # API 42: POST /api/v1/reviews — Customer
 review_bp.add_url_rule(
     '/reviews',

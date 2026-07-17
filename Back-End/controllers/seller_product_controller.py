@@ -99,7 +99,8 @@ class SellerProductController:
                 description=data.get('description'),
                 price=data.get('price'),
                 stock_quantity=data.get('stock_quantity'),
-                status=data.get('status')
+                status=data.get('status'),
+                variants=data.get('variants')
             )
 
             return jsonify(result), status_code
@@ -150,7 +151,7 @@ class SellerProductController:
             return jsonify({'success': False, 'message': str(e)}), 500
         
     @staticmethod
-    def update_variant(current_user, variant_id):
+    def update_variant(current_user, product_id, variant_id):
         try:
             if 'SELLER' not in current_user.get('roles', []):
                 return jsonify({'success': False, 'message': 'Chỉ người bán có thể cập nhật biến thể sản phẩm'}), 403
@@ -161,11 +162,14 @@ class SellerProductController:
 
             result, status_code = SellerProductService.update_variant(
                 user_id=current_user['user_id'],
+                product_id=product_id,
                 variant_id=variant_id,
+                sku_code=data.get('sku_code'),
                 variant_name=data.get('variant_name'),
                 price=data.get('price'),
                 stock_quantity=data.get('stock_quantity'),
-                status=data.get('status')
+                status=data.get('status'),
+                is_default=data.get('is_default')
             )
 
             return jsonify(result), status_code

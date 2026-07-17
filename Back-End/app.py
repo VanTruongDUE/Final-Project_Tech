@@ -55,15 +55,19 @@ def create_app():
             # Import text từ SQLAlchemy để thực thi câu lệnh SQL
             db.session.execute(text("SELECT 1"))
             # Thực thi câu lệnh SQL "SELECT 1" để kiểm tra kết nối cơ sở dữ liệu
-            print("Kết nối cơ sở dữ liệu thành công!")
-        except Exception as e:
-            print("Kết nối cơ sở dữ liệu thất bại:", str(e))
+            app.logger.info("Database connectivity check succeeded.")
+        except Exception:
+            app.logger.error("Database connectivity check failed; verify DATABASE_URL.")
     # Trả về app để có thể dùng khi chạy hoặc cho testing
     return app
             
 if __name__ == '__main__':
     app = create_app()
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(
+        host='0.0.0.0',
+        port=int(app.config.get('PORT', 5000)),
+        debug=app.config.get('DEBUG', False),
+    )
        
 
     
@@ -73,5 +77,3 @@ if __name__ == '__main__':
     
 
     
-
-

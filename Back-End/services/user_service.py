@@ -20,7 +20,7 @@ class UserService:
                     "avatar_url": user.avatar_url,
                     "gender": user.gender,
                     "birth_date": user.birth_date,
-                    "roles": [role.role_name for role in user.roles]
+                    "roles": [role.role_code for role in user.roles]
                 }}, 200
 
     @staticmethod

@@ -4,6 +4,7 @@ from models.message import Message
 from models.store import Store
 from models.user import User
 from models.user_store import UserStore
+from models.order import Order
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
@@ -140,6 +141,19 @@ class ConversationService:
             if not store:
                 return {'success': False, 'message': 'Cửa hàng không tồn tại hoặc không hoạt động'}, 404
 
+            if order_id is not None:
+                order = db.session.query(Order).filter(
+                    Order.order_id == order_id,
+                    Order.customer_id == customer_id,
+                    Order.store_id == store_id,
+                    Order.deleted_at.is_(None)
+                ).first()
+                if not order:
+                    return {
+                        'success': False,
+                        'message': 'Đơn hàng không tồn tại hoặc không thuộc khách hàng/cửa hàng này'
+                    }, 404
+
             utc = pytz.UTC
             now = datetime.now(utc)
 
@@ -191,7 +205,7 @@ class ConversationService:
 
             # Verify participant
             seller_store_id = None
-            if 'Seller' in roles:
+            if 'SELLER' in roles:
                 seller_store_id = ConversationService._get_seller_store_id(user_id)
 
             if not ConversationService._verify_participant(conv, user_id, seller_store_id):
@@ -265,7 +279,7 @@ class ConversationService:
 
             # Verify participant
             seller_store_id = None
-            if 'Seller' in roles:
+            if 'SELLER' in roles:
                 seller_store_id = ConversationService._get_seller_store_id(user_id)
 
             if not ConversationService._verify_participant(conv, user_id, seller_store_id):
@@ -322,7 +336,7 @@ class ConversationService:
 
             # Verify participant
             seller_store_id = None
-            if 'Seller' in roles:
+            if 'SELLER' in roles:
                 seller_store_id = ConversationService._get_seller_store_id(user_id)
 
             if not ConversationService._verify_participant(conv, user_id, seller_store_id):

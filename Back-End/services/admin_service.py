@@ -6,13 +6,142 @@ from models.shipment import Shipment
 from models.order_status_history import OrderStatusHistory
 from models.role import Role
 from models.user_store import UserStore
+from models.order_item import OrderItem
+from models.product import Product
+from models.review import Review
+from collections import defaultdict
+from decimal import Decimal
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 
 
 class AdminService:
+
+    @staticmethod
+    def reports(from_date, to_date, group_by='day', limit=10):
+        try:
+            start_date = datetime.strptime(from_date, '%Y-%m-%d')
+            end_date = datetime.strptime(to_date, '%Y-%m-%d')
+        except (TypeError, ValueError):
+            return {'success': False, 'message': 'from_date và to_date phải có định dạng YYYY-MM-DD'}, 400
+
+        if start_date > end_date:
+            return {'success': False, 'message': 'from_date không được lớn hơn to_date'}, 400
+        if group_by not in ('day', 'week', 'month'):
+            return {'success': False, 'message': 'group_by phải là day, week hoặc month'}, 400
+        if limit < 1 or limit > 100:
+            return {'success': False, 'message': 'limit phải từ 1 đến 100'}, 400
+
+        end_exclusive = end_date + timedelta(days=1)
+        orders = db.session.query(Order).filter(
+            Order.created_at >= start_date,
+            Order.created_at < end_exclusive,
+            Order.deleted_at.is_(None)
+        ).all()
+        known_statuses = (
+            'PENDING', 'CONFIRMED', 'PROCESSING', 'READY_TO_SHIP',
+            'SHIPPING', 'COMPLETED', 'CANCELLED', 'DELIVERY_FAILED'
+        )
+        status_counts = {status: 0 for status in known_statuses}
+        period_revenue = defaultdict(lambda: {'revenue': Decimal('0.00'), 'completed_orders': 0})
+        store_totals = defaultdict(lambda: {'completed_orders': 0, 'items_sold': 0, 'revenue': Decimal('0.00')})
+        total_revenue = Decimal('0.00')
+        completed_orders = []
+
+        for order in orders:
+            status_counts[order.order_status] = status_counts.get(order.order_status, 0) + 1
+            if order.order_status != 'COMPLETED':
+                continue
+            revenue = order.total_amount or Decimal('0.00')
+            total_revenue += revenue
+            completed_orders.append(order)
+            store_totals[order.store_id]['completed_orders'] += 1
+            store_totals[order.store_id]['revenue'] += revenue
+            if group_by == 'month':
+                period = order.created_at.strftime('%Y-%m')
+            elif group_by == 'week':
+                period = (order.created_at.date() - timedelta(days=order.created_at.weekday())).isoformat()
+            else:
+                period = order.created_at.date().isoformat()
+            period_revenue[period]['revenue'] += revenue
+            period_revenue[period]['completed_orders'] += 1
+
+        completed_ids = [order.order_id for order in completed_orders]
+        order_store_ids = {order.order_id: order.store_id for order in completed_orders}
+        product_totals = defaultdict(lambda: {'quantity_sold': 0, 'revenue': Decimal('0.00')})
+        if completed_ids:
+            for item in db.session.query(OrderItem).filter(OrderItem.order_id.in_(completed_ids)).all():
+                store_id = order_store_ids[item.order_id]
+                store_totals[store_id]['items_sold'] += item.quantity
+                key = (
+                    item.product_id, item.variant_id, item.product_name_snapshot,
+                    item.sku_code_snapshot, item.variant_name_snapshot, store_id
+                )
+                product_totals[key]['quantity_sold'] += item.quantity
+                product_totals[key]['revenue'] += (item.unit_price or Decimal('0.00')) * item.quantity
+
+        store_ids = set(store_totals)
+        store_names = dict(db.session.query(Store.store_id, Store.store_name).filter(Store.store_id.in_(store_ids)).all()) if store_ids else {}
+        top_products = []
+        for key, totals in sorted(
+            product_totals.items(),
+            key=lambda entry: (entry[1]['quantity_sold'], entry[1]['revenue']),
+            reverse=True
+        )[:limit]:
+            product_id, variant_id, product_name, sku_code, variant_name, store_id = key
+            top_products.append({
+                'product_id': product_id,
+                'variant_id': variant_id,
+                'product_name': product_name,
+                'sku_code': sku_code,
+                'variant_name': variant_name,
+                'store_id': store_id,
+                'store_name': store_names.get(store_id),
+                'quantity_sold': totals['quantity_sold'],
+                'revenue': str(totals['revenue'].quantize(Decimal('0.01'))),
+            })
+
+        store_performance = [
+            {
+                'store_id': store_id,
+                'store_name': store_names.get(store_id),
+                'completed_orders': values['completed_orders'],
+                'items_sold': values['items_sold'],
+                'revenue': str(values['revenue'].quantize(Decimal('0.01'))),
+            }
+            for store_id, values in sorted(store_totals.items(), key=lambda entry: entry[1]['revenue'], reverse=True)
+        ]
+
+        return {
+            'success': True,
+            'data': {
+                'from_date': from_date,
+                'to_date': to_date,
+                'group_by': group_by,
+                'overview': {
+                    'total_users': db.session.query(User).filter(User.deleted_at.is_(None)).count(),
+                    'total_stores': db.session.query(Store).filter(Store.deleted_at.is_(None)).count(),
+                    'total_products': db.session.query(Product).filter(Product.deleted_at.is_(None)).count(),
+                },
+                'total_revenue': str(total_revenue.quantize(Decimal('0.01'))),
+                'total_orders': len(orders),
+                'completed_orders': status_counts.get('COMPLETED', 0),
+                'cancelled_orders': status_counts.get('CANCELLED', 0),
+                'orders_by_status': status_counts,
+                'revenue_by_period': [
+                    {
+                        'period': period,
+                        'revenue': str(values['revenue'].quantize(Decimal('0.01'))),
+                        'completed_orders': values['completed_orders'],
+                    }
+                    for period, values in sorted(period_revenue.items())
+                ],
+                'top_products': top_products,
+                'store_performance': store_performance,
+            }
+        }, 200
 
     # ── API 55: GET /api/v1/admin/users | Admin, Manager ─────────────────────
     @staticmethod
@@ -25,7 +154,13 @@ class AdminService:
             params = {'offset': offset, 'limit': limit}
 
             if role_code:
-                filters.append("r.role_code = :role_code")
+                filters.append("""EXISTS (
+                    SELECT 1 FROM user_roles filter_ur
+                    JOIN roles filter_r ON filter_r.role_id = filter_ur.role_id
+                    WHERE filter_ur.user_id = u.user_id
+                      AND filter_ur.status = 'ACTIVE'
+                      AND filter_r.role_code = :role_code
+                )""")
                 params['role_code'] = role_code
             if status:
                 filters.append("u.status = :status")
@@ -47,7 +182,12 @@ class AdminService:
 
             data_sql = text(f"""
                 SELECT u.user_id, u.email, u.phone, u.full_name, u.status, u.created_at,
-                       STRING_AGG(r.role_code, ',') AS roles
+                       STRING_AGG(r.role_code, ',') AS roles,
+                       STRING_AGG(
+                           CASE WHEN r.role_id IS NOT NULL
+                                THEN CONCAT(r.role_id, ':', r.role_code) END,
+                           ','
+                       ) AS role_assignments
                 FROM users u
                 LEFT JOIN user_roles ur ON ur.user_id = u.user_id AND ur.status = 'ACTIVE'
                 LEFT JOIN roles r ON r.role_id = ur.role_id
@@ -67,6 +207,13 @@ class AdminService:
                     'full_name': r.full_name,
                     'status': r.status,
                     'roles': r.roles.split(',') if r.roles else [],
+                    'role_assignments': [
+                        {
+                            'role_id': int(item.split(':', 1)[0]),
+                            'role_code': item.split(':', 1)[1],
+                        }
+                        for item in (r.role_assignments.split(',') if r.role_assignments else [])
+                    ],
                     'created_at': r.created_at.isoformat() if r.created_at else None,
                 })
 
@@ -133,6 +280,10 @@ class AdminService:
     @staticmethod
     def assign_role(admin_user_id, target_user_id, role_code):
         try:
+            if admin_user_id == target_user_id:
+                return {'success': False, 'message': 'Không thể tự gán role cho chính mình'}, 403
+
+            role_code = role_code.strip().upper()
             # Check user tồn tại
             user = db.session.query(User).filter(
                 User.user_id == target_user_id,
@@ -149,22 +300,59 @@ class AdminService:
             if not role:
                 return {'success': False, 'message': f'Role "{role_code}" không tồn tại'}, 404
 
+            if role_code == 'SELLER':
+                active_store = (
+                    db.session.query(Store.store_id)
+                    .join(UserStore, UserStore.store_id == Store.store_id)
+                    .filter(
+                        UserStore.user_id == target_user_id,
+                        UserStore.store_member_role == 'OWNER',
+                        UserStore.is_active == 1,
+                        Store.status == 'ACTIVE',
+                        Store.deleted_at.is_(None)
+                    )
+                    .first()
+                )
+                if not active_store:
+                    return {
+                        'success': False,
+                        'message': 'Chỉ gán SELLER sau khi cửa hàng của owner đã được duyệt ACTIVE'
+                    }, 409
+
             utc = pytz.UTC
             now = datetime.now(utc)
 
-            # INSERT vào user_roles — UX_user_roles_user_role sẽ bắt duplicate
-            insert_sql = text("""
-                INSERT INTO user_roles
-                    (user_id, role_id, assigned_by_user_id, status, assigned_at, created_at, updated_at)
-                VALUES
-                    (:user_id, :role_id, :assigned_by, 'ACTIVE', :now, :now, :now)
-            """)
-            db.session.execute(insert_sql, {
-                'user_id': target_user_id,
-                'role_id': role.role_id,
-                'assigned_by': admin_user_id,
-                'now': now
-            })
+            existing = db.session.execute(text("""
+                SELECT user_role_id, status FROM user_roles
+                WHERE user_id = :user_id AND role_id = :role_id
+            """), {'user_id': target_user_id, 'role_id': role.role_id}).fetchone()
+
+            if existing and existing.status == 'ACTIVE':
+                return {'success': False, 'message': 'Người dùng đã có role này rồi'}, 409
+
+            if existing:
+                db.session.execute(text("""
+                    UPDATE user_roles
+                    SET status = 'ACTIVE', assigned_by_user_id = :assigned_by,
+                        assigned_at = :now, revoked_at = NULL, updated_at = :now
+                    WHERE user_role_id = :user_role_id
+                """), {
+                    'assigned_by': admin_user_id,
+                    'now': now,
+                    'user_role_id': existing.user_role_id,
+                })
+            else:
+                db.session.execute(text("""
+                    INSERT INTO user_roles
+                        (user_id, role_id, assigned_by_user_id, status, assigned_at, created_at, updated_at)
+                    VALUES
+                        (:user_id, :role_id, :assigned_by, 'ACTIVE', :now, :now, :now)
+                """), {
+                    'user_id': target_user_id,
+                    'role_id': role.role_id,
+                    'assigned_by': admin_user_id,
+                    'now': now
+                })
             db.session.commit()
 
             return {
@@ -258,9 +446,9 @@ class AdminService:
 
     # ── API 59: PATCH /api/v1/admin/stores/:id/status | Admin only ───────────
     @staticmethod
-    def update_store_status(store_id, status):
+    def update_store_status(admin_user_id, store_id, status):
         try:
-            VALID_STATUSES = ('ACTIVE', 'INACTIVE', 'SUSPENDED')
+            VALID_STATUSES = ('PENDING', 'ACTIVE', 'INACTIVE', 'SUSPENDED')
             if status not in VALID_STATUSES:
                 return {
                     'success': False,
@@ -277,6 +465,51 @@ class AdminService:
             utc = pytz.UTC
             now = datetime.now(utc)
 
+            owner = db.session.query(UserStore).filter(
+                UserStore.store_id == store.store_id,
+                UserStore.store_member_role == 'OWNER',
+                UserStore.is_active == 1
+            ).first()
+            if not owner:
+                return {'success': False, 'message': 'Cửa hàng chưa có owner hợp lệ'}, 409
+
+            seller_granted = False
+            if status == 'ACTIVE':
+                seller_role = db.session.query(Role).filter(
+                    Role.role_code == 'SELLER', Role.status == 'ACTIVE'
+                ).first()
+                if not seller_role:
+                    return {'success': False, 'message': 'Role SELLER không tồn tại hoặc đã bị khóa'}, 409
+
+                assignment = db.session.execute(text("""
+                    SELECT user_role_id, status FROM user_roles
+                    WHERE user_id = :user_id AND role_id = :role_id
+                """), {'user_id': owner.user_id, 'role_id': seller_role.role_id}).fetchone()
+                if not assignment:
+                    db.session.execute(text("""
+                        INSERT INTO user_roles
+                            (user_id, role_id, assigned_by_user_id, status, assigned_at, created_at, updated_at)
+                        VALUES (:user_id, :role_id, :admin_id, 'ACTIVE', :now, :now, :now)
+                    """), {
+                        'user_id': owner.user_id,
+                        'role_id': seller_role.role_id,
+                        'admin_id': admin_user_id,
+                        'now': now,
+                    })
+                    seller_granted = True
+                elif assignment.status != 'ACTIVE':
+                    db.session.execute(text("""
+                        UPDATE user_roles
+                        SET status = 'ACTIVE', assigned_by_user_id = :admin_id,
+                            assigned_at = :now, revoked_at = NULL, updated_at = :now
+                        WHERE user_role_id = :user_role_id
+                    """), {
+                        'admin_id': admin_user_id,
+                        'now': now,
+                        'user_role_id': assignment.user_role_id,
+                    })
+                    seller_granted = True
+
             store.status = status
             store.updated_at = now
             db.session.commit()
@@ -286,6 +519,8 @@ class AdminService:
                 'data': {
                     'store_id': store.store_id,
                     'status': store.status,
+                    'owner_user_id': owner.user_id,
+                    'seller_granted': seller_granted,
                 }
             }, 200
 
@@ -376,73 +611,55 @@ class AdminService:
     @staticmethod
     def revenue_report(from_date, to_date, group_by='day', store_id=None):
         try:
-            params = {'from_date': from_date, 'to_date': to_date}
-            store_filter = ""
-            if store_id:
-                store_filter = "AND o.store_id = :store_id"
-                params['store_id'] = store_id
+            start_date = datetime.strptime(from_date, '%Y-%m-%d')
+            end_date = datetime.strptime(to_date, '%Y-%m-%d')
+        except (TypeError, ValueError):
+            return {'success': False, 'message': 'from_date và to_date phải có định dạng YYYY-MM-DD'}, 400
+        if start_date > end_date:
+            return {'success': False, 'message': 'from_date không được lớn hơn to_date'}, 400
 
-            if group_by == 'store':
-                data_sql = text(f"""
-                    SELECT s.store_name AS label,
-                           COUNT(*) AS order_count,
-                           SUM(o.total_amount) AS revenue
-                    FROM orders o
-                    JOIN stores s ON o.store_id = s.store_id
-                    WHERE o.order_status = 'COMPLETED'
-                      AND o.created_at BETWEEN :from_date AND :to_date
-                      {store_filter}
-                    GROUP BY o.store_id, s.store_name
-                    ORDER BY revenue DESC
-                """)
-            else:  # default: day
-                data_sql = text(f"""
-                    SELECT CAST(o.created_at AS DATE) AS label,
-                           COUNT(*) AS order_count,
-                           SUM(o.total_amount) AS revenue
-                    FROM orders o
-                    WHERE o.order_status = 'COMPLETED'
-                      AND o.created_at BETWEEN :from_date AND :to_date
-                      {store_filter}
-                    GROUP BY CAST(o.created_at AS DATE)
-                    ORDER BY label ASC
-                """)
+        query = db.session.query(Order).filter(
+            Order.order_status == 'COMPLETED',
+            Order.created_at >= start_date,
+            Order.created_at < end_date + timedelta(days=1),
+            Order.deleted_at.is_(None)
+        )
+        if store_id:
+            query = query.filter(Order.store_id == store_id)
+        orders = query.all()
 
-            rows = db.session.execute(data_sql, params).fetchall()
+        grouped = defaultdict(lambda: {'order_count': 0, 'revenue': Decimal('0.00')})
+        store_names = {}
+        if group_by == 'store':
+            ids = {order.store_id for order in orders}
+            store_names = dict(db.session.query(Store.store_id, Store.store_name).filter(Store.store_id.in_(ids)).all()) if ids else {}
 
-            data = []
-            total_revenue = 0.0
-            total_orders = 0
+        for order in orders:
+            label = order.store_id if group_by == 'store' else order.created_at.date().isoformat()
+            grouped[label]['order_count'] += 1
+            grouped[label]['revenue'] += order.total_amount or Decimal('0.00')
 
-            for r in rows:
-                rev = float(r.revenue) if r.revenue else 0.0
-                cnt = int(r.order_count) if r.order_count else 0
-                total_revenue += rev
-                total_orders += cnt
+        data = []
+        for label, values in sorted(grouped.items(), key=lambda entry: entry[1]['revenue'], reverse=group_by == 'store'):
+            row = {
+                'order_count': values['order_count'],
+                'revenue': str(values['revenue'].quantize(Decimal('0.01'))),
+            }
+            row['store_name' if group_by == 'store' else 'date'] = store_names.get(label) if group_by == 'store' else label
+            data.append(row)
 
-                label_key = 'store_name' if group_by == 'store' else 'date'
-                label_val = str(r.label) if r.label else None
-
-                data.append({
-                    label_key: label_val,
-                    'order_count': cnt,
-                    'revenue': rev,
-                })
-
-            return {
-                'success': True,
-                'data': {
-                    'from_date': str(from_date),
-                    'to_date': str(to_date),
-                    'group_by': group_by,
-                    'total_revenue': round(total_revenue, 2),
-                    'total_orders': total_orders,
-                    'data': data,
-                }
-            }, 200
-
-        except Exception as e:
-            raise e
+        total_revenue = sum((order.total_amount or Decimal('0.00') for order in orders), Decimal('0.00'))
+        return {
+            'success': True,
+            'data': {
+                'from_date': from_date,
+                'to_date': to_date,
+                'group_by': group_by,
+                'total_revenue': str(total_revenue.quantize(Decimal('0.01'))),
+                'total_orders': len(orders),
+                'data': data,
+            }
+        }, 200
 
     # ── API 62: POST /api/v1/admin/shipments/:orderId/assign | Admin only ─────
     @staticmethod

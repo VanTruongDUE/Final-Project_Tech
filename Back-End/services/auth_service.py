@@ -2,7 +2,6 @@ import jwt
 import secrets
 import hashlib
 import random
-import os
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app, request
@@ -11,6 +10,7 @@ from models.user import User, user_roles
 from models.role import Role
 from models.refresh_token import RefreshToken
 from models.password_seset_request import PasswordResetRequest
+from sqlalchemy.exc import IntegrityError
 
 
 class AuthService:
@@ -114,6 +114,9 @@ class AuthService:
                     "roles": ["CUSTOMER"]
                 }
             }, 201
+        except IntegrityError:
+            db.session.rollback()
+            return {"success": False, "message": "Email hoặc số điện thoại đã được sử dụng"}, 409
         except Exception as e:
             db.session.rollback()
             return {"success": False, "message": str(e)}, 500
@@ -427,11 +430,9 @@ class AuthService:
             parts = email.split('@')
             masked = parts[0][0] + '***@' + parts[1] if len(parts) == 2 else email
             destination_masked = masked
-            destination_display = email
         else:
             # 090***7890 (giữ 3 đầu + 2 cuối)
             destination_masked = phone[:3] + '***' + phone[-2:] if len(phone) >= 5 else phone
-            destination_display = phone
 
         # Step 9: Hủy các request PENDING cũ của user này
         PasswordResetRequest.query.filter(
@@ -453,10 +454,8 @@ class AuthService:
         db.session.add(new_request)
         db.session.commit()
 
-        # Step 11: DEMO MODE — in OTP ra console (không gửi email thật)
-        print(f"[DEMO OTP] Gửi tới {destination_display}: {otp}")
-
-        # Step 12: Response 200
+        # Step 11: Response 200. OTP phát triển chỉ được trả khi bật cờ explicit;
+        # không log OTP hoặc destination vào console.
         response_data = {
             "success": True,
             "message": "Nếu tài khoản tồn tại, OTP đã được gửi",
@@ -465,8 +464,7 @@ class AuthService:
                 "expires_in_seconds": 300
             }
         }
-        # _dev_otp chỉ trả trong môi trường development
-        if os.environ.get('FLASK_ENV') != 'production':
+        if current_app.config.get('ENABLE_DEV_OTP', False):
             response_data["_dev_otp"] = otp
 
         return response_data, 200

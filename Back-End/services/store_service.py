@@ -106,6 +106,83 @@ class StoreService:
         except Exception as e:
             raise e
 
+    @staticmethod
+    def get_store_application(user_id):
+        store = (
+            db.session.query(Store)
+            .join(UserStore, UserStore.store_id == Store.store_id)
+            .filter(
+                UserStore.user_id == user_id,
+                UserStore.store_member_role == 'OWNER',
+                UserStore.is_active == 1,
+                Store.deleted_at.is_(None)
+            )
+            .first()
+        )
+        if not store:
+            return {'success': True, 'data': None}, 200
+        return {'success': True, 'data': StoreService._get_store_dict(store)}, 200
+
+    @staticmethod
+    def create_store_application(user_id, store_name, description=None, logo_url=None,
+                                 contact_email=None, contact_phone=None, address_line=None,
+                                 ward=None, district=None, province=None):
+        try:
+            existing = (
+                db.session.query(Store)
+                .join(UserStore, UserStore.store_id == Store.store_id)
+                .filter(
+                    UserStore.user_id == user_id,
+                    UserStore.store_member_role == 'OWNER',
+                    UserStore.is_active == 1,
+                    Store.deleted_at.is_(None)
+                )
+                .first()
+            )
+            if existing:
+                return {
+                    'success': False,
+                    'message': f'Bạn đã có cửa hàng hoặc hồ sơ đang ở trạng thái {existing.status}'
+                }, 409
+
+            now = datetime.now(pytz.UTC)
+            store = Store(
+                store_code='SHOP-' + generate(size=8).upper(),
+                store_name=store_name.strip(),
+                slug=slugify(store_name) + '-' + generate(size=6),
+                description=description,
+                logo_url=logo_url,
+                contact_email=contact_email,
+                contact_phone=contact_phone,
+                address_line=address_line,
+                ward=ward,
+                district=district,
+                province=province,
+                total_products=0,
+                status='PENDING',
+                created_at=now,
+                updated_at=now
+            )
+            db.session.add(store)
+            db.session.flush()
+            db.session.add(UserStore(
+                user_id=user_id,
+                store_id=store.store_id,
+                store_member_role='OWNER',
+                is_active=1,
+                created_at=now,
+                updated_at=now
+            ))
+            db.session.commit()
+            return {
+                'success': True,
+                'message': 'Đã gửi hồ sơ đăng ký người bán',
+                'data': StoreService._get_store_dict(store)
+            }, 201
+        except Exception:
+            db.session.rollback()
+            raise
+
     # API 27: POST /api/v1/stores | Seller
     @staticmethod
     def create_store(user_id, store_name, description=None, logo_url=None,

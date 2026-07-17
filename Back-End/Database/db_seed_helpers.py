@@ -41,7 +41,7 @@ def _parse_db_url(url: str):
     """Tách SERVER và DATABASE từ DATABASE_URL kiểu SQLAlchemy (mssql+pyodbc://...)."""
     m = re.match(r"mssql\+pyodbc://[^@]*@([^/]+)/([^?]+)", url)
     if not m:
-        raise ValueError(f"Không parse được DATABASE_URL: {url}")
+        raise ValueError("DATABASE_URL không đúng định dạng SQLAlchemy mssql+pyodbc")
     return m.group(1), m.group(2)
 
 
@@ -59,7 +59,7 @@ def get_conn():
 # ─── Faker — CHỈ dùng làm fallback khi KHÔNG crawl được field thật ──────────
 fake = Faker("vi_VN")
 
-DEFAULT_SELLER_PASSWORD = "Seller@123456"  # mật khẩu demo cho mọi seller tự sinh ra
+SELLER_SEED_PASSWORD = env.get("DEMO_SELLER_PASSWORD")
 
 
 def stable_slug(text: str, max_len: int = 191) -> str:
@@ -199,7 +199,11 @@ def get_or_create_store_with_owner(conn, store_data: dict) -> int:
         seller_email = f"seller.{store_data['store_code']}@example.com"
         seller_phone = f"0900{store_id:06d}"
         seller_name = fake.name()
-        password_hash = generate_password_hash(DEFAULT_SELLER_PASSWORD)
+        if not SELLER_SEED_PASSWORD:
+            raise RuntimeError(
+                "Thiếu DEMO_SELLER_PASSWORD; cấu hình secret riêng trước khi tạo seller seed."
+            )
+        password_hash = generate_password_hash(SELLER_SEED_PASSWORD)
 
         cur.execute(
             """
@@ -242,7 +246,7 @@ def get_or_create_store_with_owner(conn, store_data: dict) -> int:
         conn.rollback()
         raise
 
-    print(f"    ✓ Seller mới: {seller_email}  |  mật khẩu: {DEFAULT_SELLER_PASSWORD}  (user_id={seller_user_id})")
+    print(f"    ✓ Seller mới: {seller_email} (user_id={seller_user_id})")
     return store_id
 
 

@@ -1,23 +1,104 @@
+from datetime import datetime
+from decimal import Decimal
+
+import pytz
+from nanoid import generate
+
 from extensions import db
+from models.cart import Cart
+from models.cart_item import CartItem
 from models.order import Order
 from models.order_item import OrderItem
 from models.order_status_history import OrderStatusHistory
-from models.voucher import Voucher, OrderVoucher
 from models.product import Product
 from models.product_image import ProductImage
-from models.store import Store
-from models.shipment import Shipment
-from models.cart import Cart
-from models.cart_item import CartItem
 from models.product_variant import ProductVariant
-from datetime import datetime
-from nanoid import generate
-import pytz
+from models.shipment import Shipment
+from models.store import Store
+from models.address import Address
+from models.voucher import OrderVoucher
+from services.variant_service import VariantService
+from services.voucher_service import VoucherService
 
 
 class OrderService:
+    @staticmethod
+    def _primary_image_url(product_id):
+        primary_img = db.session.query(ProductImage.image_url).filter(
+            ProductImage.product_id == product_id,
+            ProductImage.is_primary == True
+        ).first()
+        return primary_img[0] if primary_img else None
 
-    # API 34: POST /api/v1/orders — Place Order (TRANSACTION)
+    @staticmethod
+    def _validate_voucher_contract(customer_id, store_id, subtotal, voucher_code, now):
+        if not voucher_code:
+            return None, Decimal('0'), None, 200
+
+        return VoucherService.validate_and_calculate(
+            customer_id=customer_id,
+            code=voucher_code,
+            order_amount=subtotal,
+            store_id=store_id,
+            now=now
+        )
+
+    @staticmethod
+    def _resolve_order_items(store_id, items):
+        product_ids = list({item['product_id'] for item in items})
+        products = db.session.query(Product).filter(
+            Product.product_id.in_(product_ids),
+            Product.store_id == store_id,
+            Product.status == 'ACTIVE',
+            Product.deleted_at.is_(None)
+        ).all()
+
+        if len(products) != len(product_ids):
+            found_ids = {product.product_id for product in products}
+            missing = [pid for pid in product_ids if pid not in found_ids]
+            return None, f'Sản phẩm không hợp lệ hoặc không thuộc cửa hàng: {missing}'
+
+        product_map = {product.product_id: product for product in products}
+        resolved_items = []
+
+        for item in items:
+            product_id = item['product_id']
+            quantity = item['quantity']
+            product = product_map[product_id]
+            variant = VariantService.resolve_variant(product, item.get('variant_id'))
+
+            if not variant:
+                return None, f'Variant không hợp lệ cho sản phẩm "{product.product_name}"'
+
+            existing = next(
+                (
+                    entry for entry in resolved_items
+                    if entry['product_id'] == product_id and entry['variant'].variant_id == variant.variant_id
+                ),
+                None
+            )
+
+            if existing:
+                existing['quantity'] += quantity
+            else:
+                resolved_items.append({
+                    'product_id': product_id,
+                    'product': product,
+                    'variant': variant,
+                    'quantity': quantity,
+                })
+
+        for entry in resolved_items:
+            variant = entry['variant']
+            quantity = entry['quantity']
+            if (variant.stock_quantity or 0) < quantity:
+                return None, (
+                    f'Không đủ hàng cho "{entry["product"].product_name}" '
+                    f'({variant.variant_name}). Tồn kho: {variant.stock_quantity or 0}, yêu cầu: {quantity}'
+                )
+
+        return resolved_items, None
+
     @staticmethod
     def place_order(customer_id, store_id, items, recipient_name, recipient_phone,
                     shipping_address_line, shipping_province, shipping_ward=None,
@@ -27,123 +108,56 @@ class OrderService:
             utc = pytz.UTC
             now = datetime.now(utc)
 
-            product_ids = [item['product_id'] for item in items]
-            products = db.session.query(Product).filter(
-                Product.product_id.in_(product_ids),
-                Product.store_id == store_id,
-                Product.status == 'ACTIVE',
-                Product.deleted_at.is_(None)
-            ).all()
-
-            if len(products) != len(product_ids):
-                found_ids = {p.product_id for p in products}
-                missing = [pid for pid in product_ids if pid not in found_ids]
-                return {
-                    'success': False,
-                    'message': f'Sản phẩm không hợp lệ hoặc không thuộc cửa hàng: {missing}'
-                }, 400
-
-            product_map = {p.product_id: p for p in products}
-
-            # ─── Xác định variant cho từng item ───
-            # variant_map: product_id -> ProductVariant đã resolve
-            variant_map = {}
-            qty_map = {}
-            for item in items:
-                pid = item['product_id']
-                qty = item['quantity']
-                qty_map[pid] = qty
-
-                variant_id = item.get('variant_id')
-                if variant_id:
-                    variant = db.session.query(ProductVariant).filter(
-                        ProductVariant.variant_id == variant_id,
-                        ProductVariant.product_id == pid,
-                        ProductVariant.status == 'ACTIVE'
-                    ).first()
-                    if not variant:
-                        return {
-                            'success': False,
-                            'message': f'Variant không hợp lệ cho sản phẩm "{product_map[pid].product_name}"'
-                        }, 400
-                else:
-                    variant = db.session.query(ProductVariant).filter(
-                        ProductVariant.product_id == pid,
-                        ProductVariant.is_default == True,
-                        ProductVariant.status == 'ACTIVE'
-                    ).first()
-                    if not variant:
-                        return {
-                            'success': False,
-                            'message': f'Sản phẩm "{product_map[pid].product_name}" chưa có variant mặc định'
-                        }, 400
-
-                variant_map[pid] = variant
-
-            # ─── Check stock theo VARIANT, không phải theo product ───
-            for pid, qty in qty_map.items():
-                variant = variant_map[pid]
-                if variant.stock_quantity < qty:
-                    return {
-                        'success': False,
-                        'message': (f'Không đủ hàng cho "{product_map[pid].product_name}" '
-                                f'({variant.variant_name}). Tồn kho: {variant.stock_quantity}, yêu cầu: {qty}')
-                    }, 400
-
-            # ─── Tính subtotal theo GIÁ VARIANT ───
-            subtotal = sum(float(variant_map[pid].price) * qty for pid, qty in qty_map.items())
-
-            # === Voucher (giữ nguyên logic cũ) ===
-            discount_amount = 0
-            voucher = None
-            if voucher_code:
-                voucher = db.session.query(Voucher).filter(
-                    Voucher.voucher_code == voucher_code,
-                    Voucher.status == 'ACTIVE',
-                    Voucher.deleted_at.is_(None)
+            source_address = None
+            if address_id is not None:
+                source_address = db.session.query(Address).filter(
+                    Address.address_id == address_id,
+                    Address.user_id == customer_id,
+                    Address.status == 'ACTIVE',
+                    Address.deleted_at.is_(None)
                 ).first()
 
-                if not voucher:
-                    return {'success': False, 'message': 'Voucher không hợp lệ'}, 400
-                if voucher.ends_at and voucher.ends_at < now:
-                    return {'success': False, 'message': 'Voucher đã hết hạn'}, 400
-                if voucher.starts_at and voucher.starts_at > now:
-                    return {'success': False, 'message': 'Voucher chưa bắt đầu'}, 400
-                if voucher.usage_limit and voucher.used_count >= voucher.usage_limit:
-                    return {'success': False, 'message': 'Voucher đã hết lượt sử dụng'}, 400
-                if voucher.min_order_amount and subtotal < float(voucher.min_order_amount):
+                if not source_address:
                     return {
                         'success': False,
-                        'message': f'Đơn hàng tối thiểu {voucher.min_order_amount} để dùng voucher này'
-                    }, 400
+                        'message': 'Địa chỉ không tồn tại, không thuộc tài khoản hoặc đã ngừng hoạt động'
+                    }, 404
 
-                if voucher.usage_limit_per_customer:
-                    customer_usage = db.session.query(OrderVoucher).join(
-                        Order, Order.order_id == OrderVoucher.order_id
-                    ).filter(
-                        OrderVoucher.voucher_id == voucher.voucher_id,
-                        Order.customer_id == customer_id,
-                        Order.order_status != 'CANCELLED'
-                    ).count()
-                    if customer_usage >= voucher.usage_limit_per_customer:
-                        return {'success': False, 'message': 'Bạn đã sử dụng hết lượt voucher này'}, 400
+                # A persisted address is authoritative when address_id is supplied.
+                recipient_name = source_address.recipient_name
+                recipient_phone = source_address.recipient_phone
+                shipping_address_line = source_address.address_line
+                shipping_ward = source_address.ward
+                shipping_district = source_address.district
+                shipping_province = source_address.province
 
-                if voucher.discount_type == 'PERCENT':
-                    discount_amount = subtotal * float(voucher.discount_value) / 100
-                    if voucher.max_discount_amount:
-                        discount_amount = min(discount_amount, float(voucher.max_discount_amount))
-                else:
-                    discount_amount = float(voucher.discount_value)
-                discount_amount = min(discount_amount, subtotal)
+            resolved_items, error = OrderService._resolve_order_items(store_id, items)
+            if error:
+                return {'success': False, 'message': error}, 400
 
-            shipping_fee = 0
+            subtotal = sum(
+                Decimal(entry['variant'].price) * entry['quantity']
+                for entry in resolved_items
+            )
+
+            voucher, discount_amount, voucher_error, voucher_status = OrderService._validate_voucher_contract(
+                customer_id=customer_id,
+                store_id=store_id,
+                subtotal=subtotal,
+                voucher_code=voucher_code,
+                now=now
+            )
+            if voucher_error:
+                return voucher_error, voucher_status
+
+            shipping_fee = Decimal('0')
             total_amount = subtotal - discount_amount + shipping_fee
 
-            order_code = f"ORD-{now.strftime('%Y%m%d')}-{generate(size=8).upper()}"
             order = Order(
                 customer_id=customer_id,
                 store_id=store_id,
-                order_code=order_code,
+                source_address_id=source_address.address_id if source_address else None,
+                order_code=f"ORD-{now.strftime('%Y%m%d')}-{generate(size=8).upper()}",
                 order_status='PENDING',
                 recipient_name=recipient_name,
                 recipient_phone=recipient_phone,
@@ -152,6 +166,7 @@ class OrderService:
                 shipping_district=shipping_district,
                 shipping_province=shipping_province,
                 payment_method=payment_method,
+                payment_status='UNPAID' if payment_method == 'COD' else 'PENDING',
                 customer_note=customer_note,
                 subtotal=subtotal,
                 discount_amount=discount_amount,
@@ -163,64 +178,62 @@ class OrderService:
             db.session.add(order)
             db.session.flush()
 
-            # ─── INSERT order_items — kèm variant_id + snapshot SKU/tên variant ───
-            for pid, qty in qty_map.items():
-                product = product_map[pid]
-                variant = variant_map[pid]
+            for entry in resolved_items:
+                product = entry['product']
+                variant = entry['variant']
+                quantity = entry['quantity']
 
-                primary_img = db.session.query(ProductImage.image_url).filter(
-                    ProductImage.product_id == pid,
-                    ProductImage.is_primary == True
-                ).first()
-
-                oi = OrderItem(
+                db.session.add(OrderItem(
                     order_id=order.order_id,
-                    product_id=pid,
+                    product_id=product.product_id,
                     variant_id=variant.variant_id,
-                    quantity=qty,
+                    quantity=quantity,
                     unit_price=variant.price,
                     product_name_snapshot=product.product_name,
-                    product_image_url_snapshot=primary_img[0] if primary_img else None,
+                    product_image_url_snapshot=OrderService._primary_image_url(product.product_id),
                     sku_code_snapshot=variant.sku_code,
                     variant_name_snapshot=variant.variant_name,
                     created_at=now,
                     updated_at=now
-                )
-                db.session.add(oi)
+                ))
 
-            # ─── Trừ kho theo VARIANT, không đụng products.stock_quantity nữa ───
-            for pid, qty in qty_map.items():
-                variant = variant_map[pid]
-                variant.stock_quantity -= qty
+                variant.stock_quantity = (variant.stock_quantity or 0) - quantity
                 variant.updated_at = now
-                # sold_quantity vẫn giữ ở Product làm bộ đếm thống kê tổng
-                product_map[pid].sold_quantity = (product_map[pid].sold_quantity or 0) + qty
-                product_map[pid].updated_at = now
+                product.sold_quantity = (product.sold_quantity or 0) + quantity
+                product.updated_at = now
 
-            history = OrderStatusHistory(
-                order_id=order.order_id,
-                previous_status=None,
-                new_status='PENDING',
-                changed_by_user_id=customer_id,
-                created_at=now
+            VariantService.sync_product_stock(
+                entry['product_id'] for entry in resolved_items
             )
-            db.session.add(history)
+
+            db.session.add(OrderStatusHistory(
+                order_id=order.order_id,
+                prev_status=None,
+                new_status='PENDING',
+                changed_by=customer_id,
+                note='Khách hàng tạo đơn',
+                created_at=now
+            ))
 
             if voucher:
-                ov = OrderVoucher(
+                db.session.add(OrderVoucher(
                     order_id=order.order_id,
                     voucher_id=voucher.voucher_id,
+                    voucher_code_snapshot=voucher.voucher_code,
+                    discount_type_snapshot=voucher.discount_type,
+                    discount_value_snapshot=voucher.discount_value,
                     discount_amount=discount_amount,
-                    created_at=now
-                )
-                db.session.add(ov)
+                    application_status='APPLIED',
+                    applied_at=now,
+                    created_at=now,
+                    updated_at=now
+                ))
                 voucher.used_count = (voucher.used_count or 0) + 1
                 voucher.updated_at = now
 
-            # Xóa cart_items tương ứng — giờ xóa theo variant_id (đúng với UNIQUE(cart_id, variant_id) mới)
             cart = db.session.query(Cart).filter(Cart.customer_id == customer_id).first()
             if cart:
-                ordered_variant_ids = [v.variant_id for v in variant_map.values()]
+                ordered_variant_ids = [entry['variant'].variant_id for entry in resolved_items]
                 db.session.query(CartItem).filter(
                     CartItem.cart_id == cart.cart_id,
                     CartItem.variant_id.in_(ordered_variant_ids)
@@ -234,7 +247,17 @@ class OrderService:
                     'order_id': order.order_id,
                     'order_code': order.order_code,
                     'order_status': order.order_status,
+                    'store_id': order.store_id,
+                    'source_address_id': order.source_address_id,
+                    'subtotal': float(order.subtotal),
+                    'discount_amount': float(order.discount_amount),
                     'total_amount': float(order.total_amount),
+                    'voucher': ({
+                        'voucher_code': voucher.voucher_code,
+                        'discount_type': voucher.discount_type,
+                        'discount_value': float(voucher.discount_value),
+                        'discount_amount': float(discount_amount),
+                    } if voucher else None),
                 }
             }, 201
 
@@ -242,7 +265,6 @@ class OrderService:
             db.session.rollback()
             raise e
 
-    # API 35: GET /api/v1/orders — List My Orders
     @staticmethod
     def list_my_orders(customer_id, status=None, page=1, limit=20):
         try:
@@ -258,29 +280,27 @@ class OrderService:
 
             total_items = query.count()
             total_pages = (total_items + limit - 1) // limit if total_items > 0 else 0
-
             orders = query.order_by(Order.created_at.desc()).offset(offset).limit(limit).all()
 
             orders_list = []
-            for o in orders:
-                # Lấy first item (snapshot)
-                first_item = db.session.query(OrderItem.product_name_snapshot).filter(
-                    OrderItem.order_id == o.order_id
+            for order in orders:
+                first_item = db.session.query(OrderItem).filter(
+                    OrderItem.order_id == order.order_id
                 ).first()
-
-                # Lấy store name
                 store = db.session.query(Store.store_name).filter(
-                    Store.store_id == o.store_id
+                    Store.store_id == order.store_id
                 ).first()
 
                 orders_list.append({
-                    'order_id': o.order_id,
-                    'order_code': o.order_code,
-                    'order_status': o.order_status,
-                    'total_amount': float(o.total_amount),
-                    'created_at': o.created_at.isoformat() if o.created_at else None,
+                    'order_id': order.order_id,
+                    'order_code': order.order_code,
+                    'order_status': order.order_status,
+                    'store_id': order.store_id,
+                    'source_address_id': order.source_address_id,
+                    'total_amount': float(order.total_amount),
+                    'created_at': order.created_at.isoformat() if order.created_at else None,
                     'store_name': store[0] if store else None,
-                    'first_item': first_item[0] if first_item else None,
+                    'first_item': first_item.product_name_snapshot if first_item else None,
                 })
 
             return {
@@ -299,7 +319,6 @@ class OrderService:
         except Exception as e:
             raise e
 
-    # API 36: GET /api/v1/orders/:id — Get Order Detail
     @staticmethod
     def get_order_detail(customer_id, order_id):
         try:
@@ -310,33 +329,36 @@ class OrderService:
 
             if not order:
                 return {'success': False, 'message': 'Đơn hàng không tồn tại'}, 404
-
-            # Verify ownership
             if order.customer_id != customer_id:
                 return {'success': False, 'message': 'Không có quyền xem đơn hàng này'}, 403
 
-            # Order items
             items = db.session.query(OrderItem).filter(
                 OrderItem.order_id == order_id
             ).all()
 
-            items_list = [{
-                'order_item_id': oi.order_item_id,
-                'product_id': oi.product_id,
-                'quantity': oi.quantity,
-                'unit_price': float(oi.unit_price),
-                'product_name_snapshot': oi.product_name_snapshot,
-                'product_image_url_snapshot': oi.product_image_url_snapshot,
-            } for oi in items]
+            items_list = []
+            for item in items:
+                total_price = float(item.unit_price) * item.quantity
+                items_list.append({
+                    'order_item_id': item.order_item_id,
+                    'product_id': item.product_id,
+                    'variant_id': item.variant_id,
+                    'sku_code': item.sku_code_snapshot,
+                    'variant_name': item.variant_name_snapshot or 'Mặc định',
+                    'product_name': item.product_name_snapshot,
+                    'product_name_snapshot': item.product_name_snapshot,
+                    'product_image_url_snapshot': item.product_image_url_snapshot,
+                    'quantity': item.quantity,
+                    'unit_price': float(item.unit_price),
+                    'total_price': total_price,
+                })
 
-            # Store info
             store = db.session.query(Store).filter(Store.store_id == order.store_id).first()
             store_info = {
                 'store_name': store.store_name if store else None,
                 'logo_url': store.logo_url if store else None,
             }
 
-            # Shipment (LEFT JOIN)
             shipment = db.session.query(Shipment).filter(
                 Shipment.order_id == order_id
             ).first()
@@ -344,12 +366,26 @@ class OrderService:
             shipment_info = None
             if shipment:
                 shipment_info = {
-                    'status': shipment.status,
+                    'status': shipment.shipment_status,
                     'tracking_code': shipment.tracking_code,
                     'carrier': shipment.carrier,
                     'shipped_at': shipment.shipped_at.isoformat() if shipment.shipped_at else None,
                     'delivered_at': shipment.delivered_at.isoformat() if shipment.delivered_at else None,
                 }
+
+            voucher_applications = db.session.query(OrderVoucher).filter(
+                OrderVoucher.order_id == order_id
+            ).all()
+            voucher_snapshots = [{
+                'voucher_id': application.voucher_id,
+                'voucher_code': application.voucher_code_snapshot,
+                'discount_type': application.discount_type_snapshot,
+                'discount_value': float(application.discount_value_snapshot),
+                'discount_amount': float(application.discount_amount),
+                'application_status': application.application_status,
+                'applied_at': application.applied_at.isoformat() if application.applied_at else None,
+                'reversed_at': application.reversed_at.isoformat() if application.reversed_at else None,
+            } for application in voucher_applications]
 
             return {
                 'success': True,
@@ -357,6 +393,8 @@ class OrderService:
                     'order_id': order.order_id,
                     'order_code': order.order_code,
                     'order_status': order.order_status,
+                    'store_id': order.store_id,
+                    'source_address_id': order.source_address_id,
                     'recipient_name': order.recipient_name,
                     'recipient_phone': order.recipient_phone,
                     'shipping_address_line': order.shipping_address_line,
@@ -371,6 +409,7 @@ class OrderService:
                     'total_amount': float(order.total_amount),
                     'created_at': order.created_at.isoformat() if order.created_at else None,
                     'items': items_list,
+                    'vouchers': voucher_snapshots,
                     'store': store_info,
                     'shipment': shipment_info,
                 }
@@ -379,7 +418,6 @@ class OrderService:
         except Exception as e:
             raise e
 
-    # API 37: POST /api/v1/orders/:id/cancel — Cancel Order
     @staticmethod
     def cancel_order(customer_id, order_id, cancel_reason=None):
         try:
@@ -395,44 +433,58 @@ class OrderService:
             if order.order_status != 'PENDING':
                 return {'success': False, 'message': 'Không thể hủy đơn đã xử lý'}, 400
 
-            utc = pytz.UTC
-            now = datetime.now(utc)
-
+            now = datetime.now(pytz.UTC)
             order.order_status = 'CANCELLED'
             order.cancelled_by_user_id = customer_id
             order.cancel_reason = cancel_reason
             order.cancelled_at = now
             order.updated_at = now
 
-            history = OrderStatusHistory(
+            db.session.add(OrderStatusHistory(
                 order_id=order.order_id,
-                previous_status='PENDING',
+                prev_status='PENDING',
                 new_status='CANCELLED',
-                changed_by_user_id=customer_id,
-                change_note=cancel_reason,
+                changed_by=customer_id,
+                note=cancel_reason,
                 created_at=now
-            )
-            db.session.add(history)
+            ))
 
             order_items = db.session.query(OrderItem).filter(
                 OrderItem.order_id == order_id
             ).all()
 
-            for oi in order_items:
-                # Hoàn kho theo VARIANT (dùng variant_id đã lưu trong order_item)
+            for item in order_items:
                 variant = db.session.query(ProductVariant).filter(
-                    ProductVariant.variant_id == oi.variant_id
+                    ProductVariant.variant_id == item.variant_id
                 ).first()
                 if variant:
-                    variant.stock_quantity += oi.quantity
+                    variant.stock_quantity = (variant.stock_quantity or 0) + item.quantity
                     variant.updated_at = now
 
                 product = db.session.query(Product).filter(
-                    Product.product_id == oi.product_id
+                    Product.product_id == item.product_id
                 ).first()
                 if product:
-                    product.sold_quantity = max((product.sold_quantity or 0) - oi.quantity, 0)
+                    product.sold_quantity = max((product.sold_quantity or 0) - item.quantity, 0)
                     product.updated_at = now
+
+            VariantService.sync_product_stock(
+                item.product_id for item in order_items
+            )
+
+            voucher_applications = db.session.query(OrderVoucher).filter(
+                OrderVoucher.order_id == order_id,
+                OrderVoucher.application_status == 'APPLIED'
+            ).all()
+            for application in voucher_applications:
+                application.application_status = 'REVERSED'
+                application.reversed_at = now
+                application.reversed_reason = cancel_reason or 'ORDER_CANCELLED'
+                application.updated_at = now
+                voucher = application.voucher
+                if voucher:
+                    voucher.used_count = max((voucher.used_count or 0) - 1, 0)
+                    voucher.updated_at = now
 
             db.session.commit()
             return {'success': True, 'message': 'Đã hủy đơn'}, 200

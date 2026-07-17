@@ -4,6 +4,12 @@ from middlewares.auth_middleware import token_required
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/api/v1')
 
+admin_bp.add_url_rule(
+    '/admin/reports',
+    view_func=token_required(AdminController.reports),
+    methods=['GET']
+)
+
 # API 55: GET /api/v1/admin/users — Admin, Manager
 admin_bp.add_url_rule(
     '/admin/users',

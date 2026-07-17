@@ -36,7 +36,7 @@ class User(db.Model):
 
   # ĐÂY LÀ PHIÊN BẢN ĐÃ ĐƯỢC CHỈ ĐƯỜNG CỤ THỂ CHO SQLALCHEMY
     roles = db.relationship('Role', secondary=user_roles, lazy='subquery',
-        primaryjoin="User.user_id == user_roles.c.user_id",
+        primaryjoin="and_(User.user_id == user_roles.c.user_id, user_roles.c.status == 'ACTIVE')",
         secondaryjoin="Role.role_id == user_roles.c.role_id",
         backref=db.backref('users', lazy=True))
 

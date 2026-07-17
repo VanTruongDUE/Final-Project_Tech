@@ -4,6 +4,12 @@ from middlewares.auth_middleware import token_required
 
 seller_order_bp = Blueprint('seller_orders', __name__, url_prefix='/api/v1')
 
+seller_order_bp.add_url_rule(
+    '/seller/revenue',
+    view_func=token_required(SellerOrderController.revenue_report),
+    methods=['GET']
+)
+
 # API 38: GET /api/v1/seller/orders — Seller
 seller_order_bp.add_url_rule(
     '/seller/orders',

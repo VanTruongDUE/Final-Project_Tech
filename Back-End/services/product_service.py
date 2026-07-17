@@ -5,7 +5,9 @@ from models.review import Review
 from models.store import Store
 from models.category import Category
 from models.user import User
-from sqlalchemy import func, and_
+from models.product_variant import ProductVariant
+from services.variant_service import VariantService
+from sqlalchemy import func, and_, case
 
 class ProductService:
 
@@ -110,12 +112,20 @@ class ProductService:
             # Format response
             products_list = []
             for product in products:
+                default_variant = VariantService.get_default_variant(product.product_id)
+                if not default_variant:
+                    full_product = Product.query.get(product.product_id)
+                    default_variant = VariantService.get_or_create_default_variant(full_product)
+
                 products_list.append({
                     'product_id': product.product_id,
                     'product_name': product.product_name,
                     'slug': product.slug,
-                    'price': float(product.price),
-                    'stock_quantity': product.stock_quantity,
+                    'default_variant_id': default_variant.variant_id if default_variant else None,
+                    'sku_code': default_variant.sku_code if default_variant else None,
+                    'sku': default_variant.sku_code if default_variant else None,
+                    'price': float(default_variant.price if default_variant else product.price),
+                    'stock_quantity': (default_variant.stock_quantity if default_variant else product.stock_quantity) or 0,
                     'sold_quantity': product.sold_quantity,
                     'primary_image_url': product.primary_image_url,
                     'avg_rating': float(product.avg_rating) if product.avg_rating else 0,
@@ -130,6 +140,8 @@ class ProductService:
                         'store_logo': product.store_logo
                     }
                 })
+
+            db.session.commit()
 
             return {
                 'success': True,
@@ -184,17 +196,28 @@ class ProductService:
             reviews_data = db.session.query(
                 func.round(func.avg(func.cast(Review.rating, db.Float)), 1).label('avg_rating'),
                 func.count(Review.review_id).label('review_count'),
-                func.sum(func.case((Review.rating == 5, 1), else_=0)).label('rating_5'),
-                func.sum(func.case((Review.rating == 4, 1), else_=0)).label('rating_4'),
-                func.sum(func.case((Review.rating == 3, 1), else_=0)).label('rating_3'),
-                func.sum(func.case((Review.rating == 2, 1), else_=0)).label('rating_2'),
-                func.sum(func.case((Review.rating == 1, 1), else_=0)).label('rating_1')
+                func.sum(case((Review.rating == 5, 1), else_=0)).label('rating_5'),
+                func.sum(case((Review.rating == 4, 1), else_=0)).label('rating_4'),
+                func.sum(case((Review.rating == 3, 1), else_=0)).label('rating_3'),
+                func.sum(case((Review.rating == 2, 1), else_=0)).label('rating_2'),
+                func.sum(case((Review.rating == 1, 1), else_=0)).label('rating_1')
             ).filter(
                 Review.product_id == product_id,
                 Review.status == 'VISIBLE'
             ).first()
 
             # Format response
+            variants = ProductVariant.query.filter(
+                ProductVariant.product_id == product_id,
+                ProductVariant.status == 'ACTIVE'
+            ).order_by(ProductVariant.is_default.desc(), ProductVariant.variant_id.asc()).all()
+
+            if not variants:
+                variants = [VariantService.get_or_create_default_variant(product)]
+
+            default_variant = next((variant for variant in variants if variant.is_default), variants[0] if variants else None)
+            db.session.commit()
+
             response = {
                 'success': True,
                 'data': {
@@ -202,11 +225,14 @@ class ProductService:
                     'product_name': product.product_name,
                     'slug': product.slug,
                     'sku': product.sku,
+                    'sku_code': default_variant.sku_code if default_variant else product.sku,
+                    'default_variant_id': default_variant.variant_id if default_variant else None,
                     'description': product.description,
-                    'price': float(product.price),
-                    'stock_quantity': product.stock_quantity,
+                    'price': float(default_variant.price if default_variant else product.price),
+                    'stock_quantity': (default_variant.stock_quantity if default_variant else product.stock_quantity) or 0,
                     'sold_quantity': product.sold_quantity,
                     'status': product.status,
+                    'variants': [VariantService.serialize_variant(variant) for variant in variants],
                     'created_at': product.created_at.isoformat() if product.created_at else None,
                     'updated_at': product.updated_at.isoformat() if product.updated_at else None,
                     'images': [
@@ -274,6 +300,7 @@ class ProductService:
             # Base query
             query = db.session.query(
                 Review.review_id,
+                Review.order_item_id,
                 Review.rating,
                 Review.comment,
                 Review.created_at,
@@ -320,6 +347,7 @@ class ProductService:
 
                 reviews_list.append({
                     'review_id': review.review_id,
+                    'order_item_id': review.order_item_id,
                     'rating': review.rating,
                     'comment': review.comment,
                     'created_at': review.created_at.isoformat() if review.created_at else None,
